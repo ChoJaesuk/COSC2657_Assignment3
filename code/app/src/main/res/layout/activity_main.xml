@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".views.activities.MainActivity"
-    android:background="@color/teal_700">
+    android:background="@color/alice_blue">
 
   <TextView
       android:id="@+id/main_text"
@@ -36,10 +36,28 @@
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintVertical_bias="0.611" />
 
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:background="@color/light_blue"
+      android:padding="10dp"
+      android:text="Welcome to Main Activity"
+      android:textColor="@color/black"
+      android:textSize="18sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.497"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintVertical_bias="0.762" />
+
   <Button
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-    android:text="Hello"
-      android:background="@drawable/bg_button_blue"/>
+      android:background="@drawable/bg_button_blue"
+      android:text="Hello"
+      tools:layout_editor_absoluteX="161dp"
+      tools:layout_editor_absoluteY="234dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
