@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChillPiont"
         tools:targetApi="31" >
-        <activity android:name=".activities.MainActivity"
+        <activity android:name=".views.activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

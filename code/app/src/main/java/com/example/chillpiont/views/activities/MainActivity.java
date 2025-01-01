@@ -1,4 +1,4 @@
-package com.example.chillpiont.activities;
+package com.example.chillpiont.views.activities;
 
 import android.os.Bundle;
 
