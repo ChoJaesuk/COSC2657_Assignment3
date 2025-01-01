@@ -14,3 +14,4 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main); // 기본 레이아웃 파일 설정
     }
 }
+//dd
