@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".views.activities.MainActivity">
+    tools:context=".views.activities.MainActivity"
+    android:background="@color/teal_700">
 
   <TextView
       android:id="@+id/main_text"
@@ -12,10 +13,33 @@
       android:layout_height="wrap_content"
       android:text="Welcome to Main Activity"
       android:textSize="18sp"
+      android:padding="10dp"
       android:textColor="@android:color/black"
+      android:background="@drawable/bg_text_rectangle"
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintBottom_toBottomOf="parent" />
+
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:background="@drawable/bg_text_round"
+      android:padding="10dp"
+      android:text="Welcome to Main Activity"
+      android:textColor="@android:color/black"
+      android:textSize="18sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.497"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintVertical_bias="0.611" />
+
+  <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+    android:text="Hello"
+      android:background="@drawable/bg_button_blue"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
