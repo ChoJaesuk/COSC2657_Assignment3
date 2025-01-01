@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -74,23 +73,17 @@ public class CreatePropertyActivity extends AppCompatActivity {
         imageUris = new ArrayList<>();
         uploadedImageUrls = new ArrayList<>();
 
-        // Initialize adapter for image grid view
+        // Set up ImageAdapter
         imageAdapter = new ImageAdapter(this, imageUris);
         imagesGridView.setAdapter(imageAdapter);
+        imageAdapter.setOnImageRemoveListener(position -> {
+            imageUris.remove(position); // Remove image from the list
+            imageAdapter.notifyDataSetChanged(); // Notify adapter of data change
+        });
 
         // Set listeners
         uploadImagesButton.setOnClickListener(v -> openImagePicker());
         savePropertyButton.setOnClickListener(v -> saveProperty());
-
-        // Set image click listener for removal
-        imagesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Remove selected image
-                imageUris.remove(position);
-                imageAdapter.notifyDataSetChanged();
-            }
-        });
     }
 
     private void openImagePicker() {
@@ -114,8 +107,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
                 Uri imageUri = data.getData();
                 imageUris.add(imageUri);
             }
-            imageAdapter.notifyDataSetChanged();
-            Toast.makeText(this, imageUris.size() + " images selected", Toast.LENGTH_SHORT).show();
+            imageAdapter.notifyDataSetChanged(); // Refresh the adapter
         }
     }
 
@@ -172,7 +164,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
 
     private void saveToFirestore(String name, String description, String address, double price, int rooms, int beds, ArrayList<String> imageUrls) {
         String userId = auth.getCurrentUser().getUid();
-        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
         Map<String, Object> property = new HashMap<>();
         property.put("name", name);
@@ -181,8 +173,8 @@ public class CreatePropertyActivity extends AppCompatActivity {
         property.put("pricePerNight", price);
         property.put("numOfRooms", rooms);
         property.put("numOfBeds", beds);
-        property.put("createdAt", currentTime);
-        property.put("updatedAt", currentTime);
+        property.put("createdAt", createdAt);
+        property.put("updatedAt", createdAt);
         property.put("userId", userId);
         property.put("validProperty", true);
         property.put("images", imageUrls);
