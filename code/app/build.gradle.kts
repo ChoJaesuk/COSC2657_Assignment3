@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.chillpiont"
+    namespace = "com.example.chillpoint"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.chillpiont"
+        applicationId = "com.example.chillpoint"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

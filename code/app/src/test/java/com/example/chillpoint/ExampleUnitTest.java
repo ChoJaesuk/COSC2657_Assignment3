@@ -1,4 +1,4 @@
-package com.example.chillpiont;
+package com.example.chillpoint;
 
 import org.junit.Test;
 
