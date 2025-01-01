@@ -10,6 +10,7 @@
         android:orientation="vertical"
         android:gravity="center">
 
+        <!-- Property Name Input Field -->
         <EditText
             android:id="@+id/nameEditText"
             android:layout_width="match_parent"
@@ -17,6 +18,7 @@
             android:hint="Property Name"
             android:layout_marginTop="16dp" />
 
+        <!-- Description Input Field -->
         <EditText
             android:id="@+id/descriptionEditText"
             android:layout_width="match_parent"
@@ -24,6 +26,7 @@
             android:hint="Description"
             android:layout_marginTop="8dp" />
 
+        <!-- Address Input Field -->
         <EditText
             android:id="@+id/addressEditText"
             android:layout_width="match_parent"
@@ -31,6 +34,7 @@
             android:hint="Address"
             android:layout_marginTop="8dp" />
 
+        <!-- Price Per Night Input Field -->
         <EditText
             android:id="@+id/priceEditText"
             android:layout_width="match_parent"
@@ -39,6 +43,7 @@
             android:inputType="numberDecimal"
             android:layout_marginTop="8dp" />
 
+        <!-- Number of Rooms Input Field -->
         <EditText
             android:id="@+id/roomsEditText"
             android:layout_width="match_parent"
@@ -47,6 +52,7 @@
             android:inputType="number"
             android:layout_marginTop="8dp" />
 
+        <!-- Number of Beds Input Field -->
         <EditText
             android:id="@+id/bedsEditText"
             android:layout_width="match_parent"
@@ -55,6 +61,7 @@
             android:inputType="number"
             android:layout_marginTop="8dp" />
 
+        <!-- Upload Images Button -->
         <Button
             android:id="@+id/uploadImagesButton"
             android:layout_width="match_parent"
@@ -62,6 +69,7 @@
             android:text="Upload Images"
             android:layout_marginTop="16dp" />
 
+        <!-- Images Grid View -->
         <GridView
             android:id="@+id/imagesGridView"
             android:layout_width="match_parent"
@@ -71,6 +79,7 @@
             android:verticalSpacing="8dp"
             android:horizontalSpacing="8dp" />
 
+        <!-- Save Property Button -->
         <Button
             android:id="@+id/savePropertyButton"
             android:layout_width="match_parent"
@@ -78,6 +87,7 @@
             android:text="Save Property"
             android:layout_marginTop="16dp" />
 
+        <!-- Progress Bar -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"

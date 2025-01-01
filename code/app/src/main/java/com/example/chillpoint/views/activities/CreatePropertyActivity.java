@@ -6,11 +6,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,11 +18,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.views.adapters.ImageAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,6 +46,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
 
     private ArrayList<Uri> imageUris; // To store selected image URIs
     private ArrayList<String> uploadedImageUrls; // To store uploaded image URLs
+    private ImageAdapter imageAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +74,23 @@ public class CreatePropertyActivity extends AppCompatActivity {
         imageUris = new ArrayList<>();
         uploadedImageUrls = new ArrayList<>();
 
+        // Initialize adapter for image grid view
+        imageAdapter = new ImageAdapter(this, imageUris);
+        imagesGridView.setAdapter(imageAdapter);
+
         // Set listeners
         uploadImagesButton.setOnClickListener(v -> openImagePicker());
         savePropertyButton.setOnClickListener(v -> saveProperty());
+
+        // Set image click listener for removal
+        imagesGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Remove selected image
+                imageUris.remove(position);
+                imageAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void openImagePicker() {
@@ -99,7 +114,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
                 Uri imageUri = data.getData();
                 imageUris.add(imageUri);
             }
-            // Refresh the GridView or any UI component showing the images
+            imageAdapter.notifyDataSetChanged();
             Toast.makeText(this, imageUris.size() + " images selected", Toast.LENGTH_SHORT).show();
         }
     }
@@ -157,7 +172,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
 
     private void saveToFirestore(String name, String description, String address, double price, int rooms, int beds, ArrayList<String> imageUrls) {
         String userId = auth.getCurrentUser().getUid();
-        String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
         Map<String, Object> property = new HashMap<>();
         property.put("name", name);
@@ -166,8 +181,8 @@ public class CreatePropertyActivity extends AppCompatActivity {
         property.put("pricePerNight", price);
         property.put("numOfRooms", rooms);
         property.put("numOfBeds", beds);
-        property.put("createdAt", createdAt);
-        property.put("updatedAt", "00년 00시 00분");
+        property.put("createdAt", currentTime);
+        property.put("updatedAt", currentTime);
         property.put("userId", userId);
         property.put("validProperty", true);
         property.put("images", imageUrls);
