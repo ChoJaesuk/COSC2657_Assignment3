@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "588185957895",
+    "project_id": "anddevass3",
+    "storage_bucket": "anddevass3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:588185957895:android:7db9b9c96626995a415ca2",
+        "android_client_info": {
+          "package_name": "com.example.chillpoint"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6HVsSViqKxvTpB1w8SbLxpvT0l51X75g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
