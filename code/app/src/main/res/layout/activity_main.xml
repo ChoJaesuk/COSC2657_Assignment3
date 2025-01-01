@@ -36,7 +36,6 @@
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintVertical_bias="0.611" />
 
-
   <TextView
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
@@ -59,5 +58,20 @@
       android:text="Hello"
       tools:layout_editor_absoluteX="161dp"
       tools:layout_editor_absoluteY="234dp" />
+
+  <!-- Go to Login Page Button -->
+  <Button
+      android:id="@+id/go_to_login_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:background="#9AC8CD"
+      android:text="Go to Login Page"
+      android:textColor="#FFFFFF"
+      android:textSize="16sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.9"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintVertical_bias="0.95" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
