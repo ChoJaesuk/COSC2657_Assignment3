@@ -63,6 +63,21 @@
             android:visibility="gone"
             android:layout_marginTop="16dp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="OR"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <com.google.android.gms.common.SignInButton
+            android:layout_width="200sp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20sp"
+            android:id="@+id/signInGoogle"/>
+
         <!-- Register Link -->
         <TextView
             android:id="@+id/registerLink"

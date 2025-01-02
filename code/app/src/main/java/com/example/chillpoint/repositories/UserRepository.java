@@ -1,6 +1,10 @@
 package com.example.chillpoint.repositories;
 
+import android.util.Log;
+
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.tasks.Task;
@@ -8,6 +12,7 @@ import com.google.android.gms.tasks.TaskCompletionSource;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class UserRepository {
     private final FirebaseAuth auth;
@@ -104,6 +109,31 @@ public class UserRepository {
             e.printStackTrace();
             return null; // In case of error, return null
         }
+    }
+
+    public void saveUserToDatabase(FirebaseUser user) {
+        if (user == null) {
+            Log.e("Error", "User is null, cannot save to database.");
+            return; // Exit the method early if the user is null
+        }
+
+        String userId = user.getUid();
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("userId", userId);
+        userInfo.put("username", user.getDisplayName());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("role", "User");
+
+
+        firestore.collection("Users").document(userId)
+                .set(userInfo)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("Success", "User successfully saved to database.");
+                    } else {
+                        Log.e("Error", "Failed to save user to database.", task.getException());
+                    }
+                });
     }
 
 }
