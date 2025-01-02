@@ -1,28 +1,26 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#E1F7F5">
+    android:layout_height="match_parent">
 
-    <!-- Welcome Message -->
-    <TextView
-        android:id="@+id/welcomeText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="100dp"
-        android:text="Welcome, User"
-        android:textSize="24sp"
-        android:textColor="#000" />
-
-    <!-- Create Property Button -->
     <Button
         android:id="@+id/createPropertyButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="200dp"
-        android:text="Create Property"
-        android:background="#9AC8CD"
-        android:textColor="#FFFFFF"
-        android:padding="16dp" />
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:text="Create Property" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/createPropertyButton" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
 </RelativeLayout>
