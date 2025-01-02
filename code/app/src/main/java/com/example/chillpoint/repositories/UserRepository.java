@@ -119,10 +119,11 @@ public class UserRepository {
 
         String userId = user.getUid();
         Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("userId", userId);
         userInfo.put("username", user.getDisplayName());
         userInfo.put("email", user.getEmail());
         userInfo.put("role", "User");
+        userInfo.put("fullName", "");
+        userInfo.put("phone", "");
 
 
         firestore.collection("Users").document(userId)
