@@ -52,12 +52,57 @@
       app:layout_constraintVertical_bias="0.762" />
 
   <Button
+      android:id="@+id/blueBtn"
+      style="@style/BlueButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:background="@drawable/bg_button_blue"
-      android:text="Hello"
-      tools:layout_editor_absoluteX="161dp"
-      tools:layout_editor_absoluteY="234dp" />
+      android:layout_marginBottom="36dp"
+      android:text="Blue button"
+      app:backgroundTint="@null"
+      app:layout_constraintBottom_toTopOf="@+id/main_text"
+      tools:layout_editor_absoluteX="153dp" />
+
+  <Button
+      android:id="@+id/redBtn"
+      style="@style/RedButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Red button"
+      app:backgroundTint="@null"
+      app:layout_constraintBottom_toTopOf="@+id/blueBtn"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.493"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintVertical_bias="0.924" />
+
+  <Button
+      android:id="@+id/greenBtn"
+      style="@style/GreenButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="2dp"
+      android:text="Green button"
+      app:backgroundTint="@null"
+      app:layout_constraintBottom_toTopOf="@+id/redBtn"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.498"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintVertical_bias="0.883" />
+
+  <Button
+      android:id="@+id/greyBtn"
+      style="@style/GreyButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="32dp"
+      android:text="Grey button"
+      app:backgroundTint="@null"
+      app:layout_constraintBottom_toTopOf="@+id/greenBtn"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
 
   <!-- Go to Login Page Button -->
   <Button
