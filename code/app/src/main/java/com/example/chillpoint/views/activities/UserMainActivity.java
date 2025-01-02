@@ -9,21 +9,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
 
-public class MainActivity extends AppCompatActivity {
-
+public class UserMainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_user_main);
 
-        // Initialize the "Go to Login Page" button
-        Button goToLoginButton = findViewById(R.id.go_to_login_button);
-
-        // Set click listener for the button to navigate to LoginActivity
-        goToLoginButton.setOnClickListener(new View.OnClickListener() {
+        // Initialize the Create Property button
+        Button createPropertyButton = findViewById(R.id.createPropertyButton);
+        createPropertyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                // Navigate to CreatePropertyActivity
+                Intent intent = new Intent(UserMainActivity.this, CreatePropertyActivity.class);
                 startActivity(intent);
             }
         });
