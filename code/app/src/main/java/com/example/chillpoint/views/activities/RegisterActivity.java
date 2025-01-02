@@ -15,11 +15,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.repositories.UserRepository;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -29,7 +26,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView loginLink;
     private FirebaseAuth auth;
-    private FirebaseFirestore firestore;
+    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,28 +46,20 @@ public class RegisterActivity extends AppCompatActivity {
         loginLink = findViewById(R.id.loginLink);
 
         auth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
+        userRepository = new UserRepository();
 
-        // Role 배열 정의
+        // Role array definition
         String[] roles = {"User", "Admin"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, roles);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         roleSpinner.setAdapter(adapter);
 
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                registerUser();
-            }
-        });
+        registerButton.setOnClickListener(v -> registerUser());
 
         // Set login link click listener
-        loginLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
+        loginLink.setOnClickListener(v -> {
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(intent);
         });
     }
 
@@ -99,29 +88,22 @@ public class RegisterActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 String userId = auth.getCurrentUser().getUid();
 
-                // Create a new user document in Firestore
-                Map<String, Object> userMap = new HashMap<>();
-                userMap.put("username", username);
-                userMap.put("fullName", fullName);
-                userMap.put("email", email);
-                userMap.put("phone", phone);
-                userMap.put("role", role);
+                // Use UserRepository to add user synchronously
+                boolean success = userRepository.addUser(userId, username, fullName, email, phone, role);
+                progressBar.setVisibility(View.GONE);
 
-                firestore.collection("Users").document(userId).set(userMap).addOnCompleteListener(dbTask -> {
-                    progressBar.setVisibility(View.GONE);
-                    if (dbTask.isSuccessful()) {
-                        Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                if (success) {
+                    Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
 
-                        // 자동으로 로그인 페이지로 이동
-                        new android.os.Handler().postDelayed(() -> {
-                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }, 2000); // 2초 딜레이
-                    } else {
-                        Toast.makeText(RegisterActivity.this, "Database error: " + dbTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    // Navigate to LoginActivity after 2 seconds
+                    new android.os.Handler().postDelayed(() -> {
+                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }, 2000);
+                } else {
+                    Toast.makeText(RegisterActivity.this, "Database error: User not added", Toast.LENGTH_SHORT).show();
+                }
             } else {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(RegisterActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
