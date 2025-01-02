@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.repositories.UserRepository;
 import com.example.chillpoint.views.activities.AdminMainActivity;
 import com.example.chillpoint.views.activities.RegisterActivity;
 import com.example.chillpoint.views.activities.UserMainActivity;
@@ -27,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView registerLink;
     private FirebaseAuth auth;
-    private FirebaseFirestore firestore;
+    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +44,6 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize Firebase Auth and Firestore
         auth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
 
         // Set login button click listener
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -73,31 +73,26 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         progressBar.setVisibility(View.VISIBLE);
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-            progressBar.setVisibility(View.GONE);
-            if (task.isSuccessful()) {
-                String userId = auth.getCurrentUser().getUid();
-                firestore.collection("Users").document(userId).get().addOnCompleteListener(roleTask -> {
-                    if (roleTask.isSuccessful()) {
-                        DocumentSnapshot snapshot = roleTask.getResult();
-                        if (snapshot.exists()) {
-                            String role = snapshot.getString("role");
-                            if ("User".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
-                            } else if ("Admin".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
-                            }
-                            finish();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "No user data found", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Failed to retrieve user role: " + roleTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+        boolean isLoginSuccessful = userRepository.loginUser(email, password);
+
+        progressBar.setVisibility(View.GONE);
+
+        if (isLoginSuccessful) {
+            String userId = auth.getCurrentUser().getUid();
+            String role = userRepository.getUserRole(userId);  // Now returns the role as a string
+
+            if (role != null) {
+                if ("User".equals(role)) {
+                    startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
+                } else if ("Admin".equals(role)) {
+                    startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                }
+                finish();
             } else {
-                Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Failed to retrieve user role", Toast.LENGTH_SHORT).show();
             }
-        });
+        } else {
+            Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
+        }
     }
 }
