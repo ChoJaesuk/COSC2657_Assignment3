@@ -36,13 +36,25 @@ public class PropertyAdapter extends RecyclerView.Adapter<PropertyAdapter.Proper
     public void onBindViewHolder(@NonNull PropertyViewHolder holder, int position) {
         Property property = propertyList.get(position);
 
+        // Set property details
         holder.nameTextView.setText(property.getName());
         holder.addressTextView.setText(property.getAddress());
         holder.priceTextView.setText("$" + property.getPricePerNight() + " / night");
 
+        // Set property description
+        String description = property.getDescription();
+        holder.descriptionTextView.setText(description != null && !description.isEmpty()
+                ? description
+                : "No description available");
+
         // Load first image
         if (!property.getImages().isEmpty()) {
-            Glide.with(context).load(property.getImages().get(0)).into(holder.propertyImageView);
+            Glide.with(context)
+                    .load(property.getImages().get(0))
+                    .placeholder(R.drawable.image_placeholder) // Optional placeholder image
+                    .into(holder.propertyImageView);
+        } else {
+            holder.propertyImageView.setImageResource(R.drawable.image_placeholder); // Default image
         }
     }
 
@@ -52,16 +64,18 @@ public class PropertyAdapter extends RecyclerView.Adapter<PropertyAdapter.Proper
     }
 
     static class PropertyViewHolder extends RecyclerView.ViewHolder {
-        TextView nameTextView, addressTextView, priceTextView;
+        TextView nameTextView, addressTextView, priceTextView, descriptionTextView;
         ImageView propertyImageView;
 
         public PropertyViewHolder(@NonNull View itemView) {
             super(itemView);
+
+            // Bind views
             nameTextView = itemView.findViewById(R.id.propertyNameTextView);
             addressTextView = itemView.findViewById(R.id.propertyAddressTextView);
             priceTextView = itemView.findViewById(R.id.propertyPriceTextView);
+            descriptionTextView = itemView.findViewById(R.id.propertyDescriptionTextView);
             propertyImageView = itemView.findViewById(R.id.propertyImageView);
         }
     }
 }
-

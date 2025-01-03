@@ -1,35 +1,68 @@
-<LinearLayout
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_margin="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@android:color/white">
 
-    <ImageView
-        android:id="@+id/propertyImageView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scaleType="centerCrop" />
-
-    <TextView
-        android:id="@+id/propertyNameTextView"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:paddingTop="8dp"
-        android:textSize="18sp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/propertyAddressTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="4dp"
-        android:textSize="14sp" />
+        <!-- 이미지 -->
+        <ImageView
+            android:id="@+id/propertyImageView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/image_placeholder" />
 
-    <TextView
-        android:id="@+id/propertyPriceTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="4dp"
-        android:textSize="14sp" />
-</LinearLayout>
+        <!-- 이름 -->
+        <TextView
+            android:id="@+id/propertyNameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/black" />
+
+        <!-- 설명 -->
+        <TextView
+            android:id="@+id/propertyDescriptionTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray" />
+
+        <!-- 주소 -->
+        <TextView
+            android:id="@+id/propertyAddressTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:drawableLeft="@drawable/ic_location"
+            android:drawablePadding="8dp" />
+
+        <!-- 가격 -->
+        <TextView
+            android:id="@+id/propertyPriceTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="16sp"
+            android:textColor="@android:color/holo_red_dark"
+            android:drawableLeft="@drawable/ic_money"
+            android:drawablePadding="8dp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
