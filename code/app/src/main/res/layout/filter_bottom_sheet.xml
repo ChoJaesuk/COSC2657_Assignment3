@@ -1,0 +1,106 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 날짜 선택 -->
+    <TextView
+        android:id="@+id/selectDateTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Date"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/selectDateButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Dates" />
+
+    <!-- 방 개수 -->
+    <TextView
+        android:id="@+id/roomsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Number of Rooms"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/roomsRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/roomRadio1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1 Room" />
+
+        <RadioButton
+            android:id="@+id/roomRadio2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2 Rooms" />
+
+        <RadioButton
+            android:id="@+id/roomRadio3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 Rooms" />
+
+        <RadioButton
+            android:id="@+id/roomRadio4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4 Rooms" />
+    </RadioGroup>
+
+    <!-- 침대 개수 -->
+    <TextView
+        android:id="@+id/bedsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Number of Beds"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/bedsRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/bedRadio1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1 Bed" />
+
+        <RadioButton
+            android:id="@+id/bedRadio2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2 Beds" />
+
+        <RadioButton
+            android:id="@+id/bedRadio3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 Beds" />
+
+        <RadioButton
+            android:id="@+id/bedRadio4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4 Beds" />
+    </RadioGroup>
+
+    <!-- 필터 적용 버튼 -->
+    <Button
+        android:id="@+id/applyFiltersButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Apply Filters" />
+</LinearLayout>
