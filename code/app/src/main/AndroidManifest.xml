@@ -13,6 +13,9 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.PropertyDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.CreatePropertyActivity"
             android:exported="false" />
         <activity

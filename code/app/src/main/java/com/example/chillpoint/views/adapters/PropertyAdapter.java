@@ -1,6 +1,7 @@
 package com.example.chillpoint.views.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
+import com.example.chillpoint.views.activities.PropertyDetailActivity;
 import com.example.chillpoint.views.models.Property;
 
 import java.util.ArrayList;
@@ -46,7 +48,16 @@ public class PropertyAdapter extends RecyclerView.Adapter<PropertyAdapter.Proper
         holder.descriptionTextView.setText(description != null && !description.isEmpty()
                 ? description
                 : "No description available");
-
+        // Set click listener
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, PropertyDetailActivity.class);
+            intent.putExtra("name", property.getName());
+            intent.putExtra("description", property.getDescription());
+            intent.putExtra("address", property.getAddress());
+            intent.putExtra("price", "$" + property.getPricePerNight() + " / night");
+            intent.putExtra("image", property.getImages().isEmpty() ? null : property.getImages().get(0));
+            context.startActivity(intent);
+        });
         // Load first image
         if (!property.getImages().isEmpty()) {
             Glide.with(context)
