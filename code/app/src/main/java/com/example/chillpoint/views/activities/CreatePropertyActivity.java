@@ -24,7 +24,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private static final int IMAGE_PICKER_REQUEST = 100;
     private static final int LOCATION_PICKER_REQUEST = 200; // For map location picking
 
-    private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, bedsEditText;
+    private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, bedsEditText, maxGuestsEditText;
     private Button uploadImagesButton, savePropertyButton, pickLocationButton; // Added pickLocationButton
     private GridView imagesGridView;
     private ProgressBar progressBar;
@@ -66,11 +65,16 @@ public class CreatePropertyActivity extends AppCompatActivity {
         priceEditText = findViewById(R.id.priceEditText);
         roomsEditText = findViewById(R.id.roomsEditText);
         bedsEditText = findViewById(R.id.bedsEditText);
+        maxGuestsEditText = findViewById(R.id.maxGuestsEditText); // Initialize maxGuestsEditText
         uploadImagesButton = findViewById(R.id.uploadImagesButton);
         savePropertyButton = findViewById(R.id.savePropertyButton);
         pickLocationButton = findViewById(R.id.pickLocationButton); // Initialize pickLocationButton
         imagesGridView = findViewById(R.id.imagesGridView);
         progressBar = findViewById(R.id.progressBar);
+
+        // Disable addressEditText to make it non-editable
+        addressEditText.setFocusable(false);
+        addressEditText.setClickable(false);
 
         // Initialize Firebase services
         auth = FirebaseAuth.getInstance();
@@ -150,9 +154,10 @@ public class CreatePropertyActivity extends AppCompatActivity {
         String price = priceEditText.getText().toString().trim();
         String rooms = roomsEditText.getText().toString().trim();
         String beds = bedsEditText.getText().toString().trim();
+        String maxGuests = maxGuestsEditText.getText().toString().trim(); // Get maxGuests input
 
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(description) || TextUtils.isEmpty(address) ||
-                TextUtils.isEmpty(price) || TextUtils.isEmpty(rooms) || TextUtils.isEmpty(beds)) {
+                TextUtils.isEmpty(price) || TextUtils.isEmpty(rooms) || TextUtils.isEmpty(beds) || TextUtils.isEmpty(maxGuests)) {
             Toast.makeText(CreatePropertyActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -162,14 +167,12 @@ public class CreatePropertyActivity extends AppCompatActivity {
             return;
         }
 
-
-
         progressBar.setVisibility(View.VISIBLE);
         uploadImages(new UploadImagesCallback() {
             @Override
             public void onUploadComplete(ArrayList<String> urls) {
                 saveToFirestore(name, description, address, Double.parseDouble(price),
-                        Integer.parseInt(rooms), Integer.parseInt(beds), urls);
+                        Integer.parseInt(rooms), Integer.parseInt(beds), Integer.parseInt(maxGuests), urls);
             }
 
             @Override
@@ -179,7 +182,6 @@ public class CreatePropertyActivity extends AppCompatActivity {
             }
         });
     }
-
     private void uploadImages(UploadImagesCallback callback) {
         uploadedImageUrls.clear();
         for (Uri uri : imageUris) {
@@ -195,9 +197,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
             ).addOnFailureListener(e -> callback.onUploadFailed(e.getMessage()));
         }
     }
-
-
-    private void saveToFirestore(String name, String description, String address, double price, int rooms, int beds, ArrayList<String> imageUrls) {
+    private void saveToFirestore(String name, String description, String address, double price, int rooms, int beds, int maxGuests, ArrayList<String> imageUrls) {
         String userId = auth.getCurrentUser().getUid();
         String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
@@ -208,12 +208,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         property.put("pricePerNight", price);
         property.put("numOfRooms", rooms);
         property.put("numOfBeds", beds);
+        property.put("maxNumOfGuests", maxGuests); // Add maxNumOfGuests field
         property.put("createdAt", createdAt);
         property.put("updatedAt", createdAt);
         property.put("userId", userId);
-        property.put("validProperty", true);
         property.put("images", imageUrls);
-        property.put("isValidated", false); // Add isValidated field
 
         firestore.collection("Properties").add(property).addOnSuccessListener(documentReference -> {
             progressBar.setVisibility(View.GONE);
