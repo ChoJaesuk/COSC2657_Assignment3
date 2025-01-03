@@ -88,26 +88,32 @@ public class RegisterActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 String userId = auth.getCurrentUser().getUid();
 
-                // Use UserRepository to add user synchronously
-                boolean success = userRepository.addUser(userId, username, fullName, email, phone, role);
-                progressBar.setVisibility(View.GONE);
+                // Use UserRepository to add user asynchronously with a callback
+                userRepository.addUser(userId, username, fullName, email, phone, role, new UserRepository.AddUserCallback() {
+                    @Override
+                    public void onSuccess() {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
 
-                if (success) {
-                    Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                        // Navigate to LoginActivity after 2 seconds
+                        new android.os.Handler().postDelayed(() -> {
+                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }, 2000);
+                    }
 
-                    // Navigate to LoginActivity after 2 seconds
-                    new android.os.Handler().postDelayed(() -> {
-                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }, 2000);
-                } else {
-                    Toast.makeText(RegisterActivity.this, "Database error: User not added", Toast.LENGTH_SHORT).show();
-                }
+                    @Override
+                    public void onFailure(Exception e) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(RegisterActivity.this, "Database error: User not added", Toast.LENGTH_SHORT).show();
+                    }
+                });
             } else {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(RegisterActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 }

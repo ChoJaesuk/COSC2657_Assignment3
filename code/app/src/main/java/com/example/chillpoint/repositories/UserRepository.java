@@ -21,7 +21,7 @@ public class UserRepository {
         this.auth = FirebaseAuth.getInstance();
     }
 
-    public boolean addUser(String userId, String username, String fullName, String email, String phone, String role) {
+    public void addUser(String userId, String username, String fullName, String email, String phone, String role, AddUserCallback callback) {
         // Create user data map
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("username", username);
@@ -29,30 +29,19 @@ public class UserRepository {
         userMap.put("email", email);
         userMap.put("phone", phone);
         userMap.put("role", role);
-
-        // Create a document reference
-        TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+        userMap.put("isValidated", false); // Automatically set isValidated to false
 
         // Add the user to Firestore
         firestore.collection("Users").document(userId).set(userMap)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        taskCompletionSource.setResult(true); // Success
+                        callback.onSuccess(); // Notify success
                     } else {
-                        taskCompletionSource.setResult(false); // Failure
+                        callback.onFailure(task.getException()); // Notify failure with exception
                     }
                 });
-
-        // Get the result of the Task
-        try {
-            return taskCompletionSource.getTask().getResult();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false; // In case of an error
-        }
     }
 
-    // Method to login a user (returns boolean indicating success or failure)
     public void loginUser(String email, String password, LoginCallback callback) {
         try {
             auth.signInWithEmailAndPassword(email, password)
@@ -69,7 +58,6 @@ public class UserRepository {
         }
     }
 
-    // Retrieves the user role asynchronously using a callback
     public void getUserRole(String userId, UserRoleCallback callback) {
         firestore.collection("Users").document(userId).get()
                 .addOnCompleteListener(task -> {
@@ -100,7 +88,7 @@ public class UserRepository {
         userInfo.put("role", "User");
         userInfo.put("fullName", "");
         userInfo.put("phone", "");
-
+        userInfo.put("isValidated", false); // Automatically set isValidated to false
 
         firestore.collection("Users").document(userId)
                 .set(userInfo)
@@ -111,6 +99,13 @@ public class UserRepository {
                         Log.e("Error", "Failed to save user to database.", task.getException());
                     }
                 });
+    }
+
+    // Callback interface for addUser
+    public interface AddUserCallback {
+        void onSuccess();
+
+        void onFailure(Exception e);
     }
 
     // Callback interface for login result
