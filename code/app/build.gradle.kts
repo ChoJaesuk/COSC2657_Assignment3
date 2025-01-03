@@ -51,5 +51,6 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:20.2.1")
     implementation ("com.google.firebase:firebase-auth-ktx:22.1.2")
     implementation("com.google.android.gms:play-services-auth:20.6.0")
-
+    implementation ("com.google.android.gms:play-services-maps:18.0.2")
+    implementation ("com.google.android.libraries.places:places:2.7.0")
 }
