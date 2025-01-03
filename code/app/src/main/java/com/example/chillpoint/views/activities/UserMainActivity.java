@@ -24,6 +24,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -127,7 +128,13 @@ public class UserMainActivity extends AppCompatActivity {
             progressBar.setVisibility(View.GONE);
             if (task.isSuccessful()) {
                 propertyList.clear();
-                propertyList.addAll(task.getResult().toObjects(Property.class));
+                for (DocumentSnapshot document : task.getResult()) {
+                    Property property = document.toObject(Property.class);
+                    if (property != null) {
+                        property.setId(document.getId()); // Firebase 문서 ID 설정
+                        propertyList.add(property);
+                    }
+                }
                 propertyAdapter.notifyDataSetChanged();
                 Log.d("UserMainActivity", "Properties loaded successfully: " + propertyList.size());
             } else {
@@ -136,6 +143,7 @@ public class UserMainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private String getRadioText(RadioGroup radioGroup, int radioId) {
         if (radioId == -1) return null;
