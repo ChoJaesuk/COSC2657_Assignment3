@@ -1,22 +1,60 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/createPropertyButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/searchBarLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:text="Create Property" />
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/search_background"
+        android:gravity="center_vertical"
+        android:layout_margin="16dp">
+        <!-- 검색 입력 -->
+        <EditText
+            android:id="@+id/searchEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Search properties"
+            android:padding="8dp"
+            android:background="@android:color/transparent"
+            android:inputType="text" />
 
+        <!-- 필터 아이콘 버튼 -->
+        <ImageButton
+            android:id="@+id/filterButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Filter"
+            android:src="@drawable/ic_filter"
+            app:tint="@android:color/black" />
+
+        <!-- 검색 아이콘 버튼 -->
+        <ImageButton
+            android:id="@+id/searchButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Search"
+            android:src="@drawable/ic_search"
+            app:tint="@android:color/black" />
+    </LinearLayout>
+
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/createPropertyButton" />
+        android:layout_below="@id/searchBarLayout" />
 
+    <!-- ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
