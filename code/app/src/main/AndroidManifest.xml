@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -14,6 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
+        <activity
+            android:name=".views.activities.MapsActivity"
+            android:exported="false" />
         <activity
             android:name=".views.activities.CreatePropertyActivity"
             android:exported="false" />
@@ -38,6 +42,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBgaoFMzwn-AQRfeZo2uik13XHMAu0HsLs" />

@@ -2,17 +2,14 @@ package com.example.chillpoint.repositories;
 
 import android.util.Log;
 
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class UserRepository {
     private final FirebaseAuth auth;
@@ -56,59 +53,38 @@ public class UserRepository {
     }
 
     // Method to login a user (returns boolean indicating success or failure)
-    public boolean loginUser(String email, String password) {
-        // Create TaskCompletionSource to return result
-        TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
-
+    public void loginUser(String email, String password, LoginCallback callback) {
         try {
             auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            taskCompletionSource.setResult(true);  // Success
+                            callback.onSuccess();  // Notify success
                         } else {
-                            taskCompletionSource.setResult(false); // Failure
+                            callback.onFailure(task.getException()); // Notify failure with exception
                         }
                     });
         } catch (Exception e) {
             e.printStackTrace();
-            taskCompletionSource.setResult(false);  // In case of exception, return false
-        }
-
-        // Return the result of the Task
-        try {
-            return taskCompletionSource.getTask().getResult();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;  // In case of error, return false
+            callback.onFailure(e);  // Notify failure in case of unexpected exception
         }
     }
 
-
-    // Synchronously retrieves the user role
-    public String getUserRole(String userId) {
-        TaskCompletionSource<String> taskCompletionSource = new TaskCompletionSource<>();
-
-        firestore.collection("Users").document(userId).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot snapshot = task.getResult();
-                if (snapshot.exists()) {
-                    String role = snapshot.getString("role");
-                    taskCompletionSource.setResult(role);  // Set the role result
-                } else {
-                    taskCompletionSource.setException(new Exception("No user data found"));  // Set exception if no user found
-                }
-            } else {
-                taskCompletionSource.setException(task.getException());  // Set exception if task failed
-            }
-        });
-
-        // Wait and return the result or exception
-        try {
-            return taskCompletionSource.getTask().getResult();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null; // In case of error, return null
-        }
+    // Retrieves the user role asynchronously using a callback
+    public void getUserRole(String userId, UserRoleCallback callback) {
+        firestore.collection("Users").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot snapshot = task.getResult();
+                        if (snapshot.exists()) {
+                            String role = snapshot.getString("role");
+                            callback.onSuccess(role);  // Pass the role to the callback
+                        } else {
+                            callback.onFailure(new Exception("No user data found"));  // Notify if no user found
+                        }
+                    } else {
+                        callback.onFailure(task.getException());  // Notify if task failed
+                    }
+                });
     }
 
     public void saveUserToDatabase(FirebaseUser user) {
@@ -137,4 +113,17 @@ public class UserRepository {
                 });
     }
 
+    // Callback interface for login result
+    public interface LoginCallback {
+        void onSuccess();
+
+        void onFailure(Exception e);
+    }
+
+    // Callback interface for retrieving user role
+    public interface UserRoleCallback {
+        void onSuccess(String role);
+
+        void onFailure(Exception e);
+    }
 }

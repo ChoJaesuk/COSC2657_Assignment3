@@ -2,6 +2,8 @@ package com.example.chillpoint.views.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -22,20 +24,25 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public class CreatePropertyActivity extends AppCompatActivity {
 
     private static final int IMAGE_PICKER_REQUEST = 100;
+    private static final int LOCATION_PICKER_REQUEST = 200; // For map location picking
 
     private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, bedsEditText;
-    private Button uploadImagesButton, savePropertyButton;
+    private Button uploadImagesButton, savePropertyButton, pickLocationButton; // Added pickLocationButton
     private GridView imagesGridView;
     private ProgressBar progressBar;
 
@@ -61,6 +68,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
         bedsEditText = findViewById(R.id.bedsEditText);
         uploadImagesButton = findViewById(R.id.uploadImagesButton);
         savePropertyButton = findViewById(R.id.savePropertyButton);
+        pickLocationButton = findViewById(R.id.pickLocationButton); // Initialize pickLocationButton
         imagesGridView = findViewById(R.id.imagesGridView);
         progressBar = findViewById(R.id.progressBar);
 
@@ -84,6 +92,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
         // Set listeners
         uploadImagesButton.setOnClickListener(v -> openImagePicker());
         savePropertyButton.setOnClickListener(v -> saveProperty());
+        pickLocationButton.setOnClickListener(v -> openLocationPicker()); // Set listener for pickLocationButton
     }
 
     private void openImagePicker() {
@@ -91,6 +100,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         startActivityForResult(Intent.createChooser(intent, "Select Images"), IMAGE_PICKER_REQUEST);
+    }
+
+    private void openLocationPicker() {
+        Intent intent = new Intent(CreatePropertyActivity.this, MapsActivity.class); // Open MapsActivity
+        startActivityForResult(intent, LOCATION_PICKER_REQUEST);
     }
 
     @Override
@@ -108,7 +122,25 @@ public class CreatePropertyActivity extends AppCompatActivity {
                 imageUris.add(imageUri);
             }
             imageAdapter.notifyDataSetChanged(); // Refresh the adapter
+        } else if (requestCode == LOCATION_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            double lat = data.getDoubleExtra("latitude", 0);
+            double lng = data.getDoubleExtra("longitude", 0);
+            String address = getAddressFromLatLng(new LatLng(lat, lng));
+            addressEditText.setText(address); // Set selected address
         }
+    }
+
+    private String getAddressFromLatLng(LatLng latLng) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                return addresses.get(0).getAddressLine(0);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "Unknown Location";
     }
 
     private void saveProperty() {
@@ -129,6 +161,8 @@ public class CreatePropertyActivity extends AppCompatActivity {
             Toast.makeText(CreatePropertyActivity.this, "Please upload at least one image", Toast.LENGTH_SHORT).show();
             return;
         }
+
+
 
         progressBar.setVisibility(View.VISIBLE);
         uploadImages(new UploadImagesCallback() {
@@ -162,6 +196,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
         }
     }
 
+
     private void saveToFirestore(String name, String description, String address, double price, int rooms, int beds, ArrayList<String> imageUrls) {
         String userId = auth.getCurrentUser().getUid();
         String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -178,6 +213,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
         property.put("userId", userId);
         property.put("validProperty", true);
         property.put("images", imageUrls);
+        property.put("isValidated", false); // Add isValidated field
 
         firestore.collection("Properties").add(property).addOnSuccessListener(documentReference -> {
             progressBar.setVisibility(View.GONE);

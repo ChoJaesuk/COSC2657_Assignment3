@@ -33,6 +33,12 @@
             android:layout_height="wrap_content"
             android:hint="Address"
             android:layout_marginTop="8dp" />
+        <Button
+            android:id="@+id/pickLocationButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pick Location from Map"
+            android:layout_marginTop="16dp" />
 
         <!-- Price Per Night Input Field -->
         <EditText
