@@ -1,7 +1,6 @@
 package com.example.chillpoint.views.activities;
 
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,8 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class ProfileActivity extends AppCompatActivity {
 
     private ImageView profileImageView;
-    private TextView usernameTextView, emailTextView;
-    private Button hostingMenuButton, reportsMenuButton, settingsMenuButton;
+    private TextView usernameTextView;
 
     private FirebaseAuth auth;
     private FirebaseFirestore firestore;
@@ -35,18 +33,9 @@ public class ProfileActivity extends AppCompatActivity {
         // Initialize UI components
         profileImageView = findViewById(R.id.profileImageView);
         usernameTextView = findViewById(R.id.usernameTextView);
-        emailTextView = findViewById(R.id.emailTextView);
-        hostingMenuButton = findViewById(R.id.hostingMenuButton);
-        reportsMenuButton = findViewById(R.id.reportsMenuButton);
-        settingsMenuButton = findViewById(R.id.settingsMenuButton);
 
         // Load user profile
         loadUserProfile();
-
-        // Set button click listeners
-        hostingMenuButton.setOnClickListener(v -> Toast.makeText(this, "Hostings clicked", Toast.LENGTH_SHORT).show());
-        reportsMenuButton.setOnClickListener(v -> Toast.makeText(this, "Reports clicked", Toast.LENGTH_SHORT).show());
-        settingsMenuButton.setOnClickListener(v -> Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show());
     }
 
     private void loadUserProfile() {
@@ -59,11 +48,9 @@ public class ProfileActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             String avatarUrl = snapshot.getString("avatarUrl");
                             String username = snapshot.getString("username");
-                            String email = snapshot.getString("email");
 
                             // Display user info
                             usernameTextView.setText(username != null ? username : "Unknown User");
-                            emailTextView.setText(email != null ? email : "No Email Provided");
 
                             // Load profile image
                             if (avatarUrl != null && !avatarUrl.isEmpty()) {
