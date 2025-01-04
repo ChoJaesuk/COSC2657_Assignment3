@@ -1,9 +1,14 @@
 package com.example.chillpoint.repositories;
 
+import android.util.Log;
+
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,6 +65,30 @@ public class UserRepository {
                                 return role;
                             } else {
                                 throw new Exception("Role field is missing for the user.");
+                            }
+                        } else {
+                            throw new Exception("User not found.");
+                        }
+                    } else {
+                        throw task.getException();
+                    }
+                });
+    }
+    public Task<String> getUsernameByUserId(String userId) {
+        return firestore.collection("Users")
+                .whereEqualTo(FieldPath.documentId(), userId) // Use the document's UID (ID of the document)
+                .get()
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot querySnapshot = task.getResult();
+                        if (querySnapshot != null && !querySnapshot.isEmpty()) {
+                            // Since we're searching by document ID, the user should be found in one document
+                            QueryDocumentSnapshot document = (QueryDocumentSnapshot) querySnapshot.getDocuments().get(0);
+                            String username = document.getString("username"); // Assuming 'username' is the field for usernames
+                            if (username != null) {
+                                return username;
+                            } else {
+                                throw new Exception("Username field is missing.");
                             }
                         } else {
                             throw new Exception("User not found.");
