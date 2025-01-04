@@ -47,7 +47,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     private String userId = "sampleUserId"; // Replace with actual user ID from authentication
     private String selectedStartDate;
     private String selectedEndDate;
-
+    private String hostUserId;
     private FirebaseFirestore firestore;
 
     @Override
@@ -91,6 +91,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         }
 // Fetch host information
         fetchHostInformation(propertyId, hostNameTextView, hostDetailsTextView, hostImageView);
+
         // Bind data to views
         propertyNameTextView.setText(name);
         propertyDescriptionTextView.setText(description);
@@ -218,6 +219,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                     Log.e("PropertyDetailActivity", "Error booking property", e);
                 });
     }
+
     private void fetchHostInformation(String propertyId, TextView hostNameTextView, TextView hostDetailsTextView, ImageView hostImageView) {
         // Fetch the property data to get the userId
         firestore.collection("Properties")
@@ -225,7 +227,8 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 .get()
                 .addOnSuccessListener(propertySnapshot -> {
                     if (propertySnapshot.exists()) {
-                        String hostUserId = propertySnapshot.getString("userId");
+                        hostUserId = propertySnapshot.getString("userId"); // 호스트 ID 저장
+                        Log.d("PropertyDetailActivity", "Fetched hostUserId: " + hostUserId);
                         if (hostUserId != null) {
                             // Fetch the user data from Users collection
                             firestore.collection("Users")
