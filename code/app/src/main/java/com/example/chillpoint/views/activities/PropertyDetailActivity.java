@@ -50,6 +50,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     private String propertyId;
     private String selectedStartDate;
     private String selectedEndDate;
+    private String hostUserId;
     private String userId; // From session
     private String username; // From session
     private FirebaseFirestore firestore;
@@ -89,6 +90,10 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         Button selectDatesButton = findViewById(R.id.selectDatesButton);
         Button bookButton = findViewById(R.id.bookButton);
         TextView propertyAddressTextViewTop = findViewById(R.id.propertyDetailAddressTextViewTop);
+// Inside onCreate method
+        TextView hostNameTextView = findViewById(R.id.hostNameTextView);
+        TextView hostDetailsTextView = findViewById(R.id.hostDetailsTextView);
+        ImageView hostImageView = findViewById(R.id.hostImageView);
 
         // Get data from intent
         String name = getIntent().getStringExtra("name");
@@ -96,8 +101,19 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         address = getIntent().getStringExtra("address");
         String price = getIntent().getStringExtra("price");
         List<String> images = getIntent().getStringArrayListExtra("images");
+        // Get propertyId from Intent
         propertyId = getIntent().getStringExtra("propertyId");
+
+        // Debug log to check if propertyId is correctly received
         Log.d("PropertyDetailActivity", "Received propertyId: " + propertyId);
+
+        if (propertyId == null || propertyId.isEmpty()) {
+            Toast.makeText(this, "Property ID is missing!", Toast.LENGTH_SHORT).show();
+            finish(); // Close the activity to prevent further issues
+            return;
+        }
+// Fetch host information
+        fetchHostInformation(propertyId, hostNameTextView, hostDetailsTextView, hostImageView);
 
         // Bind data to views
         propertyNameTextView.setText(name);
@@ -226,6 +242,60 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                     Log.e("PropertyDetailActivity", "Error booking property", e);
                 });
     }
+
+    private void fetchHostInformation(String propertyId, TextView hostNameTextView, TextView hostDetailsTextView, ImageView hostImageView) {
+        // Fetch the property data to get the userId
+        firestore.collection("Properties")
+                .document(propertyId)
+                .get()
+                .addOnSuccessListener(propertySnapshot -> {
+                    if (propertySnapshot.exists()) {
+                        hostUserId = propertySnapshot.getString("userId"); // 호스트 ID 저장
+                        Log.d("PropertyDetailActivity", "Fetched hostUserId: " + hostUserId);
+                        if (hostUserId != null) {
+                            // Fetch the user data from Users collection
+                            firestore.collection("Users")
+                                    .document(hostUserId)
+                                    .get()
+                                    .addOnSuccessListener(userSnapshot -> {
+                                        if (userSnapshot.exists()) {
+                                            String username = userSnapshot.getString("username");
+                                            String bio = userSnapshot.getString("bio");
+                                            String imageUrl = userSnapshot.getString("imageUrl");
+
+                                            // Update UI with host information
+                                            hostNameTextView.setText("Name: " + (username != null ? username : "Unknown"));
+                                            hostDetailsTextView.setText(bio != null ? bio : "Details not available");
+
+                                            // Load image using Glide
+                                            if (imageUrl != null && !imageUrl.isEmpty()) {
+                                                Glide.with(this)
+                                                        .load(imageUrl)
+                                                        .placeholder(R.drawable.default_host_image) // 디폴트 이미지
+                                                        .into(hostImageView);
+                                            } else {
+                                                // Load default image if imageUrl is null or empty
+                                                hostImageView.setImageResource(R.drawable.default_host_image);
+                                            }
+                                        } else {
+                                            Log.e("PropertyDetailActivity", "User not found in Users collection.");
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("PropertyDetailActivity", "Error fetching user data", e);
+                                    });
+                        } else {
+                            Log.e("PropertyDetailActivity", "userId not found in property data.");
+                        }
+                    } else {
+                        Log.e("PropertyDetailActivity", "Property not found in Properties collection.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PropertyDetailActivity", "Error fetching property data", e);
+                });
+    }
+
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
