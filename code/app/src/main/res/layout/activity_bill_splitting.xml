@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp"
+    android:background="@color/alice_blue">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bill Splitting with Friends"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:text="Enter username/email of your friends here"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/infoEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username or email"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_text_round"/>
+
+        <Button
+            android:id="@+id/addFriendButton"
+            style="@style/BlueButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="3dp"
+            android:text="Add New Friend"
+            app:backgroundTint="@null"
+            android:layout_marginTop="20dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="We will send billing receipt to your friends"
+            android:textSize="14sp"
+            android:layout_margin="20dp"/>
+
+        <Button
+            android:id="@+id/toPaymentButton"
+            style="@style/BlueButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_margin="3dp"
+            android:text="Next"
+            app:backgroundTint="@null"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="You will not be charged yet"
+            android:textSize="15sp"
+            android:layout_marginTop="50dp" />
+    </LinearLayout>
+
+</ScrollView>

@@ -4,6 +4,11 @@
         <shape android:shape="rectangle">
             <solid android:color="#FFFFFF" />
             <corners android:radius="50dp" />
+            <padding
+                android:top="15dp"
+                android:bottom="15dp"
+                android:left="15dp"
+                android:right="15dp" />
         </shape>
     </item>
 </selector>
