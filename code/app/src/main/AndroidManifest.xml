@@ -16,6 +16,9 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.ProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.MapsActivity"
             android:exported="false" />
         <activity
