@@ -30,6 +30,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthCredential;
@@ -50,6 +51,71 @@ public class LoginActivity extends AppCompatActivity {
     private UserRepository userRepository;
     private GoogleSignInClient googleSignInClient;
     private SignInButton signInButton;
+
+    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            if (result.getResultCode() == RESULT_OK) {
+                Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                try {
+                    GoogleSignInAccount signInAccount = accountTask.getResult(ApiException.class);
+                    if (signInAccount == null) {
+                        Log.e("SignIn", "Sign-in account was null.");
+                        return;
+                    }
+                    Log.d("SignIn", "ID Token: " + signInAccount.getIdToken());
+                    AuthCredential authCredential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(), null);
+                    auth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                Log.d("SignIn", "Firebase Authentication successful.");
+                                Log.d("SignIn", "signInWithCredential: success");
+
+                                // Get the current authenticated user
+                                auth = FirebaseAuth.getInstance();
+                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                                if (user != null) {
+                                    // Prepare to add the user details to Firestore
+                                    String userId = user.getUid();
+                                    String username = user.getDisplayName();
+                                    String email = user.getEmail();
+
+                                    // Optionally, you can retrieve or set other details like fullName, phone, role
+                                    String fullName = ""; // Empty or retrieve fullName if you have a way to fetch it
+                                    String phone = ""; // Empty or retrieve phone if you have a way to fetch it
+                                    String role = "User"; // Default role as "User"
+
+                                    // Call addUser method to store user data in Firestore
+                                    userRepository.addUser(userId, username, fullName, email, phone, role)
+                                            .addOnCompleteListener(firestoreTask -> {
+                                                if (firestoreTask.isSuccessful() && Boolean.TRUE.equals(firestoreTask.getResult())) {
+                                                    // If adding user to Firestore is successful, navigate to the user main activity
+                                                    Toast.makeText(LoginActivity.this, "User added successfully!", Toast.LENGTH_SHORT).show();
+                                                    startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
+                                                    finish();
+                                                } else {
+                                                    // Handle failure if adding user to Firestore fails
+                                                    Toast.makeText(LoginActivity.this, "Failed to add user to Firestore.", Toast.LENGTH_SHORT).show();
+                                                    Log.e("Firestore", "Error adding user to Firestore", firestoreTask.getException());
+                                                }
+                                            });
+                                }
+
+                            } else {
+                                // Handle failure of Firebase authentication
+                                Log.e("SignIn", "Firebase Authentication failed.", task.getException());
+                                Toast.makeText(LoginActivity.this, "Failed to sign in: " + task.getException(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } catch (ApiException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,82 +176,49 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
 
         // Use the updated loginUser method with a callback
-        userRepository.loginUser(email, password, new UserRepository.LoginCallback() {
-            @Override
-            public void onSuccess() {
-                progressBar.setVisibility(View.GONE);
-                String userId = auth.getCurrentUser().getUid();
+        userRepository.loginUser(email, password)
+                .addOnSuccessListener(loginSuccess -> {
+                    if (loginSuccess) {
+                        progressBar.setVisibility(View.GONE);
+                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                // Retrieve the role asynchronously using the callback
-                userRepository.getUserRole(userId, new UserRepository.UserRoleCallback() {
-                    @Override
-                    public void onSuccess(String role) {
-                        if (role != null) {
-                            if ("User".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
-                            } else if ("Admin".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
-                            }
-                            finish();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Failed to retrieve user role", Toast.LENGTH_SHORT).show();
-                        }
+                        userRepository.getUserRole(userId)
+                                .addOnSuccessListener(role -> {
+                                    if ("User".equals(role)) {
+                                        startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
+                                    } else if ("Admin".equals(role)) {
+                                        startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                                    }
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(LoginActivity.this, "Failed to retrieve user role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
                     }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        Toast.makeText(LoginActivity.this, "Failed to retrieve user role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
-    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-        @Override
-        public void onActivityResult(ActivityResult result) {
-            if (result.getResultCode() == RESULT_OK) {
-                Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                try {
-                    GoogleSignInAccount signInAccount = accountTask.getResult(ApiException.class);
-                    if (signInAccount == null) {
-                        Log.e("SignIn", "Sign-in account was null.");
-                        return;
-                    }
-                    Log.d("SignIn", "ID Token: " + signInAccount.getIdToken());
-                    AuthCredential authCredential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(), null);
-                    auth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FirebaseAuth.getInstance().addAuthStateListener(new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                if (firebaseAuth.getCurrentUser() == null) {
+                    googleSignInClient.signOut().addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                Log.d("SignIn", "Firebase Authentication successful.");
-                                Log.d("SignIn", "signInWithCredential:success");
-                                auth = FirebaseAuth.getInstance();
-                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                if (user != null) {
-                                    userRepository.saveUserToDatabase(user);
-                                    Toast.makeText(LoginActivity.this, "Signed in successfully!", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
-                                    finish();
-                                }
-//                                name.setText(auth.getCurrentUser().getDisplayName());
-//                                mail.setText(auth.getCurrentUser().getEmail());
-                            } else {
-                                Log.e("SignIn", "Firebase Authentication failed.", task.getException());
-                                Toast.makeText(LoginActivity.this, "Failed to sign in: " + task.getException(), Toast.LENGTH_SHORT).show();
-                            }
+                        public void onSuccess(Void unused) {
+                            Toast.makeText(LoginActivity.this, "Signed out successfully", Toast.LENGTH_SHORT).show();
                         }
                     });
-                } catch (ApiException e) {
-                    e.printStackTrace();
                 }
             }
-        }
-    });
+        });
+        FirebaseAuth.getInstance().signOut();
+    }
 }

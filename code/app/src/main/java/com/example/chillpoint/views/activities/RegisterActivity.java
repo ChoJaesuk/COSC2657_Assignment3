@@ -3,6 +3,7 @@ package com.example.chillpoint.views.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -84,36 +85,39 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         progressBar.setVisibility(View.VISIBLE);
-        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                String userId = auth.getCurrentUser().getUid();
+        auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(authTask -> {
+                    if (authTask.isSuccessful()) {
+                        String userId = auth.getCurrentUser().getUid();
 
-                // Use UserRepository to add user asynchronously with a callback
-                userRepository.addUser(userId, username, fullName, email, phone, role, new UserRepository.AddUserCallback() {
-                    @Override
-                    public void onSuccess() {
+                        // Show progress bar
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        // Perform Firestore operation using the addUser method
+                        userRepository.addUser(userId, username, fullName, email, phone, role)
+                                .addOnCompleteListener(firestoreTask -> {
+                                    progressBar.setVisibility(View.GONE);
+
+                                    if (firestoreTask.isSuccessful() && Boolean.TRUE.equals(firestoreTask.getResult())) {
+                                        Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+
+                                        // Navigate to LoginActivity after 2 seconds
+                                        new android.os.Handler().postDelayed(() -> {
+                                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                            startActivity(intent);
+                                            finish();
+                                        }, 2000);
+                                    } else {
+                                        Toast.makeText(RegisterActivity.this, "Database error: User not added", Toast.LENGTH_SHORT).show();
+                                        Log.e("RegisterActivity", "Firestore error occurred while adding user.", firestoreTask.getException());
+                                    }
+                                });
+                    } else {
                         progressBar.setVisibility(View.GONE);
-                        Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
-
-                        // Navigate to LoginActivity after 2 seconds
-                        new android.os.Handler().postDelayed(() -> {
-                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }, 2000);
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(RegisterActivity.this, "Database error: User not added", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RegisterActivity.this, "Registration failed: " + authTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("RegisterActivity", "Authentication error: ", authTask.getException());
                     }
                 });
-            } else {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(RegisterActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
 }
