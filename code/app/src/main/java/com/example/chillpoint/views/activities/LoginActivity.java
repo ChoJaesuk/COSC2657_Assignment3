@@ -213,7 +213,7 @@ public class LoginActivity extends AppCompatActivity {
                     googleSignInClient.signOut().addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
-                            Toast.makeText(LoginActivity.this, "Signed out successfully", Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(LoginActivity.this, "Signed out successfully", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
