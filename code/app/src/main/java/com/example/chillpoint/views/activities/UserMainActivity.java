@@ -55,10 +55,6 @@ public class UserMainActivity extends AppCompatActivity {
     private String selectedBeds = null;
     private String selectedDateRange = "None";
 
-    private String userId;
-    private String role;
-    private String username;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +92,12 @@ public class UserMainActivity extends AppCompatActivity {
 //                startActivity(intent);
 //            }
 //        });
+        // Initialize 'My Bookings' button
+        Button checkBookingsButton = findViewById(R.id.checkBookingsButton);
+        checkBookingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UserMainActivity.this, BookingActivity.class);
+            startActivity(intent);
+        });
         propertyList = new ArrayList<>();
         propertyAdapter = new PropertyAdapter(this, propertyList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

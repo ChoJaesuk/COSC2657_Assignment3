@@ -46,6 +46,7 @@
             android:src="@drawable/ic_search"
             app:tint="@android:color/black" />
     </LinearLayout>
+
     <!-- Create Property Button -->
     <Button
         android:id="@+id/createPropertyButton"
@@ -56,6 +57,16 @@
         android:textColor="@android:color/white"
         android:layout_below="@id/searchBarLayout"
         android:layout_margin="16dp" />
+    <Button
+        android:id="@+id/checkBookingsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="My Bookings"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@android:color/holo_blue_dark"
+        android:textColor="@android:color/white" />
+
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -70,5 +81,6 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:visibility="gone" />
+
 
 </RelativeLayout>
