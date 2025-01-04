@@ -1,12 +1,14 @@
 package com.example.chillpoint.repositories;
 
+import android.net.Uri;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -101,6 +103,30 @@ public class UserRepository {
                 });
     }
 
+    public void uploadUserProfileImage(String userId, Uri imageUri, ImageUploadCallback callback) {
+        String imagePath = "users/" + userId + "/profile.jpg";
+        StorageReference reference = FirebaseStorage.getInstance().getReference(imagePath);
+        reference.putFile(imageUri).addOnSuccessListener(taskSnapshot ->
+                        reference.getDownloadUrl().addOnSuccessListener(uri -> callback.onSuccess(uri.toString()))
+                                .addOnFailureListener(callback::onFailure))
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    public void addUserWithImage(String userId, String username, String fullName, String email, String phone, String role, String imageUrl, AddUserCallback callback) {
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("username", username);
+        userMap.put("fullName", fullName);
+        userMap.put("email", email);
+        userMap.put("phone", phone);
+        userMap.put("role", role);
+        userMap.put("imageUrl", imageUrl); // Add image URL
+        userMap.put("isValidated", false);
+
+        firestore.collection("Users").document(userId).set(userMap)
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(callback::onFailure);
+    }
+
     // Callback interface for addUser
     public interface AddUserCallback {
         void onSuccess();
@@ -118,6 +144,13 @@ public class UserRepository {
     // Callback interface for retrieving user role
     public interface UserRoleCallback {
         void onSuccess(String role);
+
+        void onFailure(Exception e);
+    }
+
+    // Callback interface for image upload
+    public interface ImageUploadCallback {
+        void onSuccess(String imageUrl);
 
         void onFailure(Exception e);
     }

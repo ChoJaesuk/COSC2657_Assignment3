@@ -55,16 +55,16 @@ public class ProfileActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         DocumentSnapshot snapshot = task.getResult();
                         if (snapshot.exists()) {
-                            String avatarUrl = snapshot.getString("avatarUrl");
+                            String imageUrl = snapshot.getString("imageUrl");
                             String username = snapshot.getString("username");
 
                             // Display user info
                             usernameTextView.setText(username != null ? username : "Unknown User");
 
                             // Load profile image
-                            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                            if (imageUrl != null && !imageUrl.isEmpty()) {
                                 Glide.with(ProfileActivity.this)
-                                        .load(avatarUrl)
+                                        .load(imageUrl)
                                         .placeholder(R.drawable.defaultavatar) // Default image while loading
                                         .error(R.drawable.defaultavatar) // Default image if loading fails
                                         .into(profileImageView);
