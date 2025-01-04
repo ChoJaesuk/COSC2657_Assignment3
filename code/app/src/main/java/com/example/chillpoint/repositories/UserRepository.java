@@ -6,14 +6,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.android.gms.tasks.TaskCompletionSource;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class UserRepository {
     private final FirebaseAuth auth;
-
     private final FirebaseFirestore firestore;
 
     public UserRepository() {
@@ -101,6 +98,23 @@ public class UserRepository {
                 });
     }
 
+    // New method to retrieve user details
+    public void getUserDetails(String userId, UserDetailsCallback callback) {
+        firestore.collection("Users").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot snapshot = task.getResult();
+                        if (snapshot.exists()) {
+                            callback.onSuccess(snapshot); // Pass the document snapshot to the callback
+                        } else {
+                            callback.onFailure(new Exception("No user data found")); // Notify if no user found
+                        }
+                    } else {
+                        callback.onFailure(task.getException()); // Notify if task failed
+                    }
+                });
+    }
+
     // Callback interface for addUser
     public interface AddUserCallback {
         void onSuccess();
@@ -118,6 +132,13 @@ public class UserRepository {
     // Callback interface for retrieving user role
     public interface UserRoleCallback {
         void onSuccess(String role);
+
+        void onFailure(Exception e);
+    }
+
+    // New callback interface for retrieving user details
+    public interface UserDetailsCallback {
+        void onSuccess(DocumentSnapshot documentSnapshot);
 
         void onFailure(Exception e);
     }

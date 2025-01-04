@@ -1,5 +1,8 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.util.Log;
@@ -16,6 +19,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.util.Pair;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.views.adapters.ImageSliderAdapter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,17 +48,35 @@ import android.location.Geocoder;
 public class PropertyDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
     private String address;
     private String propertyId;
-    private String userId = "sampleUserId"; // Replace with actual user ID from authentication
     private String selectedStartDate;
     private String selectedEndDate;
-
+    private String userId; // From session
+    private String username; // From session
     private FirebaseFirestore firestore;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_property_detail);
+        // 세션 데이터 로드
+        SessionManager sessionManager = new SessionManager(this);
+        userId = sessionManager.getUserId();
+        String role = sessionManager.getRole();
+        username = sessionManager.getUsername();
 
+        // 디버깅 로그 추가
+        Log.d("SessionManager", "Loaded session: userId=" + userId + ", role=" + role + ", username=" + username);
+
+        // 세션 검증
+        if (userId == null || role == null || username == null) {
+            Toast.makeText(this, "Failed to load user session. Please log in again.", Toast.LENGTH_SHORT).show();
+            // LoginActivity로 이동
+            Intent intent = new Intent(PropertyDetailActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
         // Initialize Firestore
         firestore = FirebaseFirestore.getInstance();
 
@@ -226,4 +248,6 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             e.printStackTrace();
         }
     }
+
+
 }
