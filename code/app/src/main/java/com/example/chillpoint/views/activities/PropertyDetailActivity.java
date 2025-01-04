@@ -11,9 +11,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+
 import android.util.Pair;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
+import com.example.chillpoint.views.adapters.ImageSliderAdapter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -56,20 +59,21 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         firestore = FirebaseFirestore.getInstance();
 
         // Initialize views
-        ImageView propertyImageView = findViewById(R.id.propertyDetailImageView);
+        ViewPager2 imageViewPager = findViewById(R.id.propertyImageViewPager);
         TextView propertyNameTextView = findViewById(R.id.propertyDetailNameTextView);
         TextView propertyDescriptionTextView = findViewById(R.id.propertyDetailDescriptionTextView);
         TextView propertyAddressTextView = findViewById(R.id.propertyDetailAddressTextView);
         TextView propertyPriceTextView = findViewById(R.id.propertyDetailPriceTextView);
         Button selectDatesButton = findViewById(R.id.selectDatesButton);
         Button bookButton = findViewById(R.id.bookButton);
+        TextView propertyAddressTextViewTop = findViewById(R.id.propertyDetailAddressTextViewTop);
 
         // Get data from intent
         String name = getIntent().getStringExtra("name");
         String description = getIntent().getStringExtra("description");
         address = getIntent().getStringExtra("address");
         String price = getIntent().getStringExtra("price");
-        String imageUrl = getIntent().getStringExtra("image");
+        List<String> images = getIntent().getStringArrayListExtra("images");
         propertyId = getIntent().getStringExtra("propertyId");
         Log.d("PropertyDetailActivity", "Received propertyId: " + propertyId);
 
@@ -78,12 +82,14 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         propertyDescriptionTextView.setText(description);
         propertyAddressTextView.setText(address);
         propertyPriceTextView.setText(price);
+        propertyAddressTextViewTop.setText(address);
 
-        // Load image using Glide
-        if (imageUrl != null) {
-            Glide.with(this).load(imageUrl).placeholder(R.drawable.image_placeholder).into(propertyImageView);
+        // Set up image slider
+        if (images != null && !images.isEmpty()) {
+            ImageSliderAdapter sliderAdapter = new ImageSliderAdapter(this, images);
+            imageViewPager.setAdapter(sliderAdapter);
         } else {
-            propertyImageView.setImageResource(R.drawable.image_placeholder);
+            Toast.makeText(this, "No images available", Toast.LENGTH_SHORT).show();
         }
 
         // Initialize map fragment

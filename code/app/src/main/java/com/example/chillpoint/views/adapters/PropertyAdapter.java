@@ -56,7 +56,8 @@ public class PropertyAdapter extends RecyclerView.Adapter<PropertyAdapter.Proper
             intent.putExtra("description", property.getDescription());
             intent.putExtra("address", property.getAddress());
             intent.putExtra("price", "$" + property.getPricePerNight() + " / night");
-            intent.putExtra("image", property.getImages().isEmpty() ? null : property.getImages().get(0));
+            intent.putStringArrayListExtra("images", property.getImages());
+
             context.startActivity(intent);
         });
         // Load first image
