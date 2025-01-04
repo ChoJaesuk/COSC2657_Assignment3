@@ -1,5 +1,6 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private ImageView profileImageView;
     private TextView usernameTextView;
+    private TextView hostVerificationTextView;
 
     private FirebaseAuth auth;
     private FirebaseFirestore firestore;
@@ -33,9 +35,16 @@ public class ProfileActivity extends AppCompatActivity {
         // Initialize UI components
         profileImageView = findViewById(R.id.profileImageView);
         usernameTextView = findViewById(R.id.usernameTextView);
+        hostVerificationTextView = findViewById(R.id.hostVerification);
 
         // Load user profile
         loadUserProfile();
+
+        // Set click listener for Host Verification
+        hostVerificationTextView.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, HostVerificationActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void loadUserProfile() {
