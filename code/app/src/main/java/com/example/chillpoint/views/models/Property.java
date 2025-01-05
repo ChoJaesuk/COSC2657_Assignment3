@@ -1,7 +1,9 @@
 package com.example.chillpoint.views.models;
 
-import java.util.ArrayList;
+import com.google.firebase.firestore.IgnoreExtraProperties;
 
+import java.util.ArrayList;
+@IgnoreExtraProperties
 public class Property {
     private String id;
     private String name;

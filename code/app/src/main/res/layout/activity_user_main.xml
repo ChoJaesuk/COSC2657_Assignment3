@@ -56,6 +56,7 @@
         android:textColor="@android:color/white"
         android:layout_below="@id/searchBarLayout"
         android:layout_margin="16dp" />
+
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -70,5 +71,16 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:visibility="gone" />
+
+    <!-- Create Property Button -->
+    <Button
+        android:id="@+id/wishlistButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="wishlist"
+        android:backgroundTint="@color/purple_500"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/createPropertyButton"
+        android:layout_margin="16dp" />
 
 </RelativeLayout>

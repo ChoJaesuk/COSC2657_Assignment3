@@ -16,10 +16,13 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.WishlistActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.MapsActivity"
             android:exported="false" />
         <activity
-        android:name=".views.activities.PropertyDetailActivity"
+            android:name=".views.activities.PropertyDetailActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.CreatePropertyActivity"
