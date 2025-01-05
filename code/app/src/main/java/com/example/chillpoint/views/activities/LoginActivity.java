@@ -121,15 +121,18 @@ public class LoginActivity extends AppCompatActivity {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         String role = documentSnapshot.getString("role");
                         String username = documentSnapshot.getString("username");
+                        String userImageUrl = documentSnapshot.getString("imageUrl"); // 유저 이미지 URL 가져오기
 
-                        // 디버깅 로그 추가
-                        Log.d("LoginActivity", "Retrieved user details: role=" + role + ", username=" + username);
+                        Log.d("LoginActivity", "Retrieved user details: role=" + role + ", username=" + username + ", imageUrl=" + userImageUrl);
 
                         // 세션 정보 저장
                         SessionManager sessionManager = new SessionManager(LoginActivity.this);
-                        sessionManager.saveUserSession(userId, role, username);
+                        sessionManager.saveUserSession(userId, role, username, userImageUrl); // 이미지 URL 포함 저장
 
-                        Log.d("SessionManager", "Session saved: userId=" + sessionManager.getUserId() + ", role=" + sessionManager.getRole() + ", username=" + sessionManager.getUsername());
+                        Log.d("SessionManager", "Session saved: userId=" + sessionManager.getUserId() +
+                                ", role=" + sessionManager.getRole() +
+                                ", username=" + sessionManager.getUsername() +
+                                ", imageUrl=" + sessionManager.getUserImageUrl());
 
                         if (role != null) {
                             if ("User".equals(role)) {
@@ -157,6 +160,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
 

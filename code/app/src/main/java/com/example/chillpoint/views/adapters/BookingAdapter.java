@@ -1,6 +1,7 @@
 package com.example.chillpoint.views.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.views.activities.ReviewActivity;
 import com.example.chillpoint.views.models.Booking;
 
 import java.util.List;
@@ -48,8 +51,26 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
                 .load(booking.getImageUrl())
                 .into(holder.propertyImage);
 
+        // Manage button click listener
         holder.manageButton.setOnClickListener(v -> {
             // Handle manage button click
+        });
+
+        // Review button click listener
+        holder.reviewButton.setOnClickListener(v -> {
+            // Get user session details
+            SessionManager sessionManager = new SessionManager(context);
+            String userId = sessionManager.getUserId();
+            String username = sessionManager.getUsername();
+            String imageUrl = sessionManager.getUserImageUrl();
+            // Navigate to ReviewActivity
+            Intent intent = new Intent(context, ReviewActivity.class);
+            intent.putExtra("bookingId", booking.getBookingId()); // Pass bookingId
+            intent.putExtra("userId", userId); // Pass userId
+            intent.putExtra("username", username); // Pass username
+            intent.putExtra("propertyId", booking.getPropertyId());
+            intent.putExtra("imageUrl", imageUrl);
+            context.startActivity(intent);
         });
     }
 
@@ -61,7 +82,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView propertyImage;
         TextView propertyName, location, dates, status;
-        Button manageButton;
+        Button manageButton, reviewButton;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -71,6 +92,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
             dates = itemView.findViewById(R.id.bookingDates);
             status = itemView.findViewById(R.id.bookingStatus);
             manageButton = itemView.findViewById(R.id.manageBookingButton);
+            reviewButton = itemView.findViewById(R.id.reviewBookingButton); // Add reference to review button
         }
     }
 }

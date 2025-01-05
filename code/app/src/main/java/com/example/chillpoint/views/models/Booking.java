@@ -8,11 +8,11 @@ public class Booking {
     private String startDate;
     private String endDate;
     private String status;
-
+    private String bookingId;
     public Booking() {
     }
 
-    public Booking(String propertyId, String propertyName, String propertyLocation, String imageUrl, String startDate, String endDate, String status) {
+    public Booking(String bookingId, String propertyId, String propertyName, String propertyLocation, String imageUrl, String startDate, String endDate, String status) {
         this.propertyId = propertyId;
         this.propertyName = propertyName;
         this.propertyLocation = propertyLocation;
@@ -20,6 +20,7 @@ public class Booking {
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
+        this.bookingId = bookingId;
     }
 
     public String getPropertyId() {
@@ -76,5 +77,12 @@ public class Booking {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+    // Getters and Setters
+    public String getBookingId() {
+        return bookingId;
+    }
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
     }
 }

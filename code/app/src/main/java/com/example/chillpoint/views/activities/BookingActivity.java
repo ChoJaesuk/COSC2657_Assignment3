@@ -53,6 +53,7 @@ public class BookingActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         bookingsList.clear();
                         for (DocumentSnapshot document : task.getResult()) {
+                            String bookingId = document.getId(); // Booking ID
                             String propertyId = document.getString("propertyId");
                             String startDate = document.getString("fromDate");
                             String endDate = document.getString("toDate");
@@ -67,23 +68,17 @@ public class BookingActivity extends AppCompatActivity {
                                             // Fetch data from Firestore
                                             String propertyName = propertySnapshot.getString("name");
                                             String propertyLocation = propertySnapshot.getString("address");
-                                            // Extract the first image from the 'images' list
                                             ArrayList<String> images = (ArrayList<String>) propertySnapshot.get("images");
                                             String imageUrl = (images != null && !images.isEmpty()) ? images.get(0) : null;
-
-                                            // Log for debugging
-                                            Log.d("PropertyDetails", "Fetched property: " +
-                                                    "Name=" + propertyName +
-                                                    ", Location=" + propertyLocation +
-                                                    ", ImageUrl=" + imageUrl);
 
                                             // Handle missing fields
                                             if (propertyName == null) propertyName = "No Name Available";
                                             if (propertyLocation == null) propertyLocation = "No Location Available";
-                                            if (imageUrl == null) imageUrl = "https://example.com/placeholder.jpg"; // Add a placeholder image URL
+                                            if (imageUrl == null) imageUrl = "https://example.com/placeholder.jpg"; // Placeholder
 
                                             // Create Booking object and add to list
                                             Booking booking = new Booking(
+                                                    bookingId,
                                                     propertyId,
                                                     propertyName,
                                                     propertyLocation,
@@ -106,5 +101,6 @@ public class BookingActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
 }
