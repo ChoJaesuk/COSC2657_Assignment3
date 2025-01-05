@@ -29,7 +29,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private static final int IMAGE_PICKER_REQUEST = 100;
 
-    private EditText usernameEditText, fullNameEditText, emailEditText, phoneEditText, passwordEditText, confirmPasswordEditText;
+    private EditText usernameEditText, fullNameEditText, emailEditText, phoneEditText, passwordEditText, confirmPasswordEditText, bioEditText;
     private Spinner roleSpinner;
     private Button registerButton, uploadImageButton;
     private ProgressBar progressBar;
@@ -54,6 +54,7 @@ public class RegisterActivity extends AppCompatActivity {
         phoneEditText = findViewById(R.id.phoneEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
+        bioEditText = findViewById(R.id.bioEditText); // Bio field
         roleSpinner = findViewById(R.id.roleSpinner);
         registerButton = findViewById(R.id.registerButton);
         uploadImageButton = findViewById(R.id.uploadImagesButton); // Button for image upload
@@ -117,10 +118,11 @@ public class RegisterActivity extends AppCompatActivity {
         String phone = phoneEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
+        String bio = bioEditText.getText().toString().trim(); // Get bio input
         String role = roleSpinner.getSelectedItem().toString();
 
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(fullName) || TextUtils.isEmpty(email) ||
-                TextUtils.isEmpty(phone) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
+                TextUtils.isEmpty(phone) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword) || TextUtils.isEmpty(bio)) {
             Toast.makeText(RegisterActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -146,7 +148,7 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(String imageUrl) {
                         // Save user details to Firestore
-                        userRepository.addUserWithImage(userId, username, fullName, email, phone, role, imageUrl, new UserRepository.AddUserCallback() {
+                        userRepository.addUserWithImage(userId, username, fullName, email, phone, role, bio, imageUrl, new UserRepository.AddUserCallback() {
                             @Override
                             public void onSuccess() {
                                 progressBar.setVisibility(View.GONE);

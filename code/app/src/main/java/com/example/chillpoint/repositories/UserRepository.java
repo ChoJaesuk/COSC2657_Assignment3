@@ -23,7 +23,7 @@ public class UserRepository {
         this.auth = FirebaseAuth.getInstance();
     }
 
-    public void addUser(String userId, String username, String fullName, String email, String phone, String role, AddUserCallback callback) {
+    public void addUser(String userId, String username, String fullName, String email, String phone, String role, String bio, AddUserCallback callback) {
         // Create user data map
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("username", username);
@@ -31,6 +31,7 @@ public class UserRepository {
         userMap.put("email", email);
         userMap.put("phone", phone);
         userMap.put("role", role);
+        userMap.put("bio", bio); // Add bio field
         userMap.put("isValidated", false); // Automatically set isValidated to false
 
         // Add the user to Firestore
@@ -90,6 +91,7 @@ public class UserRepository {
         userInfo.put("role", "User");
         userInfo.put("fullName", "");
         userInfo.put("phone", "");
+        userInfo.put("bio", ""); // Add bio field with default value
         userInfo.put("isValidated", false); // Automatically set isValidated to false
 
         firestore.collection("Users").document(userId)
@@ -112,13 +114,14 @@ public class UserRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void addUserWithImage(String userId, String username, String fullName, String email, String phone, String role, String imageUrl, AddUserCallback callback) {
+    public void addUserWithImage(String userId, String username, String fullName, String email, String phone, String role, String bio, String imageUrl, AddUserCallback callback) {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("username", username);
         userMap.put("fullName", fullName);
         userMap.put("email", email);
         userMap.put("phone", phone);
         userMap.put("role", role);
+        userMap.put("bio", bio); // Add bio field
         userMap.put("imageUrl", imageUrl); // Add image URL
         userMap.put("isValidated", false);
 

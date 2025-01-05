@@ -71,6 +71,15 @@
             android:numColumns="1"
             android:horizontalSpacing="10dp"
             android:verticalSpacing="10dp" />
+
+        <EditText
+            android:id="@+id/bioEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Bio"
+            android:layout_marginTop="8dp" />
+
+
         <Spinner
             android:id="@+id/roleSpinner"
             android:layout_width="match_parent"
