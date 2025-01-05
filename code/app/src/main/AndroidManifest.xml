@@ -19,7 +19,7 @@
             android:name=".views.activities.MapsActivity"
             android:exported="false" />
         <activity
-        android:name=".views.activities.PropertyDetailActivity"
+            android:name=".views.activities.PropertyDetailActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.CreatePropertyActivity"

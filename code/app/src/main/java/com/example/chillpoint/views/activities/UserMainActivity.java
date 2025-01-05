@@ -22,8 +22,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.PropertyAdapter;
 import com.example.chillpoint.views.models.Property;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
@@ -37,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class UserMainActivity extends AppCompatActivity {
+public class UserMainActivity extends AppCompatActivity implements NavigationSetup {
     private static final String TAG = "UserMainActivity";
 
     private RecyclerView recyclerView;
@@ -63,6 +66,7 @@ public class UserMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_main);
+        setupNavigationBar();
         // Load user session data
         // 세션 데이터 로드
         SessionManager sessionManager = new SessionManager(this);
@@ -331,4 +335,15 @@ public class UserMainActivity extends AppCompatActivity {
         return sdf.format(new Date(timestamp));
     }
 
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_trips);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
 }

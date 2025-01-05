@@ -1,122 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".views.activities.MainActivity"
-    android:background="@color/alice_blue">
+    android:background="@color/alice_blue"
+    android:orientation="vertical">
+  <ScrollView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+      <TextView
+          android:id="@+id/main_text"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Welcome to Main Activity"
+          android:textSize="18sp"
+          android:padding="10dp"
+          android:textColor="@android:color/black"
+          android:background="@drawable/bg_text_rectangle"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintBottom_toBottomOf="parent" />
 
-  <TextView
-      android:id="@+id/main_text"
-      android:layout_width="wrap_content"
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:background="@drawable/bg_text_round"
+          android:padding="10dp"
+          android:text="Welcome to Main Activity"
+          android:textColor="@android:color/black"
+          android:textSize="18sp"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintHorizontal_bias="0.497"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintVertical_bias="0.611" />
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:background="@color/light_blue"
+          android:padding="10dp"
+          android:text="Welcome to Main Activity"
+          android:textColor="@color/black"
+          android:textSize="18sp"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintHorizontal_bias="0.497"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintVertical_bias="0.762" />
+
+      <Button
+          android:id="@+id/blueBtn"
+          style="@style/BlueButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginBottom="36dp"
+          android:text="Blue button"
+          app:backgroundTint="@null"
+          app:layout_constraintBottom_toTopOf="@+id/main_text"
+          tools:layout_editor_absoluteX="153dp" />
+
+      <Button
+          android:id="@+id/redBtn"
+          style="@style/RedButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Red button"
+          app:backgroundTint="@null"
+          app:layout_constraintBottom_toTopOf="@+id/blueBtn"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintHorizontal_bias="0.493"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintVertical_bias="0.924" />
+
+      <Button
+          android:id="@+id/greenBtn"
+          style="@style/GreenButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginBottom="2dp"
+          android:text="Green button"
+          app:backgroundTint="@null"
+          app:layout_constraintBottom_toTopOf="@+id/redBtn"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintHorizontal_bias="0.498"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent"
+          app:layout_constraintVertical_bias="0.883" />
+
+      <Button
+          android:id="@+id/greyBtn"
+          style="@style/GreyButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginBottom="32dp"
+          android:text="Grey button"
+          app:backgroundTint="@null"
+          app:layout_constraintBottom_toTopOf="@+id/greenBtn"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent" />
+
+      <!-- Go to Login Page Button -->
+      <Button
+          android:id="@+id/go_to_login_button"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:background="#9AC8CD"
+          android:text="Go to Login Page"
+          android:textColor="#FFFFFF"
+          android:textSize="16sp"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintHorizontal_bias="0.9"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintVertical_bias="0.95" />
+    </LinearLayout>
+  </ScrollView>
+
+  <!-- Bottom Navigation -->
+  <com.google.android.material.bottomnavigation.BottomNavigationView
+      android:id="@+id/bottom_navigation"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Welcome to Main Activity"
-      android:textSize="18sp"
-      android:padding="10dp"
-      android:textColor="@android:color/black"
-      android:background="@drawable/bg_text_rectangle"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintBottom_toBottomOf="parent" />
+      android:layout_gravity="bottom"
+      android:background="@color/dark_blue"
+      app:menu="@menu/bottom_navigation_menu"
+      app:itemIconTint="@color/black"
+      app:itemTextColor="@color/black"
+      android:layout_alignParentBottom="true"/>
+</RelativeLayout>
 
-  <TextView
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:background="@drawable/bg_text_round"
-      android:padding="10dp"
-      android:text="Welcome to Main Activity"
-      android:textColor="@android:color/black"
-      android:textSize="18sp"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintHorizontal_bias="0.497"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintVertical_bias="0.611" />
-
-  <TextView
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:background="@color/light_blue"
-      android:padding="10dp"
-      android:text="Welcome to Main Activity"
-      android:textColor="@color/black"
-      android:textSize="18sp"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintHorizontal_bias="0.497"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintVertical_bias="0.762" />
-
-  <Button
-      android:id="@+id/blueBtn"
-      style="@style/BlueButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="36dp"
-      android:text="Blue button"
-      app:backgroundTint="@null"
-      app:layout_constraintBottom_toTopOf="@+id/main_text"
-      tools:layout_editor_absoluteX="153dp" />
-
-  <Button
-      android:id="@+id/redBtn"
-      style="@style/RedButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="Red button"
-      app:backgroundTint="@null"
-      app:layout_constraintBottom_toTopOf="@+id/blueBtn"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintHorizontal_bias="0.493"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintVertical_bias="0.924" />
-
-  <Button
-      android:id="@+id/greenBtn"
-      style="@style/GreenButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="2dp"
-      android:text="Green button"
-      app:backgroundTint="@null"
-      app:layout_constraintBottom_toTopOf="@+id/redBtn"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintHorizontal_bias="0.498"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintVertical_bias="0.883" />
-
-  <Button
-      android:id="@+id/greyBtn"
-      style="@style/GreyButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="32dp"
-      android:text="Grey button"
-      app:backgroundTint="@null"
-      app:layout_constraintBottom_toTopOf="@+id/greenBtn"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
-
-  <!-- Go to Login Page Button -->
-  <Button
-      android:id="@+id/go_to_login_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:background="#9AC8CD"
-      android:text="Go to Login Page"
-      android:textColor="#FFFFFF"
-      android:textSize="16sp"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintHorizontal_bias="0.9"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintVertical_bias="0.95" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
