@@ -71,8 +71,8 @@ public class ChatActivity extends AppCompatActivity {
                     // Retrieve participant(s) from the document
                     List<String> participants = (List<String>) document.get("participants");
                     if (participants != null && !participants.isEmpty()) {
-                        String lastParticipantId = participants.get(participants.size() - 1);  // Get the last participant ID
-
+                        String lastParticipantId = participants.stream().filter(participantId -> !participantId.equals(userId)).findFirst().orElse(null);
+                        // Get the last participant who is not the current user
                         // Asynchronously retrieve the username using the getUsernameByUserId method
                         userRepository.getUsernameByUserId(lastParticipantId)
                                 .addOnSuccessListener(username -> {

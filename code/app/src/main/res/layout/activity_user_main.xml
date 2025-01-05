@@ -54,5 +54,6 @@
         android:background="#9AC8CD"
         android:padding="16dp"
         android:text="Chat With HostId: ...."
+        android:contentDescription="448Nxx6lBNfAfGWSnb2Qa2VaM522"
         android:textColor="#FFFFFF" />
 </RelativeLayout>
