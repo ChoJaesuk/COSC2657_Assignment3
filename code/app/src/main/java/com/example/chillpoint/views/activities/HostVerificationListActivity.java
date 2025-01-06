@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ImageView;
@@ -17,20 +20,28 @@ import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class HostVerificationListActivity extends AppCompatActivity {
 
     private LinearLayout verificationListLayout;
     private ProgressBar progressBar;
+    private Spinner statusFilterSpinner, dateFilterSpinner;
+    private Button applyFiltersButton;
 
     private FirebaseFirestore firestore;
     private ActivityResultLauncher<Intent> detailsActivityLauncher;
 
     // Store verifications to update data dynamically
     private List<Map<String, Object>> verifications;
+    private List<Map<String, Object>> filteredVerifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +51,19 @@ public class HostVerificationListActivity extends AppCompatActivity {
         // Initialize UI components
         verificationListLayout = findViewById(R.id.verificationListLayout);
         progressBar = findViewById(R.id.progressBar);
+        statusFilterSpinner = findViewById(R.id.statusFilterSpinner);
+        dateFilterSpinner = findViewById(R.id.dateFilterSpinner);
+        applyFiltersButton = findViewById(R.id.applyFiltersButton);
 
         // Initialize Firebase Firestore
         firestore = FirebaseFirestore.getInstance();
 
         // Initialize the verifications list
         verifications = new ArrayList<>();
+        filteredVerifications = new ArrayList<>();
+
+        // Set up spinners
+        setUpSpinners();
 
         // Register for activity result
         detailsActivityLauncher = registerForActivityResult(
@@ -60,6 +78,23 @@ public class HostVerificationListActivity extends AppCompatActivity {
 
         // Load verification list
         loadVerificationList();
+
+        // Set up filter button
+        applyFiltersButton.setOnClickListener(v -> applyFilters());
+    }
+
+    private void setUpSpinners() {
+        // Status filter spinner
+        ArrayAdapter<CharSequence> statusAdapter = ArrayAdapter.createFromResource(
+                this, R.array.status_filter_options, android.R.layout.simple_spinner_item);
+        statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        statusFilterSpinner.setAdapter(statusAdapter);
+
+        // Date filter spinner
+        ArrayAdapter<CharSequence> dateAdapter = ArrayAdapter.createFromResource(
+                this, R.array.date_filter_options, android.R.layout.simple_spinner_item);
+        dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dateFilterSpinner.setAdapter(dateAdapter);
     }
 
     private void loadVerificationList() {
@@ -74,6 +109,8 @@ public class HostVerificationListActivity extends AppCompatActivity {
                         verification.put("verificationId", doc.getId()); // Add document ID
                         verifications.add(verification);
                     }
+                    filteredVerifications.clear();
+                    filteredVerifications.addAll(verifications);
                     displayVerificationList();
                 })
                 .addOnFailureListener(e -> {
@@ -82,9 +119,43 @@ public class HostVerificationListActivity extends AppCompatActivity {
                 });
     }
 
+    private void applyFilters() {
+        String selectedStatus = statusFilterSpinner.getSelectedItem().toString();
+        String selectedDateOrder = dateFilterSpinner.getSelectedItem().toString();
+
+        // Filter by status
+        filteredVerifications.clear();
+        for (Map<String, Object> verification : verifications) {
+            if (selectedStatus.equals("All") || verification.get("status").toString().equalsIgnoreCase(selectedStatus)) {
+                filteredVerifications.add(verification);
+            }
+        }
+
+        // Sort by date
+        if (selectedDateOrder.equals("Date: Newest First")) {
+            Collections.sort(filteredVerifications, (v1, v2) -> compareDates(v2.get("timestamp").toString(), v1.get("timestamp").toString()));
+        } else if (selectedDateOrder.equals("Date: Oldest First")) {
+            Collections.sort(filteredVerifications, (v1, v2) -> compareDates(v1.get("timestamp").toString(), v2.get("timestamp").toString()));
+        }
+
+        displayVerificationList();
+    }
+
+    private int compareDates(String date1, String date2) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date d1 = sdf.parse(date1);
+            Date d2 = sdf.parse(date2);
+            return d1.compareTo(d2);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
     private void displayVerificationList() {
         verificationListLayout.removeAllViews();
-        for (Map<String, Object> verification : verifications) {
+        for (Map<String, Object> verification : filteredVerifications) {
             View cardView = getLayoutInflater().inflate(R.layout.card_host_verification, verificationListLayout, false);
 
             TextView usernameTextView = cardView.findViewById(R.id.usernameTextView);
@@ -128,9 +199,6 @@ public class HostVerificationListActivity extends AppCompatActivity {
 
             // Add card to the list
             verificationListLayout.addView(cardView);
-
-            // Store the verification ID in the card view tag
-            cardView.setTag(verification.get("verificationId"));
         }
     }
 
@@ -144,6 +212,6 @@ public class HostVerificationListActivity extends AppCompatActivity {
         }
 
         // Refresh the UI by redisplaying the list
-        displayVerificationList();
+        applyFilters();
     }
 }
