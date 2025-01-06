@@ -1,5 +1,6 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -16,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HostVerificationDetailsActivity extends AppCompatActivity {
@@ -49,7 +51,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         firestore = FirebaseFirestore.getInstance();
         verificationId = getIntent().getStringExtra("verificationId");
 
-        // Load host verification details
+        // Load verification details
         loadVerificationDetails();
 
         // Set listeners for approve and reject buttons
@@ -79,32 +81,31 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
     }
 
     private void displayDetails(Map<String, Object> verificationData) {
-        // Display username
         usernameTextView.setText(verificationData.containsKey("username") ? verificationData.get("username").toString() : "N/A");
-
-        // Display phone
         phoneTextView.setText(verificationData.containsKey("phone") ? verificationData.get("phone").toString() : "N/A");
-
-        // Display status
         statusTextView.setText(verificationData.containsKey("status") ? verificationData.get("status").toString() : "N/A");
-
-        // Display timestamp
         timestampTextView.setText(verificationData.containsKey("timestamp") ? verificationData.get("timestamp").toString() : "N/A");
 
-        // Display image (load the first image from the imageUrls array)
+        // Set text color for status
+        String status = verificationData.get("status").toString();
+        if ("Approved".equalsIgnoreCase(status)) {
+            statusTextView.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        } else if ("Rejected".equalsIgnoreCase(status)) {
+            statusTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        }
+
         if (verificationData.containsKey("imageUrls")) {
             try {
                 @SuppressWarnings("unchecked")
                 String imageUrl = ((java.util.List<String>) verificationData.get("imageUrls")).get(0);
                 Glide.with(this).load(imageUrl).into(imageView);
             } catch (Exception e) {
-                Glide.with(this).load(R.drawable.placeholder_image).into(imageView); // Fallback to placeholder image
+                Glide.with(this).load(R.drawable.placeholder_image).into(imageView); // Default placeholder
             }
         } else {
-            Glide.with(this).load(R.drawable.placeholder_image).into(imageView);
+            Glide.with(this).load(R.drawable.placeholder_image).into(imageView); // Default placeholder
         }
 
-        // Display admin note
         adminNoteEditText.setText(verificationData.containsKey("adminNote") ? verificationData.get("adminNote").toString() : "");
     }
 
@@ -118,11 +119,20 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        firestore.collection("HostVerifications").document(verificationId)
-                .update("status", status, "adminNote", adminNote)
+        Map<String, Object> update = new HashMap<>();
+        update.put("status", status);
+        update.put("adminNote", adminNote);
+
+        firestore.collection("HostVerifications").document(verificationId).update(update)
                 .addOnSuccessListener(aVoid -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Verification updated successfully.", Toast.LENGTH_SHORT).show();
+
+                    // Return to the list activity and notify data update
+                    Intent intent = new Intent();
+                    intent.putExtra("verificationId", verificationId);
+                    intent.putExtra("status", status);
+                    setResult(RESULT_OK, intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {

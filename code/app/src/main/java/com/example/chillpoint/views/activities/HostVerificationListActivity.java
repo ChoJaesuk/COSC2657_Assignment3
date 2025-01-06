@@ -9,6 +9,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ImageView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -25,6 +27,10 @@ public class HostVerificationListActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     private FirebaseFirestore firestore;
+    private ActivityResultLauncher<Intent> detailsActivityLauncher;
+
+    // Store verifications to update data dynamically
+    private List<Map<String, Object>> verifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +44,20 @@ public class HostVerificationListActivity extends AppCompatActivity {
         // Initialize Firebase Firestore
         firestore = FirebaseFirestore.getInstance();
 
+        // Initialize the verifications list
+        verifications = new ArrayList<>();
+
+        // Register for activity result
+        detailsActivityLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        String verificationId = result.getData().getStringExtra("verificationId");
+                        String status = result.getData().getStringExtra("status");
+                        updateStatusInList(verificationId, status);
+                    }
+                });
+
         // Load verification list
         loadVerificationList();
     }
@@ -48,13 +68,13 @@ public class HostVerificationListActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     progressBar.setVisibility(View.GONE);
-                    List<Map<String, Object>> verifications = new ArrayList<>();
+                    verifications.clear();
                     for (var doc : queryDocumentSnapshots.getDocuments()) {
                         Map<String, Object> verification = doc.getData();
                         verification.put("verificationId", doc.getId()); // Add document ID
                         verifications.add(verification);
                     }
-                    displayVerificationList(verifications);
+                    displayVerificationList();
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
@@ -62,7 +82,7 @@ public class HostVerificationListActivity extends AppCompatActivity {
                 });
     }
 
-    private void displayVerificationList(List<Map<String, Object>> verifications) {
+    private void displayVerificationList() {
         verificationListLayout.removeAllViews();
         for (Map<String, Object> verification : verifications) {
             View cardView = getLayoutInflater().inflate(R.layout.card_host_verification, verificationListLayout, false);
@@ -76,8 +96,17 @@ public class HostVerificationListActivity extends AppCompatActivity {
             // Set data into views
             usernameTextView.setText(verification.containsKey("username") ? verification.get("username").toString() : "N/A");
             timestampTextView.setText(verification.containsKey("timestamp") ? verification.get("timestamp").toString() : "N/A");
-            statusTextView.setText(verification.containsKey("status") ? verification.get("status").toString() : "N/A");
 
+            // Set status and color
+            String status = verification.get("status").toString();
+            statusTextView.setText(status);
+            if ("Approved".equalsIgnoreCase(status)) {
+                statusTextView.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            } else if ("Rejected".equalsIgnoreCase(status)) {
+                statusTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            }
+
+            // Set image
             if (verification.containsKey("imageUrls")) {
                 try {
                     @SuppressWarnings("unchecked")
@@ -94,11 +123,27 @@ public class HostVerificationListActivity extends AppCompatActivity {
             seeDetailsButton.setOnClickListener(v -> {
                 Intent intent = new Intent(HostVerificationListActivity.this, HostVerificationDetailsActivity.class);
                 intent.putExtra("verificationId", verification.get("verificationId").toString());
-                startActivity(intent);
+                detailsActivityLauncher.launch(intent);
             });
 
             // Add card to the list
             verificationListLayout.addView(cardView);
+
+            // Store the verification ID in the card view tag
+            cardView.setTag(verification.get("verificationId"));
         }
+    }
+
+    private void updateStatusInList(String verificationId, String status) {
+        // Update the status in the local verifications list
+        for (Map<String, Object> verification : verifications) {
+            if (verificationId.equals(verification.get("verificationId"))) {
+                verification.put("status", status); // Update the status
+                break;
+            }
+        }
+
+        // Refresh the UI by redisplaying the list
+        displayVerificationList();
     }
 }
