@@ -1,0 +1,101 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/custom_background"
+    android:elevation="4dp">
+
+    <!-- 리뷰 제목 -->
+    <TextView
+        android:id="@+id/reviewTitleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="★ 4.7 reviews (100)"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 개별 리뷰 카드 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/rounded_corner_background"
+        android:layout_marginBottom="8dp">
+
+        <!-- 프로필 이미지 -->
+        <ImageView
+            android:id="@+id/reviewerProfileImageView"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_location"
+            android:scaleType="centerCrop"
+            android:layout_marginEnd="12dp"
+            android:background="@android:color/darker_gray" />
+
+        <!-- 리뷰 내용 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="1">
+
+            <!-- 이름과 별점 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/reviewerNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Blair"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/reviewRatingTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="★★★★★"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/holo_orange_dark" />
+            </LinearLayout>
+
+            <!-- 리뷰 날짜 -->
+            <TextView
+                android:id="@+id/reviewDateTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="06/12/2024"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginBottom="4dp" />
+
+            <!-- 리뷰 내용 -->
+            <TextView
+                android:id="@+id/reviewContentTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Great location! Cozy, clean, and welcoming host. Highly recommended!"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- "Show all reviews" 버튼 -->
+    <Button
+        android:id="@+id/showAllReviewsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show all reviews"
+        android:backgroundTint="@android:color/holo_blue_light"
+        android:textColor="@android:color/black" />
+</LinearLayout>

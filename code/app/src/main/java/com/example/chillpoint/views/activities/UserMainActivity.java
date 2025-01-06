@@ -1,5 +1,6 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -60,7 +62,15 @@ public class UserMainActivity extends AppCompatActivity {
         filterButton = findViewById(R.id.filterButton);
         searchButton = findViewById(R.id.searchButton);
         searchEditText = findViewById(R.id.searchEditText);
-
+        Button createPropertyButton = findViewById(R.id.createPropertyButton);
+        createPropertyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to CreatePropertyActivity
+                Intent intent = new Intent(UserMainActivity.this, CreatePropertyActivity.class);
+                startActivity(intent);
+            }
+        });
         propertyList = new ArrayList<>();
         propertyAdapter = new PropertyAdapter(this, propertyList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -84,58 +94,151 @@ public class UserMainActivity extends AppCompatActivity {
     private void loadProperties(String startDate, String endDate, String rooms, String beds, String searchQuery) {
         progressBar.setVisibility(View.VISIBLE);
 
-        Query query = firestore.collection("Properties");
-        Log.d("UserMainActivity", "Initial Query: " + query);
+        // Step 1: 초기 모든 property 로드 (검색어와 필터가 없을 때)
+        if ((startDate == null || startDate.isEmpty()) &&
+                (endDate == null || endDate.isEmpty()) &&
+                (searchQuery == null || searchQuery.isEmpty()) &&
+                rooms == null && beds == null) {
 
-        // 날짜 범위 필터
-        if (startDate != null && endDate != null) {
-            query = query.whereGreaterThanOrEqualTo("availableFrom", startDate)
-                    .whereLessThanOrEqualTo("availableTo", endDate);
-            Log.d("UserMainActivity", "Added date filter: Start Date = " + startDate + ", End Date = " + endDate);
+            firestore.collection("Properties")
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        progressBar.setVisibility(View.GONE);
+                        if (task.isSuccessful()) {
+                            propertyList.clear();
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Property property = document.toObject(Property.class);
+                                if (property != null) {
+                                    property.setId(document.getId()); // Firebase 문서 ID 설정
+                                    propertyList.add(property);
+                                }
+                            }
+                            propertyAdapter.notifyDataSetChanged();
+                            Log.d(TAG, "All properties loaded successfully: " + propertyList.size());
+                        } else {
+                            Toast.makeText(this, "Failed to load properties", Toast.LENGTH_SHORT).show();
+                            Log.e(TAG, "Error loading all properties", task.getException());
+                        }
+                    });
+            return;
         }
 
-        // 방 개수 필터
+        // Step 2: 특정 날짜가 선택된 경우, 예약된 property 제외
+        firestore.collection("reservations")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        ArrayList<String> excludedPropertyIds = new ArrayList<>();
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        try {
+                            long startTimestamp = startDate != null ? sdf.parse(startDate).getTime() : 0;
+                            long endTimestamp = endDate != null ? sdf.parse(endDate).getTime() : Long.MAX_VALUE;
+
+                            for (DocumentSnapshot document : task.getResult()) {
+                                String reservedStartDate = document.getString("fromDate");
+                                String reservedEndDate = document.getString("toDate");
+                                String propertyId = document.getString("propertyId");
+
+                                if (reservedStartDate != null && reservedEndDate != null && propertyId != null) {
+                                    long reservedStart = sdf.parse(reservedStartDate).getTime();
+                                    long reservedEnd = sdf.parse(reservedEndDate).getTime();
+
+                                    // Check if the selected range overlaps with the reserved range
+                                    if (!(endTimestamp < reservedStart || startTimestamp > reservedEnd)) {
+                                        excludedPropertyIds.add(propertyId); // Add propertyId to exclude list
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parsing dates", e);
+                        }
+
+                        // Step 3: Query properties excluding reserved propertyIds
+                        Query query = firestore.collection("Properties");
+
+                        if (!excludedPropertyIds.isEmpty()) {
+                            query = query.whereNotIn("id", excludedPropertyIds); // Exclude reserved properties
+                        }
+
+                        // Add additional filters
+                        if (rooms != null) {
+                            query = query.whereEqualTo("numOfRooms", Integer.parseInt(rooms));
+                        }
+
+                        if (beds != null) {
+                            query = query.whereEqualTo("numOfBeds", Integer.parseInt(beds));
+                        }
+
+                        if (searchQuery != null && !searchQuery.isEmpty()) {
+                            query = query.whereGreaterThanOrEqualTo("name", searchQuery)
+                                    .whereLessThanOrEqualTo("name", searchQuery + "\uf8ff");
+                        }
+
+                        // Fetch properties
+                        query.get().addOnCompleteListener(propertyTask -> {
+                            progressBar.setVisibility(View.GONE);
+                            if (propertyTask.isSuccessful()) {
+                                propertyList.clear();
+                                for (DocumentSnapshot document : propertyTask.getResult()) {
+                                    Property property = document.toObject(Property.class);
+                                    if (property != null) {
+                                        property.setId(document.getId()); // Set Firebase document ID
+                                        propertyList.add(property);
+                                    }
+                                }
+                                propertyAdapter.notifyDataSetChanged();
+                                Log.d(TAG, "Filtered properties loaded successfully: " + propertyList.size());
+                            } else {
+                                Toast.makeText(this, "Failed to load properties", Toast.LENGTH_SHORT).show();
+                                Log.e(TAG, "Error loading filtered properties", propertyTask.getException());
+                            }
+                        });
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(this, "Failed to check reservations", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Error loading reservations", task.getException());
+                    }
+                });
+    }
+
+
+    private void applyAdditionalFilters(Query query, String rooms, String beds, String searchQuery) {
         if (rooms != null) {
-            try {
-                int roomCount = Integer.parseInt(rooms); // 숫자로 변환
-                query = query.whereEqualTo("numOfRooms", roomCount);
-                Log.d("UserMainActivity", "Added rooms filter: " + roomCount);
-            } catch (NumberFormatException e) {
-                Log.e("UserMainActivity", "Invalid room number format: " + rooms, e);
-            }
+            query = query.whereEqualTo("numOfRooms", Integer.parseInt(rooms));
         }
 
-        // 침대 개수 필터
         if (beds != null) {
-            try {
-                int bedCount = Integer.parseInt(beds); // 숫자로 변환
-                query = query.whereEqualTo("numOfBeds", bedCount);
-                Log.d("UserMainActivity", "Added beds filter: " + bedCount);
-            } catch (NumberFormatException e) {
-                Log.e("UserMainActivity", "Invalid bed number format: " + beds, e);
-            }
+            query = query.whereEqualTo("numOfBeds", Integer.parseInt(beds));
         }
 
-        // 검색어 필터
         if (searchQuery != null && !searchQuery.isEmpty()) {
             query = query.whereGreaterThanOrEqualTo("name", searchQuery)
                     .whereLessThanOrEqualTo("name", searchQuery + "\uf8ff");
-            Log.d("UserMainActivity", "Added search query filter: " + searchQuery);
         }
 
-        query.get().addOnCompleteListener(task -> {
+        // Fetch properties
+        query.get().addOnCompleteListener(propertyTask -> {
             progressBar.setVisibility(View.GONE);
-            if (task.isSuccessful()) {
+            if (propertyTask.isSuccessful()) {
                 propertyList.clear();
-                propertyList.addAll(task.getResult().toObjects(Property.class));
+                for (DocumentSnapshot document : propertyTask.getResult()) {
+                    Property property = document.toObject(Property.class);
+                    if (property != null) {
+                        property.setId(document.getId()); // Set Firebase document ID
+                        propertyList.add(property);
+                    }
+                }
                 propertyAdapter.notifyDataSetChanged();
-                Log.d("UserMainActivity", "Properties loaded successfully: " + propertyList.size());
+                Log.d(TAG, "Properties loaded successfully: " + propertyList.size());
             } else {
                 Toast.makeText(this, "Failed to load properties", Toast.LENGTH_SHORT).show();
-                Log.e("UserMainActivity", "Error loading properties", task.getException());
+                Log.e(TAG, "Error loading properties", propertyTask.getException());
             }
         });
     }
+
+
+
 
     private String getRadioText(RadioGroup radioGroup, int radioId) {
         if (radioId == -1) return null;

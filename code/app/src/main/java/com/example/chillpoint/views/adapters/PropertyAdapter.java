@@ -52,10 +52,12 @@ public class PropertyAdapter extends RecyclerView.Adapter<PropertyAdapter.Proper
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, PropertyDetailActivity.class);
             intent.putExtra("name", property.getName());
+            intent.putExtra("propertyId", property.getId()); // Properly pass propertyId
             intent.putExtra("description", property.getDescription());
             intent.putExtra("address", property.getAddress());
             intent.putExtra("price", "$" + property.getPricePerNight() + " / night");
-            intent.putExtra("image", property.getImages().isEmpty() ? null : property.getImages().get(0));
+            intent.putStringArrayListExtra("images", property.getImages());
+
             context.startActivity(intent);
         });
         // Load first image
@@ -90,3 +92,4 @@ public class PropertyAdapter extends RecyclerView.Adapter<PropertyAdapter.Proper
         }
     }
 }
+
