@@ -294,7 +294,8 @@
                 android:layout_height="wrap_content"
                 android:text="Contact Host"
                 android:backgroundTint="@android:color/holo_blue_light"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                android:contentDescription="null"/>
         </LinearLayout>
 
         <!-- 구분선 -->
