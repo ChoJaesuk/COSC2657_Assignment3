@@ -46,11 +46,14 @@ public class BookingActivity extends AppCompatActivity {
     private void loadBookings() {
         // Fetch bookings for the logged-in user
         String userId = new SessionManager(this).getUserId();
+        Log.e("loadBookings", "Fetching bookings for user ID: " + userId);
+
         firestore.collection("reservations")
                 .whereEqualTo("userId", userId)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        Log.e("loadBookings", "Successfully fetched reservations for user ID: " + userId);
                         bookingsList.clear();
                         for (DocumentSnapshot document : task.getResult()) {
                             String bookingId = document.getId(); // Booking ID
@@ -58,6 +61,12 @@ public class BookingActivity extends AppCompatActivity {
                             String startDate = document.getString("fromDate");
                             String endDate = document.getString("toDate");
                             String status = document.getString("status");
+
+                            Log.e("ReservationDetails", "Booking ID: " + bookingId);
+                            Log.e("ReservationDetails", "Property ID: " + propertyId);
+                            Log.e("ReservationDetails", "Start Date: " + startDate);
+                            Log.e("ReservationDetails", "End Date: " + endDate);
+                            Log.e("ReservationDetails", "Status: " + status);
 
                             // Fetch property details using propertyId
                             firestore.collection("Properties").document(propertyId).get()
@@ -71,10 +80,15 @@ public class BookingActivity extends AppCompatActivity {
                                             ArrayList<String> images = (ArrayList<String>) propertySnapshot.get("images");
                                             String imageUrl = (images != null && !images.isEmpty()) ? images.get(0) : null;
 
+                                            Log.e("PropertyDetails", "Property Name: " + propertyName);
+                                            Log.e("PropertyDetails", "Property Location: " + propertyLocation);
+                                            Log.e("PropertyDetails", "Image URL: " + imageUrl);
+
                                             // Handle missing fields
                                             if (propertyName == null) propertyName = "No Name Available";
                                             if (propertyLocation == null) propertyLocation = "No Location Available";
-                                            if (imageUrl == null) imageUrl = "https://example.com/placeholder.jpg"; // Placeholder
+                                            if (imageUrl == null)
+                                                imageUrl = "https://example.com/placeholder.jpg"; // Placeholder
 
                                             // Create Booking object and add to list
                                             Booking booking = new Booking(
@@ -88,6 +102,8 @@ public class BookingActivity extends AppCompatActivity {
                                                     status
                                             );
                                             bookingsList.add(booking);
+
+                                            Log.e("BookingList", "Added booking to list: " + booking.toString());
 
                                             // Notify adapter of data changes
                                             bookingAdapter.notifyDataSetChanged();
