@@ -74,7 +74,15 @@
         android:background="#9AC8CD"
         android:textColor="#FFFFFF"
         android:padding="16dp" />
-
+    <Button
+        android:id="@+id/checkBookingsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="My Bookings"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@android:color/holo_blue_dark"
+        android:textColor="@android:color/white" />
     <!-- Profile Button -->
     <Button
         android:id="@+id/profileButton"
