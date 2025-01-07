@@ -1,6 +1,8 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.util.Log;
@@ -17,6 +19,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.util.Pair;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.views.adapters.ImageSliderAdapter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -29,6 +32,8 @@ import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+
 import android.util.Pair;
 
 import java.io.IOException;
@@ -45,17 +50,35 @@ import android.location.Geocoder;
 public class PropertyDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
     private String address;
     private String propertyId;
-    private String userId = "sampleUserId"; // Replace with actual user ID from authentication
     private String selectedStartDate;
     private String selectedEndDate;
-
+    private String hostUserId;
+    private String userId; // From session
+    private String username; // From session
     private FirebaseFirestore firestore;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_property_detail);
+        // 세션 데이터 로드
+        SessionManager sessionManager = new SessionManager(this);
+        userId = sessionManager.getUserId();
+        String role = sessionManager.getRole();
+        username = sessionManager.getUsername();
+        // 디버깅 로그 추가
+        Log.d("SessionManager", "Loaded session: userId=" + userId + ", role=" + role + ", username=" + username);
 
+        // 세션 검증
+        if (userId == null || role == null || username == null) {
+            Toast.makeText(this, "Failed to load user session. Please log in again.", Toast.LENGTH_SHORT).show();
+            // LoginActivity로 이동
+            Intent intent = new Intent(PropertyDetailActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
         // Initialize Firestore
         firestore = FirebaseFirestore.getInstance();
 
@@ -68,15 +91,39 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         Button selectDatesButton = findViewById(R.id.selectDatesButton);
         Button bookButton = findViewById(R.id.bookButton);
         TextView propertyAddressTextViewTop = findViewById(R.id.propertyDetailAddressTextViewTop);
-
+// Inside onCreate method
+        TextView hostNameTextView = findViewById(R.id.hostNameTextView);
+        TextView hostDetailsTextView = findViewById(R.id.hostDetailsTextView);
+        ImageView hostImageView = findViewById(R.id.hostImageView);
         // Get data from intent
         String name = getIntent().getStringExtra("name");
         String description = getIntent().getStringExtra("description");
         address = getIntent().getStringExtra("address");
         String price = getIntent().getStringExtra("price");
         List<String> images = getIntent().getStringArrayListExtra("images");
+        // Get propertyId from Intent
         propertyId = getIntent().getStringExtra("propertyId");
+
+        // Debug log to check if propertyId is correctly received
         Log.d("PropertyDetailActivity", "Received propertyId: " + propertyId);
+        // propertyId 가져오기
+        propertyId = getIntent().getStringExtra("propertyId");
+
+        if (propertyId == null || propertyId.isEmpty()) {
+            Toast.makeText(this, "Invalid Property ID", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // 리뷰 통계 불러오기
+        fetchPropertyReviewStats(propertyId);
+        if (propertyId == null || propertyId.isEmpty()) {
+            Toast.makeText(this, "Property ID is missing!", Toast.LENGTH_SHORT).show();
+            finish(); // Close the activity to prevent further issues
+            return;
+        }
+// Fetch host information
+        fetchHostInformation(propertyId, hostNameTextView, hostDetailsTextView, hostImageView);
 
         // Bind data to views
         propertyNameTextView.setText(name);
@@ -109,10 +156,17 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             } else {
                 Toast.makeText(this, "Please select a date range first", Toast.LENGTH_SHORT).show();
             }
+        });
 
-            Intent intent = new Intent(PropertyDetailActivity.this, BookingActivity.class);
+        // 기타 초기화 코드
+        fetchSingleReview();
+        Button seeAllReviewsButton = findViewById(R.id.seeAllReviewsButton);
+        seeAllReviewsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(PropertyDetailActivity.this, AllReviewsActivity.class);
+            intent.putExtra("propertyId", propertyId);
             startActivity(intent);
         });
+
     }
 
     private void openDatePicker() {
@@ -209,6 +263,60 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 });
     }
 
+    private void fetchHostInformation(String propertyId, TextView hostNameTextView, TextView hostDetailsTextView, ImageView hostImageView) {
+        // Fetch the property data to get the userId
+        firestore.collection("Properties")
+                .document(propertyId)
+                .get()
+                .addOnSuccessListener(propertySnapshot -> {
+                    if (propertySnapshot.exists()) {
+                        hostUserId = propertySnapshot.getString("userId"); // 호스트 ID 저장
+                        Log.d("PropertyDetailActivity", "Fetched hostUserId: " + hostUserId);
+                        if (hostUserId != null) {
+                            // Fetch the user data from Users collection
+                            firestore.collection("Users")
+                                    .document(hostUserId)
+                                    .get()
+                                    .addOnSuccessListener(userSnapshot -> {
+                                        if (userSnapshot.exists()) {
+                                            String username = userSnapshot.getString("username");
+                                            String bio = userSnapshot.getString("bio");
+                                            String imageUrl = userSnapshot.getString("imageUrl");
+
+                                            // Update UI with host information
+                                            hostNameTextView.setText("Name: " + (username != null ? username : "Unknown"));
+                                            hostDetailsTextView.setText(bio != null ? bio : "Details not available");
+
+                                            // Load image using Glide
+                                            if (imageUrl != null && !imageUrl.isEmpty()) {
+                                                Glide.with(this)
+                                                        .load(imageUrl)
+                                                        .placeholder(R.drawable.default_host_image) // 디폴트 이미지
+                                                        .into(hostImageView);
+                                            } else {
+                                                // Load default image if imageUrl is null or empty
+                                                hostImageView.setImageResource(R.drawable.default_host_image);
+                                            }
+                                        } else {
+                                            Log.e("PropertyDetailActivity", "User not found in Users collection.");
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("PropertyDetailActivity", "Error fetching user data", e);
+                                    });
+                        } else {
+                            Log.e("PropertyDetailActivity", "userId not found in property data.");
+                        }
+                    } else {
+                        Log.e("PropertyDetailActivity", "Property not found in Properties collection.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PropertyDetailActivity", "Error fetching property data", e);
+                });
+    }
+
+
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         // Convert address to LatLng using Geocoder
@@ -230,4 +338,78 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             e.printStackTrace();
         }
     }
+    private void fetchSingleReview() {
+        firestore.collection("reviews")
+                .whereEqualTo("propertyId", propertyId)
+                .orderBy("timestamp", Query.Direction.DESCENDING) // 최신 순으로 정렬
+                .limit(1) // 하나의 리뷰만 가져오기
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        DocumentSnapshot document = querySnapshot.getDocuments().get(0);
+
+                        // Firestore에서 데이터 가져오기
+                        String username = document.getString("username");
+                        String userImageUrl = document.getString("imageUrl");
+                        String feedback = document.getString("feedback");
+                        float rating = (document.contains("rating")) ? document.getDouble("rating").floatValue() : 0f;
+                        long timestamp = document.getLong("timestamp");
+
+                        // 리뷰 섹션 UI에 데이터 반영
+                        TextView reviewUserTextView = findViewById(R.id.reviewUserTextView);
+                        TextView reviewDateTextView = findViewById(R.id.reviewDateTextView);
+                        TextView reviewContentTextView = findViewById(R.id.reviewContentTextView);
+                        ImageView reviewUserImageView = findViewById(R.id.reviewUserImageView);
+
+                        reviewUserTextView.setText(username + " ★" + rating);
+                        reviewDateTextView.setText(formatDate(timestamp));
+                        reviewContentTextView.setText(feedback);
+
+                        // Glide로 유저 이미지 로드
+                        Glide.with(this)
+                                .load(userImageUrl)
+                                .placeholder(R.drawable.default_host_image)
+                                .into(reviewUserImageView);
+                    } else {
+                        // 리뷰가 없는 경우 기본값 설정
+                        TextView reviewTitleTextView = findViewById(R.id.reviewTitleTextView);
+                        reviewTitleTextView.setText("No reviews available");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PropertyDetailActivity", "Failed to fetch single review", e);
+                    Toast.makeText(this, "Failed to load review", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+    private String formatDate(long timestamp) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return sdf.format(new Date(timestamp));
+    }
+    private void fetchPropertyReviewStats(String propertyId) {
+        firestore.collection("Properties")
+                .document(propertyId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        double averageRating = documentSnapshot.contains("averageRating")
+                                ? documentSnapshot.getDouble("averageRating") : 0.0;
+                        long reviewCount = documentSnapshot.contains("reviewCount")
+                                ? documentSnapshot.getLong("reviewCount") : 0;
+
+                        // Update the TextView with fetched data
+                        TextView reviewTitleTextView = findViewById(R.id.reviewTitleTextView);
+                        reviewTitleTextView.setText("★ " + String.format("%.1f", averageRating) + " reviews (" + reviewCount + ")");
+                    } else {
+                        Log.e("PropertyDetailActivity", "Property not found in database.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PropertyDetailActivity", "Failed to fetch property review stats", e);
+                    Toast.makeText(this, "Failed to load review stats", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
 }

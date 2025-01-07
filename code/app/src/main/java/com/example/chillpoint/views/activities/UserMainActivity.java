@@ -1,6 +1,8 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -19,8 +21,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.PropertyAdapter;
 import com.example.chillpoint.views.models.Property;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
@@ -34,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class UserMainActivity extends AppCompatActivity {
+public class UserMainActivity extends AppCompatActivity implements NavigationSetup {
     private static final String TAG = "UserMainActivity";
 
     private RecyclerView recyclerView;
@@ -56,21 +62,46 @@ public class UserMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_main);
+        setupNavigationBar();
+        // Load user session data
+        // 세션 데이터 로드
+        SessionManager sessionManager = new SessionManager(this);
+        String userId = sessionManager.getUserId();
+        String role = sessionManager.getRole();
+        String username = sessionManager.getUsername();
+        // 디버깅 로그 추가
+        Log.d("SessionManager", "Loaded session: userId=" + userId + ", role=" + role + ", username=" + username);
 
+        // 세션 검증
+        if (userId == null || role == null || username == null) {
+            Toast.makeText(this, "Failed to load user session. Please log in again.", Toast.LENGTH_SHORT).show();
+            // LoginActivity로 이동
+            Intent intent = new Intent(UserMainActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         filterButton = findViewById(R.id.filterButton);
         searchButton = findViewById(R.id.searchButton);
         searchEditText = findViewById(R.id.searchEditText);
-        Button createPropertyButton = findViewById(R.id.createPropertyButton);
-        createPropertyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to CreatePropertyActivity
-                Intent intent = new Intent(UserMainActivity.this, CreatePropertyActivity.class);
-                startActivity(intent);
-            }
-        });
+//        Button createPropertyButton = findViewById(R.id.createPropertyButton);
+//        createPropertyButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Navigate to CreatePropertyActivity
+//                Intent intent = new Intent(UserMainActivity.this, CreatePropertyActivity.class);
+//                startActivity(intent);
+//            }
+//        });
+        // Initialize 'My Bookings' button
+//        Button checkBookingsButton = findViewById(R.id.checkBookingsButton);
+//        checkBookingsButton.setOnClickListener(v -> {
+//            Intent intent = new Intent(UserMainActivity.this, BookingActivity.class);
+//            startActivity(intent);
+//        });
         propertyList = new ArrayList<>();
         propertyAdapter = new PropertyAdapter(this, propertyList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -235,8 +266,18 @@ public class UserMainActivity extends AppCompatActivity {
                 Log.e(TAG, "Error loading properties", propertyTask.getException());
             }
         });
-    }
 
+        // Initialize the Profile button
+        Button profileButton = findViewById(R.id.profileButton);
+        profileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to ProfileActivity
+                Intent intent = new Intent(UserMainActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
 
 
 
@@ -307,4 +348,15 @@ public class UserMainActivity extends AppCompatActivity {
         return sdf.format(new Date(timestamp));
     }
 
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_trips);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
 }

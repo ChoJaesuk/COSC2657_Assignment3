@@ -11,68 +11,151 @@
         android:gravity="center">
 
         <!-- Property Name Input Field -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Property Name"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
         <EditText
             android:id="@+id/nameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Property Name"
-            android:layout_marginTop="16dp" />
+            android:hint="Enter the name of the property"
+            android:layout_marginTop="8dp" />
 
         <!-- Description Input Field -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Description"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
         <EditText
             android:id="@+id/descriptionEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Description"
+            android:hint="Enter a short description"
             android:layout_marginTop="8dp" />
 
         <!-- Address Input Field -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
         <EditText
             android:id="@+id/addressEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Address"
-            android:layout_marginTop="8dp" />
+            android:hint="Property address"
+            android:layout_marginTop="8dp"
+            android:focusable="false" />
         <Button
             android:id="@+id/pickLocationButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Pick Location from Map"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="8dp" />
 
         <!-- Price Per Night Input Field -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Price Per Night"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
         <EditText
             android:id="@+id/priceEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Price per Night"
+            android:hint="Enter price per night"
             android:inputType="numberDecimal"
             android:layout_marginTop="8dp" />
 
         <!-- Number of Rooms Input Field -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Number of Rooms"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
         <EditText
             android:id="@+id/roomsEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Number of Rooms"
+            android:hint="Enter number of rooms"
             android:inputType="number"
             android:layout_marginTop="8dp" />
 
         <!-- Number of Beds Input Field -->
-        <EditText
-            android:id="@+id/bedsEditText"
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Number of Beds"
+            android:text="Number of Beds"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+        <EditText
+            android:id="@+id/numOfBedsEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter number of beds"
             android:inputType="number"
             android:layout_marginTop="8dp" />
 
+        <!-- Bed Type Spinner -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bed Type"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+        <Spinner
+            android:id="@+id/bedTypeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- Max Number of Guests Input Field -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Maximum Number of Guests"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
         <EditText
             android:id="@+id/maxGuestsEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Max Number of Guests"
+            android:hint="Enter maximum guests"
             android:inputType="number"
+            android:layout_marginTop="8dp" />
+
+        <!-- Check-in Time Spinner -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Check-in Time"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+        <Spinner
+            android:id="@+id/checkInTimeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- Check-out Time Spinner -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Check-out Time"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+        <Spinner
+            android:id="@+id/checkOutTimeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp" />
 
         <!-- Upload Images Button -->

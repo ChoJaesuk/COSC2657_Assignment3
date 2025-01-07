@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.UserRepository;
 import com.example.chillpoint.views.activities.AdminMainActivity;
 import com.example.chillpoint.views.activities.RegisterActivity;
@@ -109,43 +110,59 @@ public class LoginActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        // Use the updated loginUser method with a callback
-        userRepository.loginUser(email, password, new UserRepository.LoginCallback() {
-            @Override
-            public void onSuccess() {
-                progressBar.setVisibility(View.GONE);
-                String userId = auth.getCurrentUser().getUid();
+        userRepository.loginUser(email, password)
+                .addOnSuccessListener(isLoggedIn -> {
+                    if (isLoggedIn) {
+                        String userId = auth.getCurrentUser().getUid(); // Retrieve current user ID
+                        userRepository.getUserDetails(userId)
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    // Extract user details
+                                    String role = documentSnapshot.getString("role");
+                                    String username = documentSnapshot.getString("username");
+                                    String userImageUrl = documentSnapshot.getString("imageUrl"); // User image URL
 
-                // Retrieve the role asynchronously using the callback
-                userRepository.getUserRole(userId, new UserRepository.UserRoleCallback() {
-                    @Override
-                    public void onSuccess(String role) {
-                        if (role != null) {
-                            if ("User".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
-                            } else if ("Admin".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
-                            }
-                            finish();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Failed to retrieve user role", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+                                    Log.d("LoginActivity", "Retrieved user details: role=" + role +
+                                            ", username=" + username + ", imageUrl=" + userImageUrl);
 
-                    @Override
-                    public void onFailure(Exception e) {
-                        Toast.makeText(LoginActivity.this, "Failed to retrieve user role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    // Save session information
+                                    SessionManager sessionManager = new SessionManager(LoginActivity.this);
+                                    sessionManager.saveUserSession(userId, role, username, userImageUrl); // Save with image URL
+
+                                    Log.d("SessionManager", "Session saved: userId=" + sessionManager.getUserId() +
+                                            ", role=" + sessionManager.getRole() +
+                                            ", username=" + sessionManager.getUsername() +
+                                            ", imageUrl=" + sessionManager.getUserImageUrl());
+
+                                    // Navigate based on role
+                                    if (role != null) {
+                                        if ("User".equals(role)) {
+                                            startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
+                                        } else if ("Admin".equals(role)) {
+                                            startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                                        }
+                                        finish();
+                                    } else {
+                                        progressBar.setVisibility(View.GONE);
+                                        Toast.makeText(LoginActivity.this, "Failed to retrieve user role", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(LoginActivity.this, "Failed to retrieve user details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(LoginActivity.this, "Unexpected login failure", Toast.LENGTH_SHORT).show();
                     }
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
+
+
+
 
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
         @Override
