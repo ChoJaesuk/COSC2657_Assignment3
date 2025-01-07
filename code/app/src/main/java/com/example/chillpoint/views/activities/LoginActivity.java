@@ -110,53 +110,57 @@ public class LoginActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        userRepository.loginUser(email, password, new UserRepository.LoginCallback() {
-            @Override
-            public void onSuccess() {
-                progressBar.setVisibility(View.GONE);
-                String userId = auth.getCurrentUser().getUid();
+        userRepository.loginUser(email, password)
+                .addOnSuccessListener(isLoggedIn -> {
+                    if (isLoggedIn) {
+                        String userId = auth.getCurrentUser().getUid(); // Retrieve current user ID
+                        userRepository.getUserDetails(userId)
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    // Extract user details
+                                    String role = documentSnapshot.getString("role");
+                                    String username = documentSnapshot.getString("username");
+                                    String userImageUrl = documentSnapshot.getString("imageUrl"); // User image URL
 
-                userRepository.getUserDetails(userId, new UserRepository.UserDetailsCallback() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        String role = documentSnapshot.getString("role");
-                        String username = documentSnapshot.getString("username");
+                                    Log.d("LoginActivity", "Retrieved user details: role=" + role +
+                                            ", username=" + username + ", imageUrl=" + userImageUrl);
 
-                        // 디버깅 로그 추가
-                        Log.d("LoginActivity", "Retrieved user details: role=" + role + ", username=" + username);
+                                    // Save session information
+                                    SessionManager sessionManager = new SessionManager(LoginActivity.this);
+                                    sessionManager.saveUserSession(userId, role, username, userImageUrl); // Save with image URL
 
-                        // 세션 정보 저장
-                        SessionManager sessionManager = new SessionManager(LoginActivity.this);
-                        sessionManager.saveUserSession(userId, role, username);
+                                    Log.d("SessionManager", "Session saved: userId=" + sessionManager.getUserId() +
+                                            ", role=" + sessionManager.getRole() +
+                                            ", username=" + sessionManager.getUsername() +
+                                            ", imageUrl=" + sessionManager.getUserImageUrl());
 
-                        Log.d("SessionManager", "Session saved: userId=" + sessionManager.getUserId() + ", role=" + sessionManager.getRole() + ", username=" + sessionManager.getUsername());
-
-                        if (role != null) {
-                            if ("User".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
-                            } else if ("Admin".equals(role)) {
-                                startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
-                            }
-                            finish();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Failed to retrieve user role", Toast.LENGTH_SHORT).show();
-                        }
+                                    // Navigate based on role
+                                    if (role != null) {
+                                        if ("User".equals(role)) {
+                                            startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
+                                        } else if ("Admin".equals(role)) {
+                                            startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                                        }
+                                        finish();
+                                    } else {
+                                        progressBar.setVisibility(View.GONE);
+                                        Toast.makeText(LoginActivity.this, "Failed to retrieve user role", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(LoginActivity.this, "Failed to retrieve user details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(LoginActivity.this, "Unexpected login failure", Toast.LENGTH_SHORT).show();
                     }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        Toast.makeText(LoginActivity.this, "Failed to retrieve user details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
+
 
 
 

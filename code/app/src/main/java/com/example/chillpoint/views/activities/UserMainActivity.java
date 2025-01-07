@@ -58,10 +58,6 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
     private String selectedBeds = null;
     private String selectedDateRange = "None";
 
-    private String userId;
-    private String role;
-    private String username;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,6 +95,12 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
 //                Intent intent = new Intent(UserMainActivity.this, CreatePropertyActivity.class);
 //                startActivity(intent);
 //            }
+//        });
+        // Initialize 'My Bookings' button
+//        Button checkBookingsButton = findViewById(R.id.checkBookingsButton);
+//        checkBookingsButton.setOnClickListener(v -> {
+//            Intent intent = new Intent(UserMainActivity.this, BookingActivity.class);
+//            startActivity(intent);
 //        });
         propertyList = new ArrayList<>();
         propertyAdapter = new PropertyAdapter(this, propertyList);
@@ -262,6 +264,17 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
             } else {
                 Toast.makeText(this, "Failed to load properties", Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Error loading properties", propertyTask.getException());
+            }
+        });
+
+        // Initialize the Profile button
+        Button profileButton = findViewById(R.id.profileButton);
+        profileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to ProfileActivity
+                Intent intent = new Intent(UserMainActivity.this, ProfileActivity.class);
+                startActivity(intent);
             }
         });
     }

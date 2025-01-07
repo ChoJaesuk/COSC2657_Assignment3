@@ -8,7 +8,7 @@ public class SessionManager {
     private static final String KEY_USER_ID = "userId";
     private static final String KEY_ROLE = "role";
     private static final String KEY_USERNAME = "username";
-
+    private static final String KEY_USER_IMAGE = "userImageUrl";
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
@@ -17,10 +17,11 @@ public class SessionManager {
         editor = sharedPreferences.edit();
     }
 
-    public void saveUserSession(String userId, String role, String username) {
+    public void saveUserSession(String userId, String role, String username, String imageUrl) {
         editor.putString(KEY_USER_ID, userId);
         editor.putString(KEY_ROLE, role);
         editor.putString(KEY_USERNAME, username);
+        editor.putString(KEY_USER_IMAGE, imageUrl);
         editor.apply();
     }
 
@@ -39,5 +40,8 @@ public class SessionManager {
     public void clearSession() {
         editor.clear();
         editor.apply();
+    }
+    public String getUserImageUrl() {
+        return sharedPreferences.getString(KEY_USER_IMAGE, null); // 유저 이미지 URL 가져오기
     }
 }

@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.views.activities.MainActivity;
+import com.example.chillpoint.views.activities.BookingActivity;
 import com.example.chillpoint.views.activities.UserMainActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -17,10 +18,10 @@ public class NavigationUtils {
             switch (title) {
                 case "My Booking": // Match with the title defined in the menu
                     if (!(activity instanceof MainActivity)) {
-                        intent = new Intent(activity, MainActivity.class);
+                        intent = new Intent(activity, BookingActivity.class);
                         activity.startActivity(intent);
                         activity.overridePendingTransition(0, 0);
-                        activity.finish();
+//                        activity.finish();
                     }
                     return true;
 
@@ -29,7 +30,7 @@ public class NavigationUtils {
                         intent = new Intent(activity, UserMainActivity.class);
                         activity.startActivity(intent);
                         activity.overridePendingTransition(0, 0);
-                        activity.finish();
+//                        activity.finish();
                     }
                     return true;
 //                case "Trips":

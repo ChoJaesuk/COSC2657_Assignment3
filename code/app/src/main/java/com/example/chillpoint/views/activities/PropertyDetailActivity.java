@@ -32,6 +32,8 @@ import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+
 import android.util.Pair;
 
 import java.io.IOException;
@@ -64,7 +66,6 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         userId = sessionManager.getUserId();
         String role = sessionManager.getRole();
         username = sessionManager.getUsername();
-
         // 디버깅 로그 추가
         Log.d("SessionManager", "Loaded session: userId=" + userId + ", role=" + role + ", username=" + username);
 
@@ -94,7 +95,6 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         TextView hostNameTextView = findViewById(R.id.hostNameTextView);
         TextView hostDetailsTextView = findViewById(R.id.hostDetailsTextView);
         ImageView hostImageView = findViewById(R.id.hostImageView);
-
         // Get data from intent
         String name = getIntent().getStringExtra("name");
         String description = getIntent().getStringExtra("description");
@@ -106,7 +106,17 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
 
         // Debug log to check if propertyId is correctly received
         Log.d("PropertyDetailActivity", "Received propertyId: " + propertyId);
+        // propertyId 가져오기
+        propertyId = getIntent().getStringExtra("propertyId");
 
+        if (propertyId == null || propertyId.isEmpty()) {
+            Toast.makeText(this, "Invalid Property ID", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // 리뷰 통계 불러오기
+        fetchPropertyReviewStats(propertyId);
         if (propertyId == null || propertyId.isEmpty()) {
             Toast.makeText(this, "Property ID is missing!", Toast.LENGTH_SHORT).show();
             finish(); // Close the activity to prevent further issues
@@ -147,6 +157,16 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 Toast.makeText(this, "Please select a date range first", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // 기타 초기화 코드
+        fetchSingleReview();
+        Button seeAllReviewsButton = findViewById(R.id.seeAllReviewsButton);
+        seeAllReviewsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(PropertyDetailActivity.this, AllReviewsActivity.class);
+            intent.putExtra("propertyId", propertyId);
+            startActivity(intent);
+        });
+
     }
 
     private void openDatePicker() {
@@ -317,6 +337,78 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    private void fetchSingleReview() {
+        firestore.collection("reviews")
+                .whereEqualTo("propertyId", propertyId)
+                .orderBy("timestamp", Query.Direction.DESCENDING) // 최신 순으로 정렬
+                .limit(1) // 하나의 리뷰만 가져오기
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        DocumentSnapshot document = querySnapshot.getDocuments().get(0);
+
+                        // Firestore에서 데이터 가져오기
+                        String username = document.getString("username");
+                        String userImageUrl = document.getString("imageUrl");
+                        String feedback = document.getString("feedback");
+                        float rating = (document.contains("rating")) ? document.getDouble("rating").floatValue() : 0f;
+                        long timestamp = document.getLong("timestamp");
+
+                        // 리뷰 섹션 UI에 데이터 반영
+                        TextView reviewUserTextView = findViewById(R.id.reviewUserTextView);
+                        TextView reviewDateTextView = findViewById(R.id.reviewDateTextView);
+                        TextView reviewContentTextView = findViewById(R.id.reviewContentTextView);
+                        ImageView reviewUserImageView = findViewById(R.id.reviewUserImageView);
+
+                        reviewUserTextView.setText(username + " ★" + rating);
+                        reviewDateTextView.setText(formatDate(timestamp));
+                        reviewContentTextView.setText(feedback);
+
+                        // Glide로 유저 이미지 로드
+                        Glide.with(this)
+                                .load(userImageUrl)
+                                .placeholder(R.drawable.default_host_image)
+                                .into(reviewUserImageView);
+                    } else {
+                        // 리뷰가 없는 경우 기본값 설정
+                        TextView reviewTitleTextView = findViewById(R.id.reviewTitleTextView);
+                        reviewTitleTextView.setText("No reviews available");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PropertyDetailActivity", "Failed to fetch single review", e);
+                    Toast.makeText(this, "Failed to load review", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+    private String formatDate(long timestamp) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return sdf.format(new Date(timestamp));
+    }
+    private void fetchPropertyReviewStats(String propertyId) {
+        firestore.collection("Properties")
+                .document(propertyId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        double averageRating = documentSnapshot.contains("averageRating")
+                                ? documentSnapshot.getDouble("averageRating") : 0.0;
+                        long reviewCount = documentSnapshot.contains("reviewCount")
+                                ? documentSnapshot.getLong("reviewCount") : 0;
+
+                        // Update the TextView with fetched data
+                        TextView reviewTitleTextView = findViewById(R.id.reviewTitleTextView);
+                        reviewTitleTextView.setText("★ " + String.format("%.1f", averageRating) + " reviews (" + reviewCount + ")");
+                    } else {
+                        Log.e("PropertyDetailActivity", "Property not found in database.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("PropertyDetailActivity", "Failed to fetch property review stats", e);
+                    Toast.makeText(this, "Failed to load review stats", Toast.LENGTH_SHORT).show();
+                });
     }
 
 
