@@ -26,12 +26,19 @@
             android:exported="false" />
         <activity
             android:name=".views.activities.ProfileActivity"
+            android:name=".views.activities.AllReviewsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.ReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.BookingActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.MapsActivity"
             android:exported="false" />
         <activity
-        android:name=".views.activities.PropertyDetailActivity"
+            android:name=".views.activities.PropertyDetailActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.CreatePropertyActivity"
