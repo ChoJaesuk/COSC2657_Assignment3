@@ -68,7 +68,23 @@
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="200dp"
+        android:text="Create Property"
+        android:background="#9AC8CD"
+        android:textColor="#FFFFFF"
+        android:padding="16dp" />
 
+    <!-- Profile Button -->
+    <Button
+        android:id="@+id/profileButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/createPropertyButton"
+        android:layout_marginTop="20dp"
+        android:text="View Profile"
+        android:background="#9AC8CD"
+        android:textColor="#FFFFFF"
+        android:padding="16dp" />
 </RelativeLayout>

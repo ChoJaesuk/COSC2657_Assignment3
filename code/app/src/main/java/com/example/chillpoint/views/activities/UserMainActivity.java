@@ -260,6 +260,17 @@ public class UserMainActivity extends AppCompatActivity {
                 Log.e(TAG, "Error loading properties", propertyTask.getException());
             }
         });
+
+        // Initialize the Profile button
+        Button profileButton = findViewById(R.id.profileButton);
+        profileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Navigate to ProfileActivity
+                Intent intent = new Intent(UserMainActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
 

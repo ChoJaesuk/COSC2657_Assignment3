@@ -3,11 +3,27 @@
     android:layout_height="match_parent"
     android:background="#E1F7F5">
 
+    <!-- Welcome Text -->
     <TextView
+        android:id="@+id/welcomeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="100dp"
         android:text="Welcome, Admin"
         android:textSize="24sp"
         android:textColor="#000" />
+
+    <!-- Button to navigate to Host Verification List -->
+    <Button
+        android:id="@+id/hostVerificationButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/welcomeTextView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="Manage Host Verifications"
+        android:backgroundTint="#03A9F4"
+        android:textColor="@android:color/white"
+        android:padding="12dp" />
 </RelativeLayout>
