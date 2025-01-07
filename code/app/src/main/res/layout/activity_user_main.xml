@@ -102,4 +102,35 @@
         android:background="#9AC8CD"
         android:textColor="#FFFFFF"
         android:padding="16dp" />
+
+    <Button
+        android:id="@+id/chatBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="164dp"
+        android:layout_marginEnd="159dp"
+        android:layout_marginBottom="322dp"
+        android:background="#9AC8CD"
+        android:padding="16dp"
+        android:text="Inbox"
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/createChat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="164dp"
+        android:layout_marginEnd="159dp"
+        android:layout_marginBottom="117dp"
+        android:background="#9AC8CD"
+        android:padding="16dp"
+        android:text="Chat With HostId: ...."
+        android:contentDescription="448Nxx6lBNfAfGWSnb2Qa2VaM522"
+        android:textColor="#FFFFFF" />
 </RelativeLayout>

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.views.activities.ChatActivity;
 import com.example.chillpoint.views.activities.MainActivity;
 import com.example.chillpoint.views.activities.BookingActivity;
 import com.example.chillpoint.views.activities.UserMainActivity;
@@ -16,18 +17,17 @@ public class NavigationUtils {
             Intent intent;
 
             switch (title) {
-                case "My Booking": // Match with the title defined in the menu
-                    if (!(activity instanceof MainActivity)) {
-                        intent = new Intent(activity, BookingActivity.class);
+                case "Trips": // Match with the title defined in the menu
+                    if (!(activity instanceof UserMainActivity)) {
+                        intent = new Intent(activity, UserMainActivity.class);
                         activity.startActivity(intent);
                         activity.overridePendingTransition(0, 0);
 //                        activity.finish();
                     }
                     return true;
-
-                case "Trips": // Match with the title defined in the menu
-                    if (!(activity instanceof UserMainActivity)) {
-                        intent = new Intent(activity, UserMainActivity.class);
+                case "My Booking": // Match with the title defined in the menu
+                    if (!(activity instanceof BookingActivity)) {
+                        intent = new Intent(activity, BookingActivity.class);
                         activity.startActivity(intent);
                         activity.overridePendingTransition(0, 0);
 //                        activity.finish();
@@ -38,8 +38,13 @@ public class NavigationUtils {
 //                case "Wishlists":
 //                    //check if no user authenticate, navigate to login activity
 //                    return true;
-//                case "Inbox":
-//                    return true;
+                case "Inbox":if (!(activity instanceof ChatActivity)) {
+                    intent = new Intent(activity, ChatActivity.class);
+                    activity.startActivity(intent);
+                    activity.overridePendingTransition(0, 0);
+//                        activity.finish();
+                }
+                    return true;
                 default:
                     return false;
             }
