@@ -58,4 +58,7 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.core:core-ktx:1.12.0")
+    implementation("com.stripe:stripe-android:21.3.0")
+    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
 }

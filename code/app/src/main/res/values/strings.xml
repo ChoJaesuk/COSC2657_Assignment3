@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">ChillPoint</string>
     <string name="client_id">588185957895-4l2qjttbf1te9fp1tj436ojkou06umkj.apps.googleusercontent.com</string>
+    <string name="stripe_publishable_key">pk_test_51QeHVRCEu9hglsZOJi2iypmyk0Pq3BEgh7HaSMf8GUdeXohp9diQnSLVZL511yw7ypAT1yx1xwN8pVnVxwkGI2cA00X1hScVXa</string>
 </resources>
