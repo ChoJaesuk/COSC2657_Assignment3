@@ -56,6 +56,29 @@
             android:hint="Confirm Password"
             android:inputType="textPassword"
             android:layout_marginTop="8dp" />
+        <Button
+            android:id="@+id/uploadImagesButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Upload Image"
+            android:layout_marginTop="16dp" />
+
+        <GridView
+            android:id="@+id/imagesGridView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:numColumns="1"
+            android:horizontalSpacing="10dp"
+            android:verticalSpacing="10dp" />
+
+        <EditText
+            android:id="@+id/bioEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Bio"
+            android:layout_marginTop="8dp" />
+
 
         <Spinner
             android:id="@+id/roleSpinner"

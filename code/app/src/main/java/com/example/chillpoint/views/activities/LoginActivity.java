@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.UserRepository;
 import com.example.chillpoint.views.activities.AdminMainActivity;
 import com.example.chillpoint.views.activities.RegisterActivity;
@@ -51,71 +52,7 @@ public class LoginActivity extends AppCompatActivity {
     private UserRepository userRepository;
     private GoogleSignInClient googleSignInClient;
     private SignInButton signInButton;
-
-    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-        @Override
-        public void onActivityResult(ActivityResult result) {
-            if (result.getResultCode() == RESULT_OK) {
-                Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                try {
-                    GoogleSignInAccount signInAccount = accountTask.getResult(ApiException.class);
-                    if (signInAccount == null) {
-                        Log.e("SignIn", "Sign-in account was null.");
-                        return;
-                    }
-                    Log.d("SignIn", "ID Token: " + signInAccount.getIdToken());
-                    AuthCredential authCredential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(), null);
-                    auth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                Log.d("SignIn", "Firebase Authentication successful.");
-                                Log.d("SignIn", "signInWithCredential: success");
-
-                                // Get the current authenticated user
-                                auth = FirebaseAuth.getInstance();
-                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-                                if (user != null) {
-                                    // Prepare to add the user details to Firestore
-                                    String userId = user.getUid();
-                                    String username = user.getDisplayName();
-                                    String email = user.getEmail();
-
-                                    // Optionally, you can retrieve or set other details like fullName, phone, role
-                                    String fullName = ""; // Empty or retrieve fullName if you have a way to fetch it
-                                    String phone = ""; // Empty or retrieve phone if you have a way to fetch it
-                                    String role = "User"; // Default role as "User"
-
-                                    // Call addUser method to store user data in Firestore
-                                    userRepository.addUser(userId, username, fullName, email, phone, role)
-                                            .addOnCompleteListener(firestoreTask -> {
-                                                if (firestoreTask.isSuccessful() && Boolean.TRUE.equals(firestoreTask.getResult())) {
-                                                    // If adding user to Firestore is successful, navigate to the user main activity
-                                                    Toast.makeText(LoginActivity.this, "User added successfully!", Toast.LENGTH_SHORT).show();
-                                                    startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
-                                                    finish();
-                                                } else {
-                                                    // Handle failure if adding user to Firestore fails
-                                                    Toast.makeText(LoginActivity.this, "Failed to add user to Firestore.", Toast.LENGTH_SHORT).show();
-                                                    Log.e("Firestore", "Error adding user to Firestore", firestoreTask.getException());
-                                                }
-                                            });
-                                }
-
-                            } else {
-                                // Handle failure of Firebase authentication
-                                Log.e("SignIn", "Firebase Authentication failed.", task.getException());
-                                Toast.makeText(LoginActivity.this, "Failed to sign in: " + task.getException(), Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                } catch (ApiException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    });
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -175,26 +112,49 @@ public class LoginActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        // Use the updated loginUser method with a callback
         userRepository.loginUser(email, password)
-                .addOnSuccessListener(loginSuccess -> {
-                    if (loginSuccess) {
-                        progressBar.setVisibility(View.GONE);
-                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                .addOnSuccessListener(isLoggedIn -> {
+                    if (isLoggedIn) {
+                        String userId = auth.getCurrentUser().getUid(); // Retrieve current user ID
+                        userRepository.getUserDetails(userId)
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    // Extract user details
+                                    String role = documentSnapshot.getString("role");
+                                    String username = documentSnapshot.getString("username");
+                                    String userImageUrl = documentSnapshot.getString("imageUrl"); // User image URL
 
-                        userRepository.getUserRole(userId)
-                                .addOnSuccessListener(role -> {
-                                    if ("User".equals(role)) {
-                                        startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
-                                    } else if ("Admin".equals(role)) {
-                                        startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                                    Log.d("LoginActivity", "Retrieved user details: role=" + role +
+                                            ", username=" + username + ", imageUrl=" + userImageUrl);
+
+                                    // Save session information
+                                    sessionManager = new SessionManager(LoginActivity.this);
+                                    sessionManager.saveUserSession(userId, role, username, userImageUrl); // Save with image URL
+
+                                    Log.d("SessionManager", "Session saved: userId=" + sessionManager.getUserId() +
+                                            ", role=" + sessionManager.getRole() +
+                                            ", username=" + sessionManager.getUsername() +
+                                            ", imageUrl=" + sessionManager.getUserImageUrl());
+
+                                    // Navigate based on role
+                                    if (role != null) {
+                                        if ("User".equals(role)) {
+                                            startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
+                                        } else if ("Admin".equals(role)) {
+                                            startActivity(new Intent(LoginActivity.this, AdminMainActivity.class));
+                                        }
+                                        finish();
+                                    } else {
+                                        progressBar.setVisibility(View.GONE);
+                                        Toast.makeText(LoginActivity.this, "Failed to retrieve user role", Toast.LENGTH_SHORT).show();
                                     }
-                                    finish();
                                 })
                                 .addOnFailureListener(e -> {
                                     progressBar.setVisibility(View.GONE);
-                                    Toast.makeText(LoginActivity.this, "Failed to retrieve user role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(LoginActivity.this, "Failed to retrieve user details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(LoginActivity.this, "Unexpected login failure", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -202,6 +162,78 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+
+
+
+    private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        try {
+                            GoogleSignInAccount signInAccount = accountTask.getResult(ApiException.class);
+                            if (signInAccount == null) {
+                                Log.e("SignIn", "Sign-in account was null.");
+                                return;
+                            }
+                            Log.d("SignIn", "ID Token: " + signInAccount.getIdToken());
+                            AuthCredential authCredential = GoogleAuthProvider.getCredential(signInAccount.getIdToken(), null);
+                            auth.signInWithCredential(authCredential).addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    Log.d("SignIn", "Firebase Authentication successful.");
+                                    Log.d("SignIn", "signInWithCredential:success");
+                                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                    if (user != null) {
+                                        userRepository.addUser(
+                                                user.getUid(),
+                                                user.getDisplayName(),
+                                                user.getDisplayName(),
+                                                user.getEmail(),
+                                                "", // Placeholder for phone
+                                                "User",
+                                                "", // Placeholder for bio
+                                                user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : ""
+                                        ).addOnCompleteListener(addUserTask -> {
+                                            if (addUserTask.isSuccessful()) {
+                                                Log.d("SignIn", "User added to Firestore successfully.");
+
+                                                // Save session information
+                                                sessionManager = new SessionManager(LoginActivity.this);
+                                                sessionManager.saveUserSession(
+                                                        user.getUid(),
+                                                        "User",
+                                                        user.getDisplayName(),
+                                                        user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : ""
+                                                );
+
+                                                Log.d("SessionManager", "Session saved: userId=" + sessionManager.getUserId() +
+                                                        ", role=" + sessionManager.getRole() +
+                                                        ", username=" + sessionManager.getUsername() +
+                                                        ", imageUrl=" + sessionManager.getUserImageUrl());
+
+                                                Toast.makeText(LoginActivity.this, "Signed in successfully!", Toast.LENGTH_SHORT).show();
+                                                startActivity(new Intent(LoginActivity.this, UserMainActivity.class));
+                                                finish();
+                                            } else {
+                                                Log.e("SignIn", "Failed to add user to Firestore.", addUserTask.getException());
+                                                Toast.makeText(LoginActivity.this, "Failed to save user: " + addUserTask.getException(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    Log.e("SignIn", "Firebase Authentication failed.", task.getException());
+                                    Toast.makeText(LoginActivity.this, "Failed to sign in: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        } catch (ApiException e) {
+                            Log.e("SignIn", "Google Sign-in failed.", e);
+                        }
+                    }
+                }
+            });
 
     @Override
     protected void onDestroy() {
@@ -220,5 +252,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         FirebaseAuth.getInstance().signOut();
+//        sessionManager.clearSession();
     }
 }

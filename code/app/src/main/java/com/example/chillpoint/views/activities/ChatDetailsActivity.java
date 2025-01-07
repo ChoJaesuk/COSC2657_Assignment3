@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -28,11 +29,13 @@ public class ChatDetailsActivity extends AppCompatActivity {
     private Button sendButton;
     private ArrayList<String> messages = new ArrayList<>();
     private ArrayAdapter<String> adapter;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_details);
+        sessionManager = new SessionManager(this);
 
         db = FirebaseFirestore.getInstance();
         chatId = getIntent().getStringExtra("chatId");
@@ -46,16 +49,21 @@ public class ChatDetailsActivity extends AppCompatActivity {
 
         loadMessages();
 
-        sendButton.setOnClickListener(v -> sendMessage("4Iz89vGyqtVzMd3Tc0gT9aaCkGG3"));
+        sendButton.setOnClickListener(v -> sendMessage(sessionManager.getUserId()));
     }
 
     private void loadMessages() {
         db.collection("Chats")
                 .document(chatId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Log.d("ChatDetailsActivity", "Document found: " + documentSnapshot.getData());
+                .addSnapshotListener((documentSnapshot, error) -> {
+                    if (error != null) {
+                        Log.e("ChatDetailsActivity", "Error listening for messages", error);
+                        Toast.makeText(ChatDetailsActivity.this, "Error loading messages", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (documentSnapshot != null && documentSnapshot.exists()) {
+                        Log.d("ChatDetailsActivity", "Real-time update: " + documentSnapshot.getData());
 
                         messages.clear();
                         ArrayList<Map<String, Object>> messageArray = (ArrayList<Map<String, Object>>) documentSnapshot.get("messages");
@@ -75,11 +83,7 @@ public class ChatDetailsActivity extends AppCompatActivity {
                                         } else {
                                             Log.d("ChatDetailsActivity", "Message fields are null: " + message);
                                         }
-                                    } else {
-                                        Log.d("ChatDetailsActivity", "Null 'message' object in wrapper: " + wrapper);
                                     }
-                                } else {
-                                    Log.d("ChatDetailsActivity", "Null message wrapper encountered");
                                 }
                             }
                         } else {
@@ -90,15 +94,8 @@ public class ChatDetailsActivity extends AppCompatActivity {
                         Log.d("ChatDetailsActivity", "Document does not exist");
                         Toast.makeText(ChatDetailsActivity.this, "Chat not found", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("ChatDetailsActivity", "Error loading messages", e);
-                    Toast.makeText(ChatDetailsActivity.this, "Error loading messages", Toast.LENGTH_SHORT).show();
                 });
     }
-
-
-
 
     private void sendMessage(String userId) {
         String content = messageInput.getText().toString();

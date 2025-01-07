@@ -12,9 +12,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.ChatRepository;
 import com.example.chillpoint.repositories.UserRepository;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.ChatAdapter;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
@@ -22,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends AppCompatActivity implements NavigationSetup {
     private FirebaseAuth auth;
     private RecyclerView chatRecyclerView;
     private final List<Map<String, String>> chatList = new ArrayList<>();
@@ -30,11 +34,14 @@ public class ChatActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
     private ChatRepository chatRepository;
     private UserRepository userRepository;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        setupNavigationBar();
+        sessionManager = new SessionManager(this);
         chatRepository = new ChatRepository();
         userRepository = new UserRepository();
         chatRecyclerView = findViewById(R.id.chatRecyclerView);
@@ -54,7 +61,7 @@ public class ChatActivity extends AppCompatActivity {
         });
 
         chatRecyclerView.setAdapter(chatAdapter);
-        loadChats("4Iz89vGyqtVzMd3Tc0gT9aaCkGG3");
+        loadChats(sessionManager.getUserId());
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -71,26 +78,32 @@ public class ChatActivity extends AppCompatActivity {
                     // Retrieve participant(s) from the document
                     List<String> participants = (List<String>) document.get("participants");
                     if (participants != null && !participants.isEmpty()) {
-                        String lastParticipantId = participants.stream().filter(participantId -> !participantId.equals(userId)).findFirst().orElse(null);
-                        // Get the last participant who is not the current user
-                        // Asynchronously retrieve the username using the getUsernameByUserId method
-                        userRepository.getUsernameByUserId(lastParticipantId)
-                                .addOnSuccessListener(username -> {
-                                    chatAdapter.notifyDataSetChanged();
-                                    Log.d("ChatActivity", "username: " + username);
-                                    // Once the username is retrieved, update the chatItem with the last participant's username
-                                    chatItem.put("lastParticipant", username != null ? username : "Unknown User");
-                                })
-                                .addOnFailureListener(e -> {
-                                    // Handle failure case
-                                    chatItem.put("lastParticipant", "Unknown User");
-                                    Log.e("ChatActivity", "Error retrieving username for participant: " + lastParticipantId, e);
-                                });
+                        String lastParticipantId = participants.stream()
+                                .filter(participantId -> !participantId.equals(userId))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (lastParticipantId != null) {
+                            // Retrieve user details using the updated getUserDetails API
+                            userRepository.getUserDetails(lastParticipantId)
+                                    .addOnCompleteListener(userTask -> {
+                                        if (userTask.isSuccessful() && userTask.getResult() != null) {
+                                            String username = userTask.getResult().getString("username");
+                                            chatItem.put("lastParticipant", username != null ? username : "Unknown User");
+                                            chatAdapter.notifyDataSetChanged();
+                                            Log.d("ChatActivity", "username: " + username);
+                                        } else {
+                                            chatItem.put("lastParticipant", "Unknown User");
+                                            Log.e("ChatActivity", "Error retrieving username for participant: " + lastParticipantId, userTask.getException());
+                                            chatAdapter.notifyDataSetChanged();
+                                        }
+                                    });
+                        } else {
+                            chatItem.put("lastParticipant", "Unknown User");
+                        }
                     } else {
                         chatItem.put("lastParticipant", "Unknown User");
                     }
-
-
 
                     // Handle messages
                     List<Map<String, Object>> messages = (List<Map<String, Object>>) document.get("messages");
@@ -98,7 +111,7 @@ public class ChatActivity extends AppCompatActivity {
                         Map<String, Object> lastMessageMap = messages.get(messages.size() - 1);
                         Map<String, Object> lastMessage = (Map<String, Object>) lastMessageMap.get("message");
                         // Retrieve the content from the 'message' object
-                        String content = (String) lastMessage.get("content");
+                        String content = lastMessage != null ? (String) lastMessage.get("content") : null;
                         // Add the message content to the chat item
                         chatItem.put("lastMessage", content != null ? content : "No messages yet");
                     } else {
@@ -112,7 +125,26 @@ public class ChatActivity extends AppCompatActivity {
                 chatAdapter.notifyDataSetChanged();
             } else {
                 Toast.makeText(ChatActivity.this, "Error loading chats", Toast.LENGTH_SHORT).show();
+                Log.e("ChatActivity", "Error loading chats", task.getException());
             }
         });
+    }
+
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_inbox);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadChats(sessionManager.getUserId());
     }
 }

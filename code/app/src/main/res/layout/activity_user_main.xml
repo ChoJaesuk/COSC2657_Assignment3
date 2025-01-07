@@ -1,27 +1,104 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E1F7F5">
-
-    <!-- Welcome Message -->
-    <TextView
-        android:id="@+id/welcomeText"
-        android:layout_width="wrap_content"
+    android:background="@color/custom_background">
+<LinearLayout
+        android:id="@+id/searchBarLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="100dp"
-        android:text="Welcome, User"
-        android:textSize="24sp"
-        android:textColor="#000" />
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:background="@drawable/search_background"
+        android:gravity="center_vertical"
+        android:layout_margin="16dp">
+        <!-- 검색 입력 -->
+        <EditText
+            android:id="@+id/searchEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Search properties"
+            android:padding="8dp"
+            android:background="@android:color/transparent"
+            android:inputType="text" />
 
+        <!-- 필터 아이콘 버튼 -->
+        <ImageButton
+            android:id="@+id/filterButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Filter"
+            android:src="@drawable/ic_filter"
+            app:tint="@android:color/black" />
+
+        <!-- 검색 아이콘 버튼 -->
+        <ImageButton
+            android:id="@+id/searchButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Search"
+            android:src="@drawable/ic_search"
+            app:tint="@android:color/black" />
+    </LinearLayout>
     <!-- Create Property Button -->
     <Button
         android:id="@+id/createPropertyButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Property"
+        android:backgroundTint="@color/purple_500"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/searchBarLayout"
+        android:layout_margin="16dp" />
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/searchBarLayout" />
+
+    <!-- ProgressBar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/dark_blue"
+        app:menu="@menu/bottom_navigation_menu"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black"
+        android:layout_alignParentBottom="true"/>
+<!--    <Button-->
+<!--        android:id="@+id/checkBookingsButton"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="My Bookings"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        android:backgroundTint="@android:color/holo_blue_dark"-->
+<!--        android:textColor="@android:color/white" />-->
+    <!-- Profile Button -->
+    <Button
+        android:id="@+id/profileButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="200dp"
-        android:text="Create Property"
+        android:layout_below="@id/createPropertyButton"
+        android:layout_marginTop="20dp"
+        android:text="View Profile"
         android:background="#9AC8CD"
         android:textColor="#FFFFFF"
         android:padding="16dp" />
