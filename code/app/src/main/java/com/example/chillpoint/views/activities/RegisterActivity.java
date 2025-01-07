@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -144,34 +145,35 @@ public class RegisterActivity extends AppCompatActivity {
 
                 // Upload image to storage
                 Uri imageUri = imageUris.get(0); // Get the single image
-                userRepository.uploadUserProfileImage(userId, imageUri, new UserRepository.ImageUploadCallback() {
-                    @Override
-                    public void onSuccess(String imageUrl) {
-                        // Save user details to Firestore
-                        userRepository.addUserWithImage(userId, username, fullName, email, phone, role, bio, imageUrl, new UserRepository.AddUserCallback() {
-                            @Override
-                            public void onSuccess() {
-                                progressBar.setVisibility(View.GONE);
-                                Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                                startActivity(intent);
-                                finish();
-                            }
+                progressBar.setVisibility(View.VISIBLE);
 
-                            @Override
-                            public void onFailure(Exception e) {
-                                progressBar.setVisibility(View.GONE);
-                                Toast.makeText(RegisterActivity.this, "Database error: User not added", Toast.LENGTH_SHORT).show();
-                            }
+                userRepository.uploadUserProfileImage(userId, imageUri)
+                        .addOnSuccessListener(imageUrl -> {
+                            // Image upload successful, proceed to add user details
+                            userRepository.addUser(userId, username, fullName, email, phone, role, bio, imageUrl)
+                                    .addOnSuccessListener(isSuccessful -> {
+                                        if (isSuccessful) {
+                                            progressBar.setVisibility(View.GONE);
+                                            Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                            startActivity(intent);
+                                            finish();
+                                        } else {
+                                            progressBar.setVisibility(View.GONE);
+                                            Toast.makeText(RegisterActivity.this, "Failed to save user details", Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        progressBar.setVisibility(View.GONE);
+                                        Toast.makeText(RegisterActivity.this, "Database error: User not added", Toast.LENGTH_SHORT).show();
+                                        Log.e("RegisterActivity", "Error adding user: " + e.getMessage());
+                                    });
+                        })
+                        .addOnFailureListener(e -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(RegisterActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
+                            Log.e("RegisterActivity", "Error uploading image: " + e.getMessage());
                         });
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(RegisterActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
             } else {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(RegisterActivity.this, "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

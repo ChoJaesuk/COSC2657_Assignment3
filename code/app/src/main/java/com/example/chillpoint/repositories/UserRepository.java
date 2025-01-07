@@ -3,6 +3,7 @@ package com.example.chillpoint.repositories;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -23,7 +24,7 @@ public class UserRepository {
         this.auth = FirebaseAuth.getInstance();
     }
 
-    public void addUser(String userId, String username, String fullName, String email, String phone, String role, String bio, AddUserCallback callback) {
+    public Task<Boolean> addUser(String userId, String username, String fullName, String email, String phone, String role, String bio, String imageUrl) {
         // Create user data map
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("username", username);
@@ -32,67 +33,52 @@ public class UserRepository {
         userMap.put("phone", phone);
         userMap.put("role", role);
         userMap.put("bio", bio); // Add bio field
+        userMap.put("imageUrl", imageUrl);
         userMap.put("isValidated", false); // Automatically set isValidated to false
 
         // Add the user to Firestore
-        firestore.collection("Users").document(userId).set(userMap)
-                .addOnCompleteListener(task -> {
+        return firestore.collection("Users").document(userId)
+                .set(userMap)
+                .continueWith(task -> task.isSuccessful());
+    }
+
+    public Task<Boolean> loginUser(String email, String password) {
+        return auth.signInWithEmailAndPassword(email, password)
+                .continueWith(task -> {
                     if (task.isSuccessful()) {
-                        callback.onSuccess(); // Notify success
+                        // If the login is successful, return true
+                        return true;
                     } else {
-                        callback.onFailure(task.getException()); // Notify failure with exception
+                        // Throw the exception to propagate error handling
+                        throw task.getException() != null
+                                ? task.getException()
+                                : new Exception("Login failed for unknown reasons.");
                     }
                 });
     }
 
-    public void loginUser(String email, String password, LoginCallback callback) {
-        try {
-            auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            callback.onSuccess();  // Notify success
-                        } else {
-                            callback.onFailure(task.getException()); // Notify failure with exception
-                        }
-                    });
-        } catch (Exception e) {
-            e.printStackTrace();
-            callback.onFailure(e);  // Notify failure in case of unexpected exception
-        }
-    }
-
-    public void getUserRole(String userId, UserRoleCallback callback) {
-        firestore.collection("Users").document(userId).get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot snapshot = task.getResult();
-                        if (snapshot.exists()) {
-                            String role = snapshot.getString("role");
-                            callback.onSuccess(role);  // Pass the role to the callback
-                        } else {
-                            callback.onFailure(new Exception("No user data found"));  // Notify if no user found
-                        }
-                    } else {
-                        callback.onFailure(task.getException());  // Notify if task failed
-                    }
-                });
-    }
     // New method to retrieve user details
-    public void getUserDetails(String userId, UserDetailsCallback callback) {
-        firestore.collection("Users").document(userId).get()
-                .addOnCompleteListener(task -> {
+    public Task<DocumentSnapshot> getUserDetails(String userId) {
+        return firestore.collection("Users").document(userId).get()
+                .continueWith(task -> {
                     if (task.isSuccessful()) {
                         DocumentSnapshot snapshot = task.getResult();
-                        if (snapshot.exists()) {
-                            callback.onSuccess(snapshot); // Pass the document snapshot to the callback
+                        if (snapshot != null && snapshot.exists()) {
+                            // Return the snapshot if the user exists
+                            return snapshot;
                         } else {
-                            callback.onFailure(new Exception("No user data found")); // Notify if no user found
+                            // Throw an exception if no user data is found
+                            throw new Exception("No user data found for ID: " + userId);
                         }
                     } else {
-                        callback.onFailure(task.getException()); // Notify if task failed
+                        // Throw the exception to propagate the failure
+                        throw task.getException() != null
+                                ? task.getException()
+                                : new Exception("Failed to retrieve user details.");
                     }
                 });
     }
+
     public void saveUserToDatabase(FirebaseUser user) {
         if (user == null) {
             Log.e("Error", "User is null, cannot save to database.");
@@ -120,61 +106,28 @@ public class UserRepository {
                 });
     }
 
-    public void uploadUserProfileImage(String userId, Uri imageUri, ImageUploadCallback callback) {
+    public Task<String> uploadUserProfileImage(String userId, Uri imageUri) {
         String imagePath = "users/" + userId + "/profile.jpg";
         StorageReference reference = FirebaseStorage.getInstance().getReference(imagePath);
-        reference.putFile(imageUri).addOnSuccessListener(taskSnapshot ->
-                        reference.getDownloadUrl().addOnSuccessListener(uri -> callback.onSuccess(uri.toString()))
-                                .addOnFailureListener(callback::onFailure))
-                .addOnFailureListener(callback::onFailure);
-    }
 
-    public void addUserWithImage(String userId, String username, String fullName, String email, String phone, String role, String bio, String imageUrl, AddUserCallback callback) {
-        Map<String, Object> userMap = new HashMap<>();
-        userMap.put("username", username);
-        userMap.put("fullName", fullName);
-        userMap.put("email", email);
-        userMap.put("phone", phone);
-        userMap.put("role", role);
-        userMap.put("bio", bio); // Add bio field
-        userMap.put("imageUrl", imageUrl); // Add image URL
-        userMap.put("isValidated", false);
-
-        firestore.collection("Users").document(userId).set(userMap)
-                .addOnSuccessListener(aVoid -> callback.onSuccess())
-                .addOnFailureListener(callback::onFailure);
-    }
-
-    // Callback interface for addUser
-    public interface AddUserCallback {
-        void onSuccess();
-
-        void onFailure(Exception e);
-    }
-
-    // Callback interface for login result
-    public interface LoginCallback {
-        void onSuccess();
-
-        void onFailure(Exception e);
-    }
-
-    // Callback interface for retrieving user role
-    public interface UserRoleCallback {
-        void onSuccess(String role);
-
-        void onFailure(Exception e);
-    }
-    // New callback interface for retrieving user details
-    public interface UserDetailsCallback {
-        void onSuccess(DocumentSnapshot documentSnapshot);
-
-        void onFailure(Exception e);
-    }
-    // Callback interface for image upload
-    public interface ImageUploadCallback {
-        void onSuccess(String imageUrl);
-
-        void onFailure(Exception e);
+        // Upload the file
+        return reference.putFile(imageUri)
+                .continueWithTask(task -> {
+                    if (!task.isSuccessful() && task.getException() != null) {
+                        throw task.getException();
+                    }
+                    // Get the download URL
+                    return reference.getDownloadUrl();
+                })
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        // Return the download URL as a String
+                        return task.getResult().toString();
+                    } else {
+                        throw task.getException() != null
+                                ? task.getException()
+                                : new Exception("Failed to retrieve the download URL");
+                    }
+                });
     }
 }
