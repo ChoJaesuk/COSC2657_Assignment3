@@ -1,0 +1,43 @@
+package com.example.chillpoint.managers;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+public class SessionManager {
+    private static final String PREF_NAME = "ChillPointSession";
+    private static final String KEY_USER_ID = "userId";
+    private static final String KEY_ROLE = "role";
+    private static final String KEY_USERNAME = "username";
+
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+
+    public SessionManager(Context context) {
+        sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        editor = sharedPreferences.edit();
+    }
+
+    public void saveUserSession(String userId, String role, String username) {
+        editor.putString(KEY_USER_ID, userId);
+        editor.putString(KEY_ROLE, role);
+        editor.putString(KEY_USERNAME, username);
+        editor.apply();
+    }
+
+    public String getUserId() {
+        return sharedPreferences.getString(KEY_USER_ID, null);
+    }
+
+    public String getRole() {
+        return sharedPreferences.getString(KEY_ROLE, null);
+    }
+
+    public String getUsername() {
+        return sharedPreferences.getString(KEY_USERNAME, null);
+    }
+
+    public void clearSession() {
+        editor.clear();
+        editor.apply();
+    }
+}
