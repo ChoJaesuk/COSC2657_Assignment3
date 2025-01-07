@@ -56,7 +56,6 @@
         android:textColor="@android:color/white"
         android:layout_below="@id/searchBarLayout"
         android:layout_margin="16dp" />
-
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -71,16 +70,67 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:visibility="gone" />
-
-    <!-- Create Property Button -->
-    <Button
-        android:id="@+id/wishlistButton"
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="wishlist"
-        android:backgroundTint="@color/purple_500"
-        android:textColor="@android:color/white"
+        android:layout_gravity="bottom"
+        android:background="@color/dark_blue"
+        app:menu="@menu/bottom_navigation_menu"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black"
+        android:layout_alignParentBottom="true"/>
+<!--    <Button-->
+<!--        android:id="@+id/checkBookingsButton"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="My Bookings"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        android:backgroundTint="@android:color/holo_blue_dark"-->
+<!--        android:textColor="@android:color/white" />-->
+    <!-- Profile Button -->
+    <Button
+        android:id="@+id/profileButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         android:layout_below="@id/createPropertyButton"
-        android:layout_margin="16dp" />
+        android:layout_marginTop="20dp"
+        android:text="View Profile"
+        android:background="#9AC8CD"
+        android:textColor="#FFFFFF"
+        android:padding="16dp" />
 
+<!--    <Button-->
+<!--        android:id="@+id/chatBox"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_alignParentStart="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_marginStart="164dp"-->
+<!--        android:layout_marginEnd="159dp"-->
+<!--        android:layout_marginBottom="322dp"-->
+<!--        android:background="#9AC8CD"-->
+<!--        android:padding="16dp"-->
+<!--        android:text="Inbox"-->
+<!--        android:textColor="#FFFFFF" />-->
+
+<!--    <Button-->
+<!--        android:id="@+id/createChat"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_alignParentStart="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_marginStart="164dp"-->
+<!--        android:layout_marginEnd="159dp"-->
+<!--        android:layout_marginBottom="117dp"-->
+<!--        android:background="#9AC8CD"-->
+<!--        android:padding="16dp"-->
+<!--        android:text="Chat With HostId: ...."-->
+<!--        android:contentDescription="448Nxx6lBNfAfGWSnb2Qa2VaM522"-->
+<!--        android:textColor="#FFFFFF" />-->
 </RelativeLayout>

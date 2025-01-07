@@ -8,10 +8,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -40,8 +44,9 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private static final int IMAGE_PICKER_REQUEST = 100;
     private static final int LOCATION_PICKER_REQUEST = 200; // For map location picking
 
-    private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, bedsEditText, maxGuestsEditText;
-    private Button uploadImagesButton, savePropertyButton, pickLocationButton; // Added pickLocationButton
+    private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, numOfBedsEditText, maxGuestsEditText;
+    private Spinner bedTypeSpinner, checkInTimeSpinner, checkOutTimeSpinner;
+    private Button uploadImagesButton, savePropertyButton, pickLocationButton;
     private GridView imagesGridView;
     private ProgressBar progressBar;
 
@@ -52,6 +57,8 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private ArrayList<Uri> imageUris; // To store selected image URIs
     private ArrayList<String> uploadedImageUrls; // To store uploaded image URLs
     private ImageAdapter imageAdapter;
+
+    private String selectedBedType, selectedCheckInTime, selectedCheckOutTime; // To store selected options
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,11 +71,14 @@ public class CreatePropertyActivity extends AppCompatActivity {
         addressEditText = findViewById(R.id.addressEditText);
         priceEditText = findViewById(R.id.priceEditText);
         roomsEditText = findViewById(R.id.roomsEditText);
-        bedsEditText = findViewById(R.id.bedsEditText);
-        maxGuestsEditText = findViewById(R.id.maxGuestsEditText); // Initialize maxGuestsEditText
+        numOfBedsEditText = findViewById(R.id.numOfBedsEditText); // Number of Beds Input
+        maxGuestsEditText = findViewById(R.id.maxGuestsEditText);
+        bedTypeSpinner = findViewById(R.id.bedTypeSpinner);
+        checkInTimeSpinner = findViewById(R.id.checkInTimeSpinner);
+        checkOutTimeSpinner = findViewById(R.id.checkOutTimeSpinner);
         uploadImagesButton = findViewById(R.id.uploadImagesButton);
         savePropertyButton = findViewById(R.id.savePropertyButton);
-        pickLocationButton = findViewById(R.id.pickLocationButton); // Initialize pickLocationButton
+        pickLocationButton = findViewById(R.id.pickLocationButton);
         imagesGridView = findViewById(R.id.imagesGridView);
         progressBar = findViewById(R.id.progressBar);
 
@@ -89,14 +99,93 @@ public class CreatePropertyActivity extends AppCompatActivity {
         imageAdapter = new ImageAdapter(this, imageUris);
         imagesGridView.setAdapter(imageAdapter);
         imageAdapter.setOnImageRemoveListener(position -> {
-            imageUris.remove(position); // Remove image from the list
-            imageAdapter.notifyDataSetChanged(); // Notify adapter of data change
+            imageUris.remove(position);
+            imageAdapter.notifyDataSetChanged();
         });
 
         // Set listeners
         uploadImagesButton.setOnClickListener(v -> openImagePicker());
         savePropertyButton.setOnClickListener(v -> saveProperty());
-        pickLocationButton.setOnClickListener(v -> openLocationPicker()); // Set listener for pickLocationButton
+        pickLocationButton.setOnClickListener(v -> openLocationPicker());
+
+        // Setup spinners for bed types, check-in, and check-out times
+        setupBedTypeSpinner();
+        setupCheckInTimeSpinner();
+        setupCheckOutTimeSpinner();
+    }
+
+    private void setupBedTypeSpinner() {
+        // Define bed types locally
+        String[] bedTypes = {"King Size", "Queen Size", "Double", "Single", "Studio"};
+
+        // Setup ArrayAdapter
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, bedTypes);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        bedTypeSpinner.setAdapter(adapter);
+
+        // Set item selected listener
+        bedTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedBedType = bedTypes[position];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedBedType = "Unknown";
+            }
+        });
+    }
+
+    private void setupCheckInTimeSpinner() {
+        // Define extended check-in times
+        String[] checkInTimes = {
+                "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
+                "19:00", "20:00", "21:00", "22:00", "23:00"
+        };
+
+        // Setup ArrayAdapter
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, checkInTimes);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        checkInTimeSpinner.setAdapter(adapter);
+
+        // Set item selected listener
+        checkInTimeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedCheckInTime = checkInTimes[position];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedCheckInTime = "14:00"; // Default value
+            }
+        });
+    }
+
+    private void setupCheckOutTimeSpinner() {
+        // Define extended check-out times
+        String[] checkOutTimes = {
+                "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00"
+        };
+
+        // Setup ArrayAdapter
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, checkOutTimes);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        checkOutTimeSpinner.setAdapter(adapter);
+
+        // Set item selected listener
+        checkOutTimeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedCheckOutTime = checkOutTimes[position];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedCheckOutTime = "10:00"; // Default value
+            }
+        });
     }
 
     private void openImagePicker() {
@@ -107,7 +196,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
     }
 
     private void openLocationPicker() {
-        Intent intent = new Intent(CreatePropertyActivity.this, MapsActivity.class); // Open MapsActivity
+        Intent intent = new Intent(CreatePropertyActivity.this, MapsActivity.class);
         startActivityForResult(intent, LOCATION_PICKER_REQUEST);
     }
 
@@ -115,22 +204,22 @@ public class CreatePropertyActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == IMAGE_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            if (data.getClipData() != null) { // Multiple images selected
+            if (data.getClipData() != null) {
                 int count = data.getClipData().getItemCount();
                 for (int i = 0; i < count; i++) {
                     Uri imageUri = data.getClipData().getItemAt(i).getUri();
                     imageUris.add(imageUri);
                 }
-            } else if (data.getData() != null) { // Single image selected
+            } else if (data.getData() != null) {
                 Uri imageUri = data.getData();
                 imageUris.add(imageUri);
             }
-            imageAdapter.notifyDataSetChanged(); // Refresh the adapter
+            imageAdapter.notifyDataSetChanged();
         } else if (requestCode == LOCATION_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
             double lat = data.getDoubleExtra("latitude", 0);
             double lng = data.getDoubleExtra("longitude", 0);
             String address = getAddressFromLatLng(new LatLng(lat, lng));
-            addressEditText.setText(address); // Set selected address
+            addressEditText.setText(address);
         }
     }
 
@@ -153,11 +242,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         String address = addressEditText.getText().toString().trim();
         String price = priceEditText.getText().toString().trim();
         String rooms = roomsEditText.getText().toString().trim();
-        String beds = bedsEditText.getText().toString().trim();
-        String maxGuests = maxGuestsEditText.getText().toString().trim(); // Get maxGuests input
+        String numOfBeds = numOfBedsEditText.getText().toString().trim();
+        String maxGuests = maxGuestsEditText.getText().toString().trim();
 
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(description) || TextUtils.isEmpty(address) ||
-                TextUtils.isEmpty(price) || TextUtils.isEmpty(rooms) || TextUtils.isEmpty(beds) || TextUtils.isEmpty(maxGuests)) {
+                TextUtils.isEmpty(price) || TextUtils.isEmpty(rooms) || TextUtils.isEmpty(numOfBeds) || TextUtils.isEmpty(maxGuests)) {
             Toast.makeText(CreatePropertyActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -172,7 +261,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
             @Override
             public void onUploadComplete(ArrayList<String> urls) {
                 saveToFirestore(name, description, address, Double.parseDouble(price),
-                        Integer.parseInt(rooms), Integer.parseInt(beds), Integer.parseInt(maxGuests), urls);
+                        Integer.parseInt(rooms), Integer.parseInt(numOfBeds), Integer.parseInt(maxGuests), selectedCheckInTime, selectedCheckOutTime, selectedBedType, urls);
             }
 
             @Override
@@ -182,6 +271,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
             }
         });
     }
+
     private void uploadImages(UploadImagesCallback callback) {
         uploadedImageUrls.clear();
         for (Uri uri : imageUris) {
@@ -197,7 +287,8 @@ public class CreatePropertyActivity extends AppCompatActivity {
             ).addOnFailureListener(e -> callback.onUploadFailed(e.getMessage()));
         }
     }
-    private void saveToFirestore(String name, String description, String address, double price, int rooms, int beds, int maxGuests, ArrayList<String> imageUrls) {
+
+    private void saveToFirestore(String name, String description, String address, double price, int rooms, int numOfBeds, int maxGuests, String checkInTime, String checkOutTime, String bedType, ArrayList<String> imageUrls) {
         String userId = auth.getCurrentUser().getUid();
         String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
@@ -207,8 +298,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         property.put("address", address);
         property.put("pricePerNight", price);
         property.put("numOfRooms", rooms);
-        property.put("numOfBeds", beds);
-        property.put("maxNumOfGuests", maxGuests); // Add maxNumOfGuests field
+        property.put("numOfBeds", numOfBeds);
+        property.put("maxNumOfGuests", maxGuests);
+        property.put("checkInTime", checkInTime);
+        property.put("checkOutTime", checkOutTime);
+        property.put("bedType", bedType);
         property.put("createdAt", createdAt);
         property.put("updatedAt", createdAt);
         property.put("userId", userId);

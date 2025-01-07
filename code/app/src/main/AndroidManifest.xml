@@ -16,16 +16,37 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
-            android:name=".views.activities.WishlistActivity"
+            android:name=".views.activities.ChatDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.ChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.HostVerificationDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.HostVerificationListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.HostVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.AllReviewsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.ReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.BookingActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.MapsActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.PropertyDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".views.activities.CreatePropertyActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.AdminMainActivity"

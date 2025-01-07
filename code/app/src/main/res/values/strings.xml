@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">ChillPoint</string>
     <string name="client_id">588185957895-4l2qjttbf1te9fp1tj436ojkou06umkj.apps.googleusercontent.com</string>
+    <string-array name="status_filter_options">
+        <item>All</item>
+        <item>Pending</item>
+        <item>Approved</item>
+        <item>Rejected</item>
+    </string-array>
+    <string-array name="date_filter_options">
+        <item>Date: Newest First</item>
+        <item>Date: Oldest First</item>
+    </string-array>
 </resources>
