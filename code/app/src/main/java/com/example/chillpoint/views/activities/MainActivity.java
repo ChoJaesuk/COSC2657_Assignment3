@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements NavigationSetup {
     @Override
     public void setupNavigationBar() {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setSelectedItemId(R.id.nav_explore);
+        bottomNavigationView.setSelectedItemId(R.id.nav_booking);
         NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
     }
 

@@ -2,9 +2,9 @@
 
     <!-- Explore -->
     <item
-        android:id="@+id/nav_explore"
-        android:icon="@drawable/ic_explore"
-        android:title="Explore" />
+        android:id="@+id/nav_booking"
+        android:icon="@drawable/ic_booking"
+        android:title="My Booking" />
 
     <!-- Wishlists -->
     <item

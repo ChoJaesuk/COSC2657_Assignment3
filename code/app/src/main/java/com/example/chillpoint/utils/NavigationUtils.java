@@ -15,7 +15,7 @@ public class NavigationUtils {
             Intent intent;
 
             switch (title) {
-                case "Explore": // Match with the title defined in the menu
+                case "My Booking": // Match with the title defined in the menu
                     if (!(activity instanceof MainActivity)) {
                         intent = new Intent(activity, MainActivity.class);
                         activity.startActivity(intent);
