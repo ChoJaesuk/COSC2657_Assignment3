@@ -26,6 +26,8 @@
             android:exported="false" />
         <activity
             android:name=".views.activities.ProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.AllReviewsActivity"
             android:exported="false" />
         <activity
