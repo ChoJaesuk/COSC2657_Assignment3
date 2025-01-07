@@ -15,6 +15,7 @@ import java.util.Map;
 
 public class UserRepository {
     private final FirebaseAuth auth;
+
     private final FirebaseFirestore firestore;
 
     public UserRepository() {
@@ -76,7 +77,22 @@ public class UserRepository {
                     }
                 });
     }
-
+    // New method to retrieve user details
+    public void getUserDetails(String userId, UserDetailsCallback callback) {
+        firestore.collection("Users").document(userId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot snapshot = task.getResult();
+                        if (snapshot.exists()) {
+                            callback.onSuccess(snapshot); // Pass the document snapshot to the callback
+                        } else {
+                            callback.onFailure(new Exception("No user data found")); // Notify if no user found
+                        }
+                    } else {
+                        callback.onFailure(task.getException()); // Notify if task failed
+                    }
+                });
+    }
     public void saveUserToDatabase(FirebaseUser user) {
         if (user == null) {
             Log.e("Error", "User is null, cannot save to database.");
@@ -126,22 +142,7 @@ public class UserRepository {
 
         firestore.collection("Users").document(userId).set(userMap)
                 .addOnSuccessListener(aVoid -> callback.onSuccess())
-                .addOnFailureListener(callback::onFailure);}
-    // New method to retrieve user details
-    public void getUserDetails(String userId, UserDetailsCallback callback) {
-        firestore.collection("Users").document(userId).get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot snapshot = task.getResult();
-                        if (snapshot.exists()) {
-                            callback.onSuccess(snapshot); // Pass the document snapshot to the callback
-                        } else {
-                            callback.onFailure(new Exception("No user data found")); // Notify if no user found
-                        }
-                    } else {
-                        callback.onFailure(task.getException()); // Notify if task failed
-                    }
-                });
+                .addOnFailureListener(callback::onFailure);
     }
 
     // Callback interface for addUser
@@ -164,17 +165,16 @@ public class UserRepository {
 
         void onFailure(Exception e);
     }
+    // New callback interface for retrieving user details
+    public interface UserDetailsCallback {
+        void onSuccess(DocumentSnapshot documentSnapshot);
 
+        void onFailure(Exception e);
+    }
+    // Callback interface for image upload
     public interface ImageUploadCallback {
         void onSuccess(String imageUrl);
 
         void onFailure(Exception e);
     }
-
-
-    // New callback interface for retrieving user details
-    public interface UserDetailsCallback {
-
-        void onFailure(Exception e);
-}
 }
