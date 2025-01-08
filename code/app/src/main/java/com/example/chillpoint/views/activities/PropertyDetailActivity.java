@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import android.location.Address;
 import android.location.Geocoder;
@@ -65,6 +66,13 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     private FirebaseFirestore firestore;
     private WishlistRepository wishlistRepository;
     private HashMap<String, Integer> bedTypeIcons;
+    private int selectedGuests = 1; // 유저가 선택한 게스트 수 (기본값 1)
+    private long maxNumOfGuests = 0; // Firestore에서 가져올 값
+    private long pricePerNight = 0;  // Firestore에서 가져올 값
+    // UI 참조할 뷰들
+    private TextView guestsCountTextView;
+    private Button guestsMinusButton, guestsPlusButton;
+    private TextView totalPriceOrErrorTextView;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +113,31 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         TextView hostNameTextView = findViewById(R.id.hostNameTextView);
         TextView hostDetailsTextView = findViewById(R.id.hostDetailsTextView);
         ImageView hostImageView = findViewById(R.id.hostImageView);
+        // 게스트 수 관련 뷰 찾아오기
+        guestsCountTextView = findViewById(R.id.guestsCountTextView);
+        guestsMinusButton = findViewById(R.id.guestsMinusButton);
+        guestsPlusButton = findViewById(R.id.guestsPlusButton);
+        totalPriceOrErrorTextView = findViewById(R.id.totalPriceOrErrorTextView);
+
+        // 초기값
+        guestsCountTextView.setText(String.valueOf(selectedGuests));
+
+        // – 버튼 클릭 시
+        guestsMinusButton.setOnClickListener(v -> {
+            if (selectedGuests > 1) {
+                selectedGuests--;
+                guestsCountTextView.setText(String.valueOf(selectedGuests));
+                updateBookingInfo(); // 날짜/게스트 변경 시마다 총 가격 or 오류메시지 갱신
+            }
+        });
+
+        // + 버튼 클릭 시
+        guestsPlusButton.setOnClickListener(v -> {
+            selectedGuests++;
+            guestsCountTextView.setText(String.valueOf(selectedGuests));
+            updateBookingInfo();
+        });
+
         // Get data from intent
         String name = getIntent().getStringExtra("name");
         String description = getIntent().getStringExtra("description");
@@ -181,14 +214,22 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         // Select Dates
         selectDatesButton.setOnClickListener(v -> openDatePicker());
 
-        // Book Property
         bookButton.setOnClickListener(v -> {
-            if (selectedStartDate != null && selectedEndDate != null) {
-                bookProperty();
-            } else {
-                Toast.makeText(this, "Please select a date range first", Toast.LENGTH_SHORT).show();
+            // 최종 확인: 게스트 초과?
+            if (selectedGuests > maxNumOfGuests) {
+                Toast.makeText(this, "You have exceeded the maximum number of guests!", Toast.LENGTH_SHORT).show();
+                return;
             }
+            // 날짜 미선택?
+            if (selectedStartDate == null || selectedEndDate == null) {
+                Toast.makeText(this, "Please select a date range first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // 모두 정상 -> bookProperty
+            bookProperty();
         });
+
 
         // 기타 초기화 코드
         fetchSingleReview();
@@ -254,16 +295,20 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         List<Long> reservedDates = new ArrayList<>();
+
+                        // 파싱용 SimpleDateFormat 만들 때 UTC로 고정
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
                         for (DocumentSnapshot document : task.getResult()) {
                             try {
-                                String fromDateStr = document.getString("fromDate");
-                                String toDateStr = document.getString("toDate");
+                                String fromDateStr = document.getString("fromDate"); // "2025-01-10"
+                                String toDateStr   = document.getString("toDate");
                                 if (fromDateStr != null && toDateStr != null) {
-                                    long fromDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(fromDateStr).getTime();
-                                    long toDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(toDateStr).getTime();
+                                    long fromDate = sdf.parse(fromDateStr).getTime();
+                                    long toDate   = sdf.parse(toDateStr).getTime();
 
-                                    // Add all dates in the range to reservedDates
-                                    for (long date = fromDate; date <= toDate; date += 24 * 60 * 60 * 1000) { // Increment by 1 day
+                                    for (long date = fromDate; date <= toDate; date += 24 * 60 * 60 * 1000) {
                                         reservedDates.add(date);
                                     }
                                 }
@@ -272,11 +317,11 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                             }
                         }
 
-                        // Create a custom validator to disable reserved dates
                         CalendarConstraints.DateValidator dateValidator = new CalendarConstraints.DateValidator() {
                             @Override
                             public boolean isValid(long date) {
-                                return !reservedDates.contains(date); // Disable reserved dates
+                                // 여기서도 'date'(Picker가 주는 값)는 UTC 기준 0시 타임스탬프
+                                return !reservedDates.contains(date);
                             }
 
                             @Override
@@ -289,9 +334,9 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                             }
                         };
 
-                        // Build the date picker with the custom validator
-                        CalendarConstraints.Builder constraintsBuilder = new CalendarConstraints.Builder()
-                                .setValidator(dateValidator);
+                        // 아래 동일
+                        CalendarConstraints.Builder constraintsBuilder =
+                                new CalendarConstraints.Builder().setValidator(dateValidator);
 
                         MaterialDatePicker.Builder<androidx.core.util.Pair<Long, Long>> datePickerBuilder =
                                 MaterialDatePicker.Builder.dateRangePicker()
@@ -301,11 +346,15 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                         MaterialDatePicker<androidx.core.util.Pair<Long, Long>> datePicker = datePickerBuilder.build();
 
                         datePicker.addOnPositiveButtonClickListener(selection -> {
-                            androidx.core.util.Pair<Long, Long> dateRange = selection;
-                            selectedStartDate = formatDate(dateRange.first);
-                            selectedEndDate = formatDate(dateRange.second);
+                            // selection.first, selection.second -> 이미 UTC 기준 0시 timestamp
+                            selectedStartDate = formatDate(selection.first);
+                            selectedEndDate   = formatDate(selection.second);
 
-                            Toast.makeText(this, "Selected Dates: " + selectedStartDate + " to " + selectedEndDate, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this,
+                                    "Selected Dates: " + selectedStartDate + " ~ " + selectedEndDate,
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            updateBookingInfo();
                         });
 
                         datePicker.show(getSupportFragmentManager(), "DATE_PICKER");
@@ -327,6 +376,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         reservation.put("userId", userId);
         reservation.put("fromDate", selectedStartDate);
         reservation.put("toDate", selectedEndDate);
+        reservation.put("guestCount", selectedGuests); // 추가
         reservation.put("timestamp", System.currentTimeMillis());
 
         firestore.collection("reservations")
@@ -339,6 +389,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                     Log.e("PropertyDetailActivity", "Error booking property", e);
                 });
     }
+
 
     private void fetchHostInformation(String propertyId, TextView hostNameTextView, TextView hostDetailsTextView, ImageView hostImageView) {
         // Fetch the property data to get the userId
@@ -495,10 +546,14 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        // 데이터 파싱
                         String checkInTime = documentSnapshot.getString("checkInTime");
                         String checkOutTime = documentSnapshot.getString("checkOutTime");
-                        Long maxNumOfGuests = documentSnapshot.getLong("maxNumOfGuests");
+
+                        // ★ 수정: 'Long maxNumOfGuests' → 별도 변수 없이 전역 변수에 직접 할당
+                        Long maxGuestsFromDB = documentSnapshot.getLong("maxNumOfGuests");
+                        // pricePerNight 필드도 있으면 가져와야 함
+                        Long priceFromDB = documentSnapshot.getLong("pricePerNight");
+
                         List<String> bedTypes = (List<String>) documentSnapshot.get("bedTypes");
 
                         // UI 업데이트
@@ -512,9 +567,15 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                             checkOutTimeTextView.setText("Check-out: " + checkOutTime);
                         }
 
-                        if (maxNumOfGuests != null) {
+                        // 여기서 전역 변수에 값 대입
+                        if (maxGuestsFromDB != null) {
+                            this.maxNumOfGuests = maxGuestsFromDB;  // 전역 변수 할당
                             TextView maxNumOfGuestsTextView = findViewById(R.id.maxNumOfGuestsTextView);
-                            maxNumOfGuestsTextView.setText("Maximum Guests: " + maxNumOfGuests);
+                            maxNumOfGuestsTextView.setText("Maximum Guests: " + this.maxNumOfGuests);
+                        }
+
+                        if (priceFromDB != null) {
+                            this.pricePerNight = priceFromDB;  // 전역 변수 할당
                         }
 
                         if (bedTypes != null) {
@@ -529,6 +590,61 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 });
     }
 
+
+    private void updateBookingInfo() {
+
+// 날짜 선택 후 업데이트
+        TextView selectedDatesDisplayTextView = findViewById(R.id.selectedDatesDisplayTextView);
+
+        if (selectedStartDate != null && selectedEndDate != null) {
+            selectedDatesDisplayTextView.setVisibility(View.VISIBLE);
+            selectedDatesDisplayTextView.setText("Dates: " + selectedStartDate + " to " + selectedEndDate);
+        }
+
+        // 1) 게스트가 maxNumOfGuests 초과면 오류메시지 출력
+        if (selectedGuests > maxNumOfGuests) {
+            totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            totalPriceOrErrorTextView.setText("You have exceeded the maximum number of guests!");
+            return; // 여기서 종료
+        }
+
+        // 2) 게스트 수는 정상 범위. 날짜 선택 여부도 확인
+        if (selectedStartDate == null || selectedEndDate == null) {
+            // 아직 날짜 선택 안 했으면, 굳이 가격 계산하지 않고 안내만
+            totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.black));
+            totalPriceOrErrorTextView.setText("Please select your dates");
+            return;
+        }
+
+        // 3) 날짜 범위를 일수로 계산
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date start = sdf.parse(selectedStartDate);
+            Date end = sdf.parse(selectedEndDate);
+
+            long diffInMillis = end.getTime() - start.getTime();
+            long diffInDays = (diffInMillis / (24 * 60 * 60 * 1000)) + 1; // +1 해서 마지막날도 포함
+
+            if (diffInDays < 1) {
+                // 혹시나 날짜가 잘못되어 end < start 인 경우
+                totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                totalPriceOrErrorTextView.setText("Invalid date range selected");
+                return;
+            }
+
+            // 4) 총 가격 계산
+            long totalPrice = diffInDays * pricePerNight;
+
+            // 5) 화면에 표시
+            totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.black));
+            totalPriceOrErrorTextView.setText("Total Price: $" + totalPrice);
+
+        } catch (Exception e) {
+            Log.e("updateBookingInfo", "Error parsing dates", e);
+            totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            totalPriceOrErrorTextView.setText("Error calculating total price");
+        }
+    }
 
     private void displayBedTypes(List<String> bedTypes) {
         LinearLayout bedTypesContainer = findViewById(R.id.bedTypesContainer);
