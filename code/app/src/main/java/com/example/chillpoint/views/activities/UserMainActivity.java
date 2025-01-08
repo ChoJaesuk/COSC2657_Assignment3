@@ -120,15 +120,6 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
 
         // Filter button click listener
         filterButton.setOnClickListener(v -> openFilterBottomSheet());
-        Button wishlistButton = findViewById(R.id.wishlistButton);
-        wishlistButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(UserMainActivity.this, WishlistActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
     }
 
     private void loadProperties(String startDate, String endDate, String rooms, String beds, String searchQuery) {

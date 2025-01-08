@@ -16,15 +16,18 @@ import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.PropertyRepository;
 import com.example.chillpoint.repositories.WishlistRepository;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.WishlistAdapter;
 import com.example.chillpoint.views.models.Property;
 import com.example.chillpoint.views.models.WishlistItem;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class WishlistActivity extends AppCompatActivity implements  WishlistAdapter.OnHeartClickListener {
+public class WishlistActivity extends AppCompatActivity implements  WishlistAdapter.OnHeartClickListener, NavigationSetup {
 
     private RecyclerView recyclerWishlist;
     private WishlistAdapter wishlistAdapter;
@@ -41,7 +44,7 @@ public class WishlistActivity extends AppCompatActivity implements  WishlistAdap
         wishlistRepository = new WishlistRepository();
         propertyRepository = new PropertyRepository();
         wishlistItems = new ArrayList<>();
-
+        setupNavigationBar();
         SessionManager sessionManager = new SessionManager(this);
         userId = sessionManager.getUserId();
 
@@ -127,5 +130,12 @@ public class WishlistActivity extends AppCompatActivity implements  WishlistAdap
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
         super.onPointerCaptureChanged(hasCapture);
+    }
+
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_wishlists);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
     }
 }

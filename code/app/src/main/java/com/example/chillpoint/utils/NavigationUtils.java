@@ -8,6 +8,7 @@ import com.example.chillpoint.views.activities.ChatActivity;
 import com.example.chillpoint.views.activities.MainActivity;
 import com.example.chillpoint.views.activities.BookingActivity;
 import com.example.chillpoint.views.activities.UserMainActivity;
+import com.example.chillpoint.views.activities.WishlistActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class NavigationUtils {
@@ -35,10 +36,17 @@ public class NavigationUtils {
                     return true;
 //                case "Trips":
 //                    return true;
-//                case "Wishlists":
-//                    //check if no user authenticate, navigate to login activity
-//                    return true;
-                case "Inbox":if (!(activity instanceof ChatActivity)) {
+                case "Wishlists":
+                    //check if no user authenticate, navigate to login activity
+                    if (!(activity instanceof WishlistActivity)) {
+                        intent = new Intent(activity, WishlistActivity.class);
+                        activity.startActivity(intent);
+                        activity.overridePendingTransition(0, 0);
+//                        activity.finish();
+                    }
+                    return true;
+                case "Inbox":
+                    if (!(activity instanceof ChatActivity)) {
                     intent = new Intent(activity, ChatActivity.class);
                     activity.startActivity(intent);
                     activity.overridePendingTransition(0, 0);

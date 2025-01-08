@@ -7,16 +7,63 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class WishlistRepository {
     private final FirebaseAuth auth;
+
+
+
+
     private final FirebaseFirestore firestore;
 
     public WishlistRepository() {
         this.firestore = FirebaseFirestore.getInstance();
         this.auth = FirebaseAuth.getInstance();
     }
+
+    public Task<Boolean> isExistWishlistItem(String userId, String propertyId) {
+        return firestore.collection("Wishlists")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("propertyId", propertyId)
+                .get() // Get the documents matching the query
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        // Check if the query result contains any documents
+                        return !task.getResult().isEmpty();
+                    } else {
+                        // Throw an exception if the task failed
+                        throw task.getException() != null
+                                ? task.getException()
+                                : new Exception("Failed to check if wishlist item exists.");
+                    }
+                });
+    }
+
+    public Task<Boolean> addWishlistItem(String userId, String propertyId) {
+        // Create a map to represent the wishlist item
+        Map<String, Object> wishlistItem = new HashMap<>();
+        wishlistItem.put("userId", userId);
+        wishlistItem.put("propertyId", propertyId);
+
+        // Add the wishlist item to Firestore
+        return firestore.collection("Wishlists") // Replace "Wishlists" with your actual Firestore collection name
+                .add(wishlistItem) // Add the data
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        // If the task is successful, return true
+                        return true;
+                    } else {
+                        // Throw an exception if the task failed
+                        throw task.getException() != null
+                                ? task.getException()
+                                : new Exception("Failed to add wishlist item.");
+                    }
+                });
+    }
+
 
     public Task<List<String>> getAllWishlistItemsByUser(String userId) {
         return firestore.collection("Wishlists")
