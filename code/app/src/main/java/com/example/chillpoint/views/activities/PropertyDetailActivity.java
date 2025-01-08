@@ -6,9 +6,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,7 +64,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     private String username; // From session
     private FirebaseFirestore firestore;
     private WishlistRepository wishlistRepository;
-
+    private HashMap<String, Integer> bedTypeIcons;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,7 +113,8 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         List<String> images = getIntent().getStringArrayListExtra("images");
         // Get propertyId from Intent
         propertyId = getIntent().getStringExtra("propertyId");
-
+        setupBedTypeIcons();
+        fetchPropertyDetails(propertyId);
         // Debug log to check if propertyId is correctly received
         Log.d("PropertyDetailActivity", "Received propertyId: " + propertyId);
         // propertyId 가져오기
@@ -486,6 +489,100 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                     Toast.makeText(this, "Failed to load review stats", Toast.LENGTH_SHORT).show();
                 });
     }
+    private void fetchPropertyDetails(String propertyId) {
+        firestore.collection("Properties")
+                .document(propertyId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // 데이터 파싱
+                        String checkInTime = documentSnapshot.getString("checkInTime");
+                        String checkOutTime = documentSnapshot.getString("checkOutTime");
+                        Long maxNumOfGuests = documentSnapshot.getLong("maxNumOfGuests");
+                        List<String> bedTypes = (List<String>) documentSnapshot.get("bedTypes");
+
+                        // UI 업데이트
+                        if (checkInTime != null) {
+                            TextView checkInTimeTextView = findViewById(R.id.checkInTimeTextView);
+                            checkInTimeTextView.setText("Check-in: " + checkInTime);
+                        }
+
+                        if (checkOutTime != null) {
+                            TextView checkOutTimeTextView = findViewById(R.id.checkOutTimeTextView);
+                            checkOutTimeTextView.setText("Check-out: " + checkOutTime);
+                        }
+
+                        if (maxNumOfGuests != null) {
+                            TextView maxNumOfGuestsTextView = findViewById(R.id.maxNumOfGuestsTextView);
+                            maxNumOfGuestsTextView.setText("Maximum Guests: " + maxNumOfGuests);
+                        }
+
+                        if (bedTypes != null) {
+                            displayBedTypes(bedTypes);
+                        }
+                    } else {
+                        Log.e("fetchPropertyDetails", "Property not found for ID: " + propertyId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("fetchPropertyDetails", "Error fetching property details", e);
+                });
+    }
+
+
+    private void displayBedTypes(List<String> bedTypes) {
+        LinearLayout bedTypesContainer = findViewById(R.id.bedTypesContainer);
+        bedTypesContainer.removeAllViews(); // 기존 뷰 초기화
+
+        for (String bedType : bedTypes) {
+            // 아이콘 설정
+            ImageView bedIcon = new ImageView(this);
+            bedIcon.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
+
+            // 매핑된 아이콘 리소스를 가져옴
+            Integer iconRes = bedTypeIcons.get(bedType);
+            if (iconRes != null) {
+                bedIcon.setImageResource(iconRes); // 매핑된 아이콘 사용
+            } else {
+                bedIcon.setImageResource(R.drawable.ic_bed_default); // 기본 아이콘
+            }
+
+            bedIcon.setPadding(16, 16, 16, 16);
+
+            // 침대 타입 이름 추가
+            TextView bedLabel = new TextView(this);
+            bedLabel.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+            bedLabel.setText(bedType);
+            bedLabel.setTextSize(16);
+            bedLabel.setPadding(16, 16, 16, 16);
+
+            // Icon과 Label을 묶는 Layout
+            LinearLayout bedItemLayout = new LinearLayout(this);
+            bedItemLayout.setOrientation(LinearLayout.VERTICAL);
+            bedItemLayout.setGravity(Gravity.CENTER);
+            bedItemLayout.setPadding(8, 8, 8, 8);
+
+            bedItemLayout.addView(bedIcon);
+            bedItemLayout.addView(bedLabel);
+
+            // 최종 Layout에 추가
+            bedTypesContainer.addView(bedItemLayout);
+        }
+    }
+
+
+
+    private void setupBedTypeIcons() {
+        bedTypeIcons = new HashMap<>();
+        bedTypeIcons.put("King Size", R.drawable.ic_bed_king); // King Size 침대 아이콘
+        bedTypeIcons.put("Queen Size", R.drawable.ic_bed_queen); // Queen Size 침대 아이콘
+        bedTypeIcons.put("Double", R.drawable.ic_bed_queen); // Double 침대 아이콘
+        bedTypeIcons.put("Single", R.drawable.ic_bed_single); // Single 침대 아이콘
+    }
+
 
 
     @Override

@@ -64,7 +64,8 @@
                 android:textSize="13sp"
                 android:textColor="@android:color/black"
                 android:drawableLeft="@drawable/ic_location"
-                android:drawablePadding="8dp"
+                android:drawablePadding="16dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp" />
 
             <!-- 구분선 -->
@@ -80,10 +81,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Description"
+                android:layout_marginTop="16dp"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="16dp" />
 
             <!-- 설명 -->
             <TextView
@@ -92,18 +94,170 @@
                 android:layout_height="wrap_content"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
-                android:layout_marginBottom="8dp" />
-
-            <!-- 가격 -->
+                android:layout_marginBottom="16dp" />
+            <!-- 구분선 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginVertical="8dp" />
+            <!-- Detailed Information Section (아이콘 없음) -->
             <TextView
-                android:id="@+id/propertyDetailPriceTextView"
+                android:id="@+id/detailedInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Detailed Information"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/holo_red_dark"
-                android:drawableLeft="@drawable/ic_money"
-                android:drawablePadding="8dp" />
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Bed Type Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_bed_default"
+                    android:contentDescription="Bed Icon"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bed Type"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
+            <!-- HorizontalScrollView for Bed Types -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:id="@+id/bedTypesContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp" />
+            </HorizontalScrollView>
+            <!-- Maximum Guests Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_user"
+                    android:contentDescription="Guests Icon"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/maxNumOfGuestsTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Maximum Guests: 0"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
+
+            <!-- Check-in and Check-out Times Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_clock"
+                    android:contentDescription="Clock Icon"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Check-in/Check-out Times"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
+
+            <!-- Check-in and Check-out Times Details -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_horizontal"
+                android:layout_marginVertical="16dp">
+
+                <!-- Check-in Time -->
+                <TextView
+                    android:id="@+id/checkInTimeTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Check-in: 15:00"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"
+                    android:gravity="start" />
+
+                <!-- Check-out Time -->
+                <TextView
+                    android:id="@+id/checkOutTimeTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Check-out: 12:00"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"
+                    android:gravity="end" />
+            </LinearLayout>
+
+            <!-- Price Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Price Icon -->
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_money"
+                    android:contentDescription="Price Icon"
+                    android:layout_marginEnd="8dp" />
+
+                <!-- Price Text -->
+                <TextView
+                    android:id="@+id/propertyDetailPriceTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Price: $100 per night"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/holo_red_dark" />
+            </LinearLayout>
 
             <!-- 구분선 -->
             <View
@@ -120,7 +274,8 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp" />
 
             <fragment
                 android:id="@+id/propertyMapFragment"
@@ -138,7 +293,8 @@
                 android:textColor="@android:color/black"
                 android:drawableLeft="@drawable/ic_location"
                 android:drawablePadding="8dp"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
             <!-- 구분선 -->
             <View
                 android:layout_width="match_parent"
@@ -156,7 +312,7 @@
                 android:textSize="18sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="16dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -229,7 +385,8 @@
                 android:layout_height="wrap_content"
                 android:text="Show All Reviews"
                 android:backgroundTint="@android:color/holo_blue_dark"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="16dp"/>
 
             <!-- 구분선 -->
             <View
@@ -248,7 +405,7 @@
                 android:textSize="18sp"
                 android:textColor="@android:color/black"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="16dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
