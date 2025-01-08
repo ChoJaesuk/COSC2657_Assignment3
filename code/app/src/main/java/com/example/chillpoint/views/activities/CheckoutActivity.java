@@ -17,10 +17,12 @@ import com.stripe.android.PaymentConfiguration;
 import com.stripe.android.paymentsheet.PaymentSheet;
 import com.stripe.android.paymentsheet.PaymentSheetResult;
 import okhttp3.*;
+import com.google.firebase.firestore.FirebaseFirestore;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class CheckoutActivity extends AppCompatActivity {
@@ -31,6 +33,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private PaymentSheet paymentSheet;
 
     private Button payButton;
+    private FirebaseFirestore db;
 
 
     @Override
@@ -41,6 +44,8 @@ public class CheckoutActivity extends AppCompatActivity {
                 "pk_test_51QeHVRCEu9hglsZOJi2iypmyk0Pq3BEgh7HaSMf8GUdeXohp9diQnSLVZL511yw7ypAT1yx1xwN8pVnVxwkGI2cA00X1hScVXa"
         );
 
+        db = FirebaseFirestore.getInstance();
+
         setContentView(R.layout.activity_checkout);
 
         // Hook up the pay button
@@ -49,7 +54,6 @@ public class CheckoutActivity extends AppCompatActivity {
         payButton.setEnabled(false);
 
         paymentSheet = new PaymentSheet(this, this::onPaymentSheetResult);
-
 
         fetchPaymentIntent();
     }
@@ -131,16 +135,29 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
 
-    private void onPaymentSheetResult(
-            final PaymentSheetResult paymentSheetResult
-    ) {
+    private void onPaymentSheetResult(final PaymentSheetResult paymentSheetResult) {
         if (paymentSheetResult instanceof PaymentSheetResult.Completed) {
             showToast("Payment complete!");
+
+            recordPaymentInFirestore();
         } else if (paymentSheetResult instanceof PaymentSheetResult.Canceled) {
             Log.i(TAG, "Payment canceled!");
         } else if (paymentSheetResult instanceof PaymentSheetResult.Failed) {
             Throwable error = ((PaymentSheetResult.Failed) paymentSheetResult).getError();
             showAlert("Payment failed", error.getLocalizedMessage());
         }
+    }
+
+    private void recordPaymentInFirestore() {
+        // Create a payment record
+        HashMap<String, Object> paymentRecord = new HashMap<>();
+        paymentRecord.put("amount", 5000); // Example amount
+        paymentRecord.put("status", "success");
+        paymentRecord.put("timestamp", System.currentTimeMillis());
+
+        db.collection("Payments")
+                .add(paymentRecord)
+                .addOnSuccessListener(documentReference -> Log.d(TAG, "Payment recorded with ID: " + documentReference.getId()))
+                .addOnFailureListener(e -> Log.w(TAG, "Error adding payment record", e));
     }
 }
