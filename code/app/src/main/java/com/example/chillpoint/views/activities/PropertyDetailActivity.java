@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,6 +21,9 @@ import android.util.Pair;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.repositories.WishlistRepository;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.ImageSliderAdapter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -27,6 +31,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -47,7 +52,7 @@ import java.util.Locale;
 import android.location.Address;
 import android.location.Geocoder;
 
-public class PropertyDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class PropertyDetailActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationSetup {
     private String address;
     private String propertyId;
     private String selectedStartDate;
@@ -56,11 +61,13 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     private String userId; // From session
     private String username; // From session
     private FirebaseFirestore firestore;
+    private WishlistRepository wishlistRepository;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_property_detail);
+        setupNavigationBar();
         // 세션 데이터 로드
         SessionManager sessionManager = new SessionManager(this);
         userId = sessionManager.getUserId();
@@ -69,6 +76,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         // 디버깅 로그 추가
         Log.d("SessionManager", "Loaded session: userId=" + userId + ", role=" + role + ", username=" + username);
 
+        wishlistRepository = new WishlistRepository();
         // 세션 검증
         if (userId == null || role == null || username == null) {
             Toast.makeText(this, "Failed to load user session. Please log in again.", Toast.LENGTH_SHORT).show();
@@ -107,13 +115,34 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         // Debug log to check if propertyId is correctly received
         Log.d("PropertyDetailActivity", "Received propertyId: " + propertyId);
         // propertyId 가져오기
-        propertyId = getIntent().getStringExtra("propertyId");
-
-        if (propertyId == null || propertyId.isEmpty()) {
-            Toast.makeText(this, "Invalid Property ID", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+//        propertyId = getIntent().getStringExtra("propertyId");
+        TextView addToWishlist = findViewById(R.id.addToWishlist);
+        if (userId != null && propertyId != null) {
+            wishlistRepository.isExistWishlistItem(userId, propertyId)
+                    .addOnSuccessListener(exists -> {
+                        if (exists) {
+                            // If the wishlist item exists, hide the button
+                            addToWishlist.setBackgroundTintList(getResources().getColorStateList(R.color.red));
+                            Log.d("WishlistCheck", "Wishlist item exists. Button hidden.");
+                        } else {
+                            // If the wishlist item does not exist, make the button visible
+                            addToWishlist.setVisibility(View.VISIBLE);
+                            Log.d("WishlistCheck", "Wishlist item does not exist. Button visible.");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("WishlistCheck", "Error checking wishlist item existence", e);
+                        Toast.makeText(PropertyDetailActivity.this, "Error checking wishlist status", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.e("WishlistCheck", "Invalid user or property information.");
+            Toast.makeText(this, "Invalid user or property information", Toast.LENGTH_SHORT).show();
         }
+//        if (propertyId == null || propertyId.isEmpty()) {
+//            Toast.makeText(this, "Invalid Property ID", Toast.LENGTH_SHORT).show();
+//            finish();
+//            return;
+//        }
 
         // 리뷰 통계 불러오기
         fetchPropertyReviewStats(propertyId);
@@ -166,6 +195,51 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             intent.putExtra("propertyId", propertyId);
             startActivity(intent);
         });
+
+
+
+        addToWishlist.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Assuming you have a userId and propertyId available
+                if (userId != null && propertyId != null) {
+                    // Check if the item already exists in the wishlist
+                    wishlistRepository.isExistWishlistItem(userId, propertyId)
+                            .addOnSuccessListener(exists -> {
+                                if (exists) {
+                                    // If the item exists, show a toast message
+                                    Toast.makeText(PropertyDetailActivity.this, "Already in Wishlist!", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    // If the item does not exist, add it to the wishlist
+                                    wishlistRepository.addWishlistItem(userId, propertyId)
+                                            .addOnSuccessListener(result -> {
+                                                if (result) {
+                                                    // Show success message
+                                                    Toast.makeText(PropertyDetailActivity.this, "Added to Wishlist!", Toast.LENGTH_SHORT).show();
+                                                    // Change the button background tint to red
+                                                    addToWishlist.setBackgroundTintList(getResources().getColorStateList(R.color.red));
+                                                    // Optionally hide the button
+                                                }
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                // Show error message
+                                                Toast.makeText(PropertyDetailActivity.this, "Failed to add to Wishlist: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                Log.e("Wishlist", "Error adding to wishlist", e);
+                                            });
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                // Show error message for the `isExistWishlistItem` call
+                                Toast.makeText(PropertyDetailActivity.this, "Error checking wishlist: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Log.e("Wishlist", "Error checking wishlist existence", e);
+                            });
+                } else {
+                    Toast.makeText(PropertyDetailActivity.this, "Invalid user or property information", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+
 
     }
 
@@ -401,6 +475,8 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                         // Update the TextView with fetched data
                         TextView reviewTitleTextView = findViewById(R.id.reviewTitleTextView);
                         reviewTitleTextView.setText("★ " + String.format("%.1f", averageRating) + " reviews (" + reviewCount + ")");
+                        TextView averageRatingTv = findViewById(R.id.averageRating);
+                        averageRatingTv.setText("★ " + String.format("%.1f", averageRating) + " reviews (" + reviewCount + ")");
                     } else {
                         Log.e("PropertyDetailActivity", "Property not found in database.");
                     }
@@ -412,4 +488,15 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     }
 
 
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_trips);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
 }

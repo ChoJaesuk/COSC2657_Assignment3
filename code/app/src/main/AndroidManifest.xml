@@ -55,6 +55,9 @@
             android:name=".views.activities.UserMainActivity"
             android:exported="false" />
         <activity
+            android:name=".views.activities.WishlistActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.RegisterActivity"
             android:exported="false" />
         <activity
