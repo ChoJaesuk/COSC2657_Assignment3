@@ -10,9 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.chillpoint.managers.SessionManager;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -20,24 +18,22 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView usernameTextView;
     private TextView hostVerificationTextView;
 
-    private FirebaseAuth auth;
-    private FirebaseFirestore firestore;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Initialize Firebase
-        auth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
+        // Initialize SessionManager
+        sessionManager = new SessionManager(this);
 
         // Initialize UI components
         profileImageView = findViewById(R.id.profileImageView);
         usernameTextView = findViewById(R.id.usernameTextView);
         hostVerificationTextView = findViewById(R.id.hostVerification);
 
-        // Load user profile
+        // Load user profile using SessionManager
         loadUserProfile();
 
         // Set click listener for Host Verification
@@ -48,35 +44,30 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserProfile() {
-        String userId = auth.getCurrentUser().getUid();
+        // Get user data from SessionManager
+        String username = sessionManager.getUsername();
+        String imageUrl = sessionManager.getUserImageUrl();
 
-        firestore.collection("Users").document(userId).get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot snapshot = task.getResult();
-                        if (snapshot.exists()) {
-                            String imageUrl = snapshot.getString("imageUrl");
-                            String username = snapshot.getString("username");
+        if (username != null && !username.isEmpty()) {
+            usernameTextView.setText(username);
+        } else {
+            usernameTextView.setText("Unknown User");
+        }
 
-                            // Display user info
-                            usernameTextView.setText(username != null ? username : "Unknown User");
+        // Load profile image
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(ProfileActivity.this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.defaultavatar) // Default image while loading
+                    .error(R.drawable.defaultavatar) // Default image if loading fails
+                    .into(profileImageView);
+        } else {
+            profileImageView.setImageResource(R.drawable.defaultavatar); // Default image
+        }
 
-                            // Load profile image
-                            if (imageUrl != null && !imageUrl.isEmpty()) {
-                                Glide.with(ProfileActivity.this)
-                                        .load(imageUrl)
-                                        .placeholder(R.drawable.defaultavatar) // Default image while loading
-                                        .error(R.drawable.defaultavatar) // Default image if loading fails
-                                        .into(profileImageView);
-                            } else {
-                                profileImageView.setImageResource(R.drawable.defaultavatar); // Default image
-                            }
-                        } else {
-                            Toast.makeText(ProfileActivity.this, "User data not found.", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(ProfileActivity.this, "Error loading profile: " + task.getException(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+        // Check if session data exists, else show an error
+        if (username == null && imageUrl == null) {
+            Toast.makeText(this, "Session data not found. Please log in again.", Toast.LENGTH_SHORT).show();
+        }
     }
 }
