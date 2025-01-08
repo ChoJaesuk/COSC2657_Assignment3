@@ -7,6 +7,7 @@ import com.example.chillpoint.R;
 import com.example.chillpoint.views.activities.ChatActivity;
 import com.example.chillpoint.views.activities.MainActivity;
 import com.example.chillpoint.views.activities.BookingActivity;
+import com.example.chillpoint.views.activities.ProfileActivity;
 import com.example.chillpoint.views.activities.UserMainActivity;
 import com.example.chillpoint.views.activities.WishlistActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -52,6 +53,14 @@ public class NavigationUtils {
                     activity.overridePendingTransition(0, 0);
 //                        activity.finish();
                 }
+                    return true;
+                case "Profile": // Match with the title defined in the menu
+                    if (!(activity instanceof ProfileActivity)) { // Check if not already in ProfileActivity
+                        intent = new Intent(activity, ProfileActivity.class);
+                        activity.startActivity(intent);
+                        activity.overridePendingTransition(0, 0);
+//                        activity.finish();
+                    }
                     return true;
                 default:
                     return false;
