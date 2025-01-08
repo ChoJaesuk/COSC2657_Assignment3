@@ -1,5 +1,6 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.util.Log;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.stripe.android.PaymentConfiguration;
 import com.stripe.android.paymentsheet.PaymentSheet;
 import com.stripe.android.paymentsheet.PaymentSheetResult;
@@ -34,11 +36,13 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private Button payButton;
     private FirebaseFirestore db;
+    private String propertyId;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_checkout);
         PaymentConfiguration.init(
                 getApplicationContext(),
                 "pk_test_51QeHVRCEu9hglsZOJi2iypmyk0Pq3BEgh7HaSMf8GUdeXohp9diQnSLVZL511yw7ypAT1yx1xwN8pVnVxwkGI2cA00X1hScVXa"
@@ -46,7 +50,20 @@ public class CheckoutActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        setContentView(R.layout.activity_checkout);
+        SessionManager sessionManager = new SessionManager(this);
+
+        // Retrieve data from Intent
+        Intent incomingIntent = getIntent();
+        String userId = incomingIntent.getStringExtra("userId");
+        String username = incomingIntent.getStringExtra("username");
+        propertyId = incomingIntent.getStringExtra("propertyId");
+
+        if (userId == null || username == null) {
+            Toast.makeText(this, "Failed to load session. Please log in again.", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(CheckoutActivity.this, LoginActivity.class));
+            finish();
+            return;
+        }
 
         // Hook up the pay button
         payButton = findViewById(R.id.pay_button);
@@ -138,7 +155,6 @@ public class CheckoutActivity extends AppCompatActivity {
     private void onPaymentSheetResult(final PaymentSheetResult paymentSheetResult) {
         if (paymentSheetResult instanceof PaymentSheetResult.Completed) {
             showToast("Payment complete!");
-
             recordPaymentInFirestore();
         } else if (paymentSheetResult instanceof PaymentSheetResult.Canceled) {
             Log.i(TAG, "Payment canceled!");
@@ -151,13 +167,22 @@ public class CheckoutActivity extends AppCompatActivity {
     private void recordPaymentInFirestore() {
         // Create a payment record
         HashMap<String, Object> paymentRecord = new HashMap<>();
-        paymentRecord.put("amount", 5000); // Example amount
+        paymentRecord.put("propertyId", propertyId); // The property being paid for
+        paymentRecord.put("userId", new SessionManager(this).getUserId());
+        paymentRecord.put("username", new SessionManager(this).getUsername());
+        paymentRecord.put("amount", 5000);
         paymentRecord.put("status", "success");
         paymentRecord.put("timestamp", System.currentTimeMillis());
 
         db.collection("Payments")
                 .add(paymentRecord)
-                .addOnSuccessListener(documentReference -> Log.d(TAG, "Payment recorded with ID: " + documentReference.getId()))
-                .addOnFailureListener(e -> Log.w(TAG, "Error adding payment record", e));
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Payment recorded with ID: " + documentReference.getId());
+                    showToast("Payment recorded successfully!");
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error adding payment record", e);
+                    showToast("Failed to record payment. Please contact support.");
+                });
     }
 }

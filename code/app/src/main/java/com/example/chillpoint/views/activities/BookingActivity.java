@@ -1,5 +1,6 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -36,7 +37,17 @@ public class BookingActivity extends AppCompatActivity {
         bookingAdapter = new BookingAdapter(this, bookingsList);
         bookingsRecyclerView.setAdapter(bookingAdapter);
 
-        // Initialize Firestore
+        // Set click listener for bookings
+        bookingAdapter.setOnBookingClickListener(booking -> {
+            String userId = new SessionManager(this).getUserId();
+            String username = new SessionManager(this).getUsername(); // Assuming you have this method
+            String propertyId = booking.getPropertyId();
+
+            // Navigate to BillSplittingActivity
+            navigateToBillSplitting(userId, username, propertyId);
+        });
+
+            // Initialize Firestore
         firestore = FirebaseFirestore.getInstance();
 
         // Load bookings
@@ -116,6 +127,15 @@ public class BookingActivity extends AppCompatActivity {
                         Log.e("BookingActivity", "Failed to fetch reservations: ", task.getException());
                     }
                 });
+    }
+
+    // Inside BookingActivity
+    private void navigateToBillSplitting(String userId, String username, String propertyId) {
+        Intent intent = new Intent(BookingActivity.this, BillSplittingActivity.class);
+        intent.putExtra("userId", userId);
+        intent.putExtra("username", username);
+        intent.putExtra("propertyId", propertyId);
+        startActivity(intent);
     }
 
 

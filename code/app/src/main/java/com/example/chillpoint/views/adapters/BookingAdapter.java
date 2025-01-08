@@ -23,10 +23,19 @@ import java.util.List;
 public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHolder> {
     private final Context context;
     private final List<Booking> bookings;
+    private OnBookingClickListener listener;
 
     public BookingAdapter(Context context, List<Booking> bookings) {
         this.context = context;
         this.bookings = bookings;
+    }
+
+    public interface OnBookingClickListener {
+        void onBookingClick(Booking booking);
+    }
+
+    public void setOnBookingClickListener(OnBookingClickListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -45,6 +54,13 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
         holder.location.setText(booking.getPropertyLocation());
         holder.dates.setText(booking.getStartDate() + " - " + booking.getEndDate());
         holder.status.setText(booking.getStatus());
+
+        // Handle item click
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onBookingClick(booking);
+            }
+        });
 
         // Load image using Glide
         Glide.with(context)
