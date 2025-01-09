@@ -441,8 +441,8 @@ public class CreatePropertyActivity extends AppCompatActivity {
         firestore.collection("Properties").add(property).addOnSuccessListener(documentReference -> {
             progressBar.setVisibility(View.GONE);
             Toast.makeText(CreatePropertyActivity.this, "Property created successfully", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(CreatePropertyActivity.this, UserMainActivity.class);
-            startActivity(intent);
+
+            // 명시적으로 UserMainActivity로 가지 않고, 현재 Activity를 종료하고 이전 Activity로 돌아감
             finish();
         }).addOnFailureListener(e -> {
             progressBar.setVisibility(View.GONE);
