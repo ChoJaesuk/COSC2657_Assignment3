@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#E1F7F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Property Name -->
+        <EditText
+            android:id="@+id/nameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Property Name"
+            android:layout_marginBottom="16dp"
+            android:inputType="textCapWords"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:textColor="#000000" />
+
+        <!-- Property Description -->
+        <EditText
+            android:id="@+id/descriptionEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"
+            android:layout_marginBottom="16dp"
+            android:inputType="textCapSentences"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:textColor="#000000" />
+
+        <!-- Address -->
+        <EditText
+            android:id="@+id/addressEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Address"
+            android:layout_marginBottom="16dp"
+            android:inputType="textPostalAddress"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:textColor="#000000" />
+
+        <!-- Price -->
+        <EditText
+            android:id="@+id/priceEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Price Per Night"
+            android:layout_marginBottom="16dp"
+            android:inputType="numberDecimal"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:textColor="#000000" />
+
+        <!-- Number of Rooms -->
+        <EditText
+            android:id="@+id/roomsEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Number of Rooms"
+            android:layout_marginBottom="16dp"
+            android:inputType="number"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:textColor="#000000" />
+
+        <!-- Number of Beds -->
+        <EditText
+            android:id="@+id/numOfBedsEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Number of Beds"
+            android:layout_marginBottom="16dp"
+            android:inputType="number"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:textColor="#000000" />
+
+        <!-- Maximum Number of Guests -->
+        <EditText
+            android:id="@+id/maxGuestsEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Maximum Number of Guests"
+            android:layout_marginBottom="16dp"
+            android:inputType="number"
+            android:padding="12dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp"
+            android:textColor="#000000" />
+
+        <!-- Bed Type Spinner -->
+        <Spinner
+            android:id="@+id/bedTypeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp" />
+
+        <!-- Check-In Time Spinner -->
+        <Spinner
+            android:id="@+id/checkInTimeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp" />
+
+        <!-- Check-Out Time Spinner -->
+        <Spinner
+            android:id="@+id/checkOutTimeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="8dp"
+            android:background="#FFFFFF"
+            android:elevation="2dp" />
+
+        <!-- Upload Images Button -->
+        <Button
+            android:id="@+id/uploadImagesButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Upload Images"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#9AC8CD"
+            android:textColor="#FFFFFF" />
+
+        <!-- GridView for Image Previews -->
+        <GridView
+            android:id="@+id/imagesGridView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:numColumns="3"
+            android:verticalSpacing="8dp"
+            android:horizontalSpacing="8dp"
+            android:padding="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="#FFFFFF" />
+
+        <!-- Save Property Button -->
+        <Button
+            android:id="@+id/savePropertyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Property"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

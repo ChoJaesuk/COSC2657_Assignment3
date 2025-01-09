@@ -48,7 +48,7 @@ public class ProfileActivity extends AppCompatActivity {
         // Set click listeners
         hostVerificationTextView.setOnClickListener(v -> handleHostVerification());
         bookingManagementTextView.setOnClickListener(v -> handleRestrictedActions("Booking Management"));
-        propertyManagementTextView.setOnClickListener(v -> handleRestrictedActions("Property Management"));
+        propertyManagementTextView.setOnClickListener(v -> handlePropertyManagement());
     }
 
     private void loadUserProfile() {
@@ -141,6 +141,35 @@ public class ProfileActivity extends AppCompatActivity {
                         } else {
                             showAlert("Host Verification Required",
                                     "To perform this action, you need to submit a host verification request and get approved by the admin.");
+                        }
+                    } else {
+                        showAlert("Error", "Error checking host verification status.");
+                    }
+                });
+    }
+
+    private void handlePropertyManagement() {
+        String userId = sessionManager.getUserId();
+
+        if (userId == null) {
+            showAlert("Error", "Session expired. Please log in again.");
+            return;
+        }
+
+        firestore.collection("HostVerifications")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("status", "Approved")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        QuerySnapshot querySnapshot = task.getResult();
+                        if (!querySnapshot.isEmpty()) {
+                            // User is verified, navigate to PropertyManagementActivity
+                            Intent intent = new Intent(this, PropertyManagementActivity.class);
+                            startActivity(intent);
+                        } else {
+                            showAlert("Host Verification Required",
+                                    "To manage properties, you need to be an approved host. Please submit a host verification request.");
                         }
                     } else {
                         showAlert("Error", "Error checking host verification status.");

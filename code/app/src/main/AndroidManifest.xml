@@ -16,6 +16,18 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.DeletePropertyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.UpdatePropertyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".card_background"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.PropertyManagementActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.ChatDetailsActivity"
             android:exported="false" />
         <activity
@@ -38,6 +50,9 @@
             android:exported="false" />
         <activity
             android:name=".views.activities.ReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.CreatePropertyActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.BookingActivity"
