@@ -67,23 +67,33 @@ public class HostBookingManagementActivity extends AppCompatActivity {
                             String endDate = document.getString("toDate");
                             String status = document.getString("status");
 
+                            Log.e("ReservationDetails", "Booking ID: " + bookingId);
+                            Log.e("ReservationDetails", "Property ID: " + propertyId);
+                            Log.e("ReservationDetails", "Start Date: " + startDate);
+                            Log.e("ReservationDetails", "End Date: " + endDate);
+                            Log.e("ReservationDetails", "Status: " + status);
+
                             // Fetch property details using propertyId
                             firestore.collection("Properties").document(propertyId).get()
                                     .addOnCompleteListener(propertyTask -> {
                                         if (propertyTask.isSuccessful() && propertyTask.getResult() != null) {
                                             DocumentSnapshot propertySnapshot = propertyTask.getResult();
 
-                                            // Fetch data from Firestore
+                                            // Fetch property details
                                             String propertyName = propertySnapshot.getString("name");
                                             String propertyLocation = propertySnapshot.getString("address");
                                             ArrayList<String> images = (ArrayList<String>) propertySnapshot.get("images");
                                             String imageUrl = (images != null && !images.isEmpty()) ? images.get(0) : null;
+                                            String description = propertySnapshot.getString("description");
+                                            Double pricePerNight = propertySnapshot.getDouble("pricePerNight");
 
                                             // Handle missing fields
                                             if (propertyName == null) propertyName = "No Name Available";
                                             if (propertyLocation == null) propertyLocation = "No Location Available";
                                             if (imageUrl == null)
                                                 imageUrl = "https://example.com/placeholder.jpg"; // Placeholder
+                                            if (description == null) description = "No description available";
+                                            if (pricePerNight == null) pricePerNight = 0.0;
 
                                             // Create Booking object and add to list
                                             Booking booking = new Booking(
@@ -94,9 +104,14 @@ public class HostBookingManagementActivity extends AppCompatActivity {
                                                     imageUrl,
                                                     startDate,
                                                     endDate,
-                                                    status
+                                                    status,
+                                                    pricePerNight,
+                                                    description,
+                                                    images
                                             );
                                             bookingsList.add(booking);
+
+                                            Log.e("BookingList", "Added booking to list: " + booking.toString());
 
                                             // Notify adapter of data changes
                                             bookingAdapter.notifyDataSetChanged();
@@ -108,4 +123,5 @@ public class HostBookingManagementActivity extends AppCompatActivity {
                     }
                 });
     }
+
 }

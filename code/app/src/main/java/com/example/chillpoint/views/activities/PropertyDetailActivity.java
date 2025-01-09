@@ -111,13 +111,9 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         TextView propertyDescriptionTextView = findViewById(R.id.propertyDetailDescriptionTextView);
         TextView propertyAddressTextView = findViewById(R.id.propertyDetailAddressTextView);
         TextView propertyPriceTextView = findViewById(R.id.propertyDetailPriceTextView);
+
         Button selectDatesButton = findViewById(R.id.selectDatesButton);
         Button bookButton = findViewById(R.id.bookButton);
-        TextView propertyAddressTextViewTop = findViewById(R.id.propertyDetailAddressTextViewTop);
-// Inside onCreate method
-        TextView hostNameTextView = findViewById(R.id.hostNameTextView);
-        TextView hostDetailsTextView = findViewById(R.id.hostDetailsTextView);
-        ImageView hostImageView = findViewById(R.id.hostImageView);
         // 게스트 수 관련 뷰 찾아오기
         guestsCountTextView = findViewById(R.id.guestsCountTextView);
         guestsMinusButton = findViewById(R.id.guestsMinusButton);
@@ -143,6 +139,11 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             updateBookingInfo();
         });
 
+        TextView propertyAddressTextViewTop = findViewById(R.id.propertyDetailAddressTextViewTop);
+// Inside onCreate method
+        TextView hostNameTextView = findViewById(R.id.hostNameTextView);
+        TextView hostDetailsTextView = findViewById(R.id.hostDetailsTextView);
+        ImageView hostImageView = findViewById(R.id.hostImageView);
         // Get data from intent
         String name = getIntent().getStringExtra("name");
         String description = getIntent().getStringExtra("description");
@@ -394,6 +395,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         reservation.put("guestCount", selectedGuests); // 추가
         reservation.put("timestamp", System.currentTimeMillis());
         reservation.put("hostId", hostUserId);
+        reservation.put("status","Confirmed");
 
         firestore.collection("reservations")
                 .add(reservation)

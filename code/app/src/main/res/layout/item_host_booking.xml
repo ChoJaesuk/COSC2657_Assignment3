@@ -85,19 +85,5 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <!-- Review Button -->
-        <Button
-            android:id="@+id/reviewBookingButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
-            android:text="Review"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
     </LinearLayout>
 </LinearLayout>

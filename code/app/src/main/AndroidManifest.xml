@@ -18,12 +18,14 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.BookingDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.HostBookingManagementActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.UpdatePropertyActivity"
             android:exported="false" />
-
         <activity
             android:name=".views.activities.PropertyManagementActivity"
             android:exported="false" />
