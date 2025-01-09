@@ -23,8 +23,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.views.adapters.ImageAdapter;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -50,7 +50,6 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private GridView imagesGridView;
     private ProgressBar progressBar;
 
-    private FirebaseAuth auth;
     private FirebaseFirestore firestore;
     private FirebaseStorage storage;
 
@@ -59,6 +58,8 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private ImageAdapter imageAdapter;
 
     private String selectedBedType, selectedCheckInTime, selectedCheckOutTime; // To store selected options
+
+    private SessionManager sessionManager; // SessionManager for user data
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,9 +88,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         addressEditText.setClickable(false);
 
         // Initialize Firebase services
-        auth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
+
+        // Initialize SessionManager
+        sessionManager = new SessionManager(this);
 
         // Initialize image lists
         imageUris = new ArrayList<>();
@@ -289,7 +292,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
     }
 
     private void saveToFirestore(String name, String description, String address, double price, int rooms, int numOfBeds, int maxGuests, String checkInTime, String checkOutTime, String bedType, ArrayList<String> imageUrls) {
-        String userId = auth.getCurrentUser().getUid();
+        String userId = sessionManager.getUserId(); // Changed to SessionManager
         String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
         Map<String, Object> property = new HashMap<>();
