@@ -17,6 +17,12 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.ChatDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.ChatActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.HostVerificationDetailsActivity"
             android:exported="false" />
         <activity
@@ -44,13 +50,13 @@
             android:name=".views.activities.PropertyDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".views.activities.CreatePropertyActivity"
-            android:exported="false" />
-        <activity
             android:name=".views.activities.AdminMainActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.UserMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.WishlistActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.RegisterActivity"

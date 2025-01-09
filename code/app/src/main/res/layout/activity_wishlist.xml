@@ -1,54 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/custom_background">
-
-    <!-- ScrollView for the bookings content -->
+    android:background="@color/alice_blue">
     <ScrollView
-        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/bottom_navigation">
-
+        android:layout_above="@+id/bottom_navigation">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- Booking Title -->
+            android:orientation="vertical">
+            <!-- Title -->
             <TextView
-                android:id="@+id/bookingTitle"
-                android:layout_width="match_parent"
+                android:id="@+id/tv_wishlist_title"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your Bookings"
+                android:text="Your Wishlist"
                 android:textSize="24sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="16dp" />
-
-            <!-- Subtitle -->
-            <TextView
-                android:id="@+id/bookingSubtitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Upcoming reservations"
-                android:textSize="16sp"
-                android:gravity="center"
-                android:layout_marginBottom="16dp" />
-
-            <!-- RecyclerView for displaying bookings -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/bookingsRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:textColor="@android:color/black"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginStart="16dp"
+                android:textStyle="bold"
+                android:layout_gravity="center"/>
+
+            <!-- RecyclerView for Wishlist Items -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_wishlist"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/tv_wishlist_title"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:spanCount="2" /> <!-- 2 columns -->
         </LinearLayout>
     </ScrollView>
-
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"

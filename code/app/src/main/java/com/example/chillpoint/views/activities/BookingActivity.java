@@ -10,14 +10,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.BookingAdapter;
 import com.example.chillpoint.views.models.Booking;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
-public class BookingActivity extends AppCompatActivity {
+public class BookingActivity extends AppCompatActivity implements NavigationSetup {
     private RecyclerView bookingsRecyclerView;
     private BookingAdapter bookingAdapter;
     private ArrayList<Booking> bookingsList;
@@ -27,6 +30,7 @@ public class BookingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking);
+        setupNavigationBar();
 
         // Initialize RecyclerView
         bookingsRecyclerView = findViewById(R.id.bookingsRecyclerView);
@@ -139,4 +143,15 @@ public class BookingActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_booking);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
 }

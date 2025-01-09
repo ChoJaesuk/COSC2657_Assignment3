@@ -2,6 +2,7 @@ package com.example.chillpoint.managers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 public class SessionManager {
     private static final String PREF_NAME = "ChillPointSession";
@@ -38,9 +39,15 @@ public class SessionManager {
     }
 
     public void clearSession() {
-        editor.clear();
-        editor.apply();
+        if (!sharedPreferences.getAll().isEmpty()) { // Check if there are stored preferences
+            editor.clear();
+            editor.apply();
+            Log.d("SessionManager", "Session cleared successfully.");
+        } else {
+            Log.d("SessionManager", "No session data to clear.");
+        }
     }
+
     public String getUserImageUrl() {
         return sharedPreferences.getString(KEY_USER_IMAGE, null); // 유저 이미지 URL 가져오기
     }

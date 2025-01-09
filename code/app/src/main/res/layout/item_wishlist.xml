@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="@drawable/bg_wishlist_item"
+    android:padding="8dp"
+    android:elevation="4dp">
+
+    <!-- Image -->
+    <ImageView
+        android:id="@+id/img_wishlist_item"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_launcher_background" />
+
+    <!-- Heart Icon -->
+    <ImageView
+        android:id="@+id/img_wishlist_heart"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="8dp"
+        android:background="@drawable/bg_heart_circle"
+        android:backgroundTint="@color/quantum_white_secondary_text"
+        android:src="@drawable/ic_wishlist" />
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tv_room_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/img_wishlist_item"
+        android:text="Deluxe Room"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="8dp" />
+
+    <!-- Price -->
+    <TextView
+        android:id="@+id/tv_room_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_room_title"
+        android:text="$300/night"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray" />
+</RelativeLayout>
