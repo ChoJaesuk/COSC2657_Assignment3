@@ -26,6 +26,7 @@ import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.WishlistRepository;
 import com.example.chillpoint.utils.NavigationSetup;
 import com.example.chillpoint.utils.NavigationUtils;
+import com.example.chillpoint.repositories.ChatRepository;
 import com.example.chillpoint.views.adapters.ImageSliderAdapter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.Map;
 
 import android.location.Address;
 import android.location.Geocoder;
@@ -73,6 +75,8 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     private TextView guestsCountTextView;
     private Button guestsMinusButton, guestsPlusButton;
     private TextView totalPriceOrErrorTextView;
+    private Button contactHostButton;
+    
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +84,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         setupNavigationBar();
         // 세션 데이터 로드
         SessionManager sessionManager = new SessionManager(this);
+        ChatRepository chatRepository = new ChatRepository();
         userId = sessionManager.getUserId();
         String role = sessionManager.getRole();
         username = sessionManager.getUsername();
@@ -239,7 +244,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             intent.putExtra("propertyId", propertyId);
             startActivity(intent);
         });
-
+        
 
 
         addToWishlist.setOnClickListener(new View.OnClickListener() {
@@ -284,7 +289,17 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         });
 
 
-
+        
+        contactHostButton = findViewById(R.id.contactHostButton);
+        contactHostButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String hostId = (String)contactHostButton.getTag();
+                Log.d("contactHostButton", "contact button hostUserId: " + hostUserId);
+                contactUser(userId,hostId);
+            }
+        });
+        
     }
 
     private void openDatePicker() {
@@ -399,6 +414,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 .addOnSuccessListener(propertySnapshot -> {
                     if (propertySnapshot.exists()) {
                         hostUserId = propertySnapshot.getString("userId"); // 호스트 ID 저장
+                        contactHostButton.setTag(hostUserId);
                         Log.d("PropertyDetailActivity", "Fetched hostUserId: " + hostUserId);
                         if (hostUserId != null) {
                             // Fetch the user data from Users collection
@@ -590,6 +606,62 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 });
     }
 
+    private void contactUser(String currentLoginUserId, String hostId) {
+        // Reference to the "Chats" collection
+        firestore.collection("Chats")
+                .whereArrayContains("participants", currentLoginUserId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    String existingChatId = null;
+                    // Check if a chat with the hostId exists
+                    for (var document : querySnapshot) {
+                        ArrayList<String> participants = (ArrayList<String>) document.get("participants");
+                        if (participants != null && participants.contains(hostId)) {
+                            existingChatId = document.getId();
+                            break;
+                        }
+                    }
+                    if (existingChatId != null) {
+                        // Chat already exists, navigate to ChatDetailsActivity
+                        navigateToChatDetailsActivity(existingChatId);
+                    } else {
+                        // Chat does not exist, create a new one
+                        createNewChat(currentLoginUserId, hostId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ChatDetailsActivity", "Error checking existing chats", e);
+                    Toast.makeText(this, "Error checking chat", Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void createNewChat(String currentLoginUserId, String hostId) {
+        // Prepare the initial chat document
+        Map<String, Object> newChat = new HashMap<>();
+        ArrayList<String> participants = new ArrayList<>();
+        participants.add(currentLoginUserId);
+        participants.add(hostId);
+        newChat.put("participants", participants);
+        newChat.put("createdAt", new Date());
+        newChat.put("messages", new ArrayList<Map<String, Object>>());
+        // Add the new chat to Firestore
+        firestore.collection("Chats")
+                .add(newChat)
+                .addOnSuccessListener(documentReference -> {
+                    String newChatId = documentReference.getId();
+                    Toast.makeText(this, "Chat created successfully", Toast.LENGTH_SHORT).show();
+                    navigateToChatDetailsActivity(newChatId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ChatDetailsActivity", "Error creating chat", e);
+                    Toast.makeText(this, "Error creating chat", Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void navigateToChatDetailsActivity(String chatId) {
+        // Navigate to ChatDetailsActivity with the chatId
+        Intent intent = new Intent(this, ChatDetailsActivity.class);
+        intent.putExtra("chatId", chatId);
+        startActivity(intent);
+    }
 
     private void updateBookingInfo() {
 
