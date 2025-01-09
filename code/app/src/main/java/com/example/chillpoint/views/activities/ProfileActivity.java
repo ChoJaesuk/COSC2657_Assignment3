@@ -137,7 +137,14 @@ public class ProfileActivity extends AppCompatActivity {
                     if (task.isSuccessful() && task.getResult() != null) {
                         QuerySnapshot querySnapshot = task.getResult();
                         if (!querySnapshot.isEmpty()) {
-                            Toast.makeText(this, actionName + " is not yet implemented.", Toast.LENGTH_SHORT).show();
+                            if ("Booking Management".equals(actionName)) {
+                                // Navigate to HostBookingManagementActivity
+                                Intent intent = new Intent(ProfileActivity.this, HostBookingManagementActivity.class);
+                                intent.putExtra("hostId", userId); //
+                                startActivity(intent);
+                            } else {
+                                Toast.makeText(this, actionName + " is not yet implemented.", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             showAlert("Host Verification Required",
                                     "To perform this action, you need to submit a host verification request and get approved by the admin.");
@@ -147,6 +154,7 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     private void showAlert(String title, String message) {
         new AlertDialog.Builder(this)

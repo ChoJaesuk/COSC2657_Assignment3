@@ -393,6 +393,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         reservation.put("toDate", selectedEndDate);
         reservation.put("guestCount", selectedGuests); // 추가
         reservation.put("timestamp", System.currentTimeMillis());
+        reservation.put("hostId", hostUserId);
 
         firestore.collection("reservations")
                 .add(reservation)

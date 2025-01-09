@@ -16,6 +16,9 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.HostBookingManagementActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.ChatDetailsActivity"
             android:exported="false" />
         <activity
