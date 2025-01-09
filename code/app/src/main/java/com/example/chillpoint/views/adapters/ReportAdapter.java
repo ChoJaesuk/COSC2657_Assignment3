@@ -19,10 +19,16 @@ import java.util.ArrayList;
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder> {
     private final Context context;
     private final ArrayList<Report> reportList;
+    private final OnReportClickListener listener;
 
-    public ReportAdapter(Context context, ArrayList<Report> reportList) {
+    public interface OnReportClickListener {
+        void onReportClick(Report report);
+    }
+
+    public ReportAdapter(Context context, ArrayList<Report> reportList, OnReportClickListener listener) {
         this.context = context;
         this.reportList = reportList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -41,14 +47,15 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
         holder.statusTextView.setText("Status: " + report.getStatus());
         holder.dateTextView.setText(report.getCreatedAt());
 
-        // Load image if available
         if (!report.getImageUrl().isEmpty()) {
             Glide.with(context)
-                    .load(report.getImageUrl().get(0)) // Load the first image
+                    .load(report.getImageUrl().get(0))
                     .into(holder.reportImageView);
         } else {
             holder.reportImageView.setImageResource(R.drawable.ic_profile);
         }
+
+        holder.itemView.setOnClickListener(v -> listener.onReportClick(report));
     }
 
     @Override
