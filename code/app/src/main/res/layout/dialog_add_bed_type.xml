@@ -5,11 +5,19 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/bedTypeEditText"
+    <!-- 기존 bedTypeEditText -->
+<!--    <EditText-->
+<!--        android:id="@+id/bedTypeEditText"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:hint="Enter Bed Type"-->
+<!--        android:layout_marginBottom="8dp" />-->
+
+    <!-- [새로 추가됨] 팝업에서 사용할 Spinner -->
+    <Spinner
+        android:id="@+id/dialogBedTypeSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Bed Type"
         android:layout_marginBottom="8dp" />
 
     <EditText

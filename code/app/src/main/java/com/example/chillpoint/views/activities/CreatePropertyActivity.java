@@ -13,7 +13,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ListView; // [새로 추가됨]
 import android.widget.ProgressBar;
+//import android.widget.Spinner; // [주석 처리됨 - 메인 화면에서 BedType Spinner 제거]
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,8 +46,9 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private static final int IMAGE_PICKER_REQUEST = 100;
     private static final int LOCATION_PICKER_REQUEST = 200; // For map location picking
 
-    private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, numOfBedsEditText, maxGuestsEditText;
-    private Spinner bedTypeSpinner, checkInTimeSpinner, checkOutTimeSpinner;
+    private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, /*numOfBedsEditText,*/ maxGuestsEditText;
+    //private Spinner bedTypeSpinner, checkInTimeSpinner, checkOutTimeSpinner; // [주석 처리됨 - 메인에서 bedTypeSpinner 제거]
+    private Spinner checkInTimeSpinner, checkOutTimeSpinner; // [새로 정의 - bedTypeSpinner 제외]
     private Button uploadImagesButton, savePropertyButton, pickLocationButton, addBedTypeButton;
     private GridView imagesGridView;
     private ProgressBar progressBar;
@@ -57,11 +60,19 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private ArrayList<String> uploadedImageUrls; // To store uploaded image URLs
     private ImageAdapter imageAdapter;
 
-    private String selectedBedType, selectedCheckInTime, selectedCheckOutTime; // To store selected options
-
+    //private String selectedBedType, selectedCheckInTime, selectedCheckOutTime; // To store selected options (bedType는 팝업에서만 선택)
+    private String selectedCheckInTime, selectedCheckOutTime; // [수정됨] bedType는 팝업에서만 관리
     private SessionManager sessionManager; // SessionManager for user data
 
     private HashMap<String, Integer> bedTypesMap = new HashMap<>(); // To store bed types and their counts
+
+    // [새로 추가됨] 배드 타입 목록을 보여줄 ListView + Adapter
+    private ListView bedTypesListView;
+    private ArrayAdapter<String> bedTypesListAdapter;
+    private ArrayList<String> bedTypesList; // 실제로 화면에 "침대타입 x 개수" 형태로 보여줄 리스트
+
+    // [새로 추가됨] 총 침대 개수를 계산하여 보관할 변수
+    private int totalBeds = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,17 +85,25 @@ public class CreatePropertyActivity extends AppCompatActivity {
         addressEditText = findViewById(R.id.addressEditText);
         priceEditText = findViewById(R.id.priceEditText);
         roomsEditText = findViewById(R.id.roomsEditText);
-        numOfBedsEditText = findViewById(R.id.numOfBedsEditText); // Number of Beds Input
+        //numOfBedsEditText = findViewById(R.id.numOfBedsEditText); // [주석 처리됨 - numOfBedsEditText는 제거됨]
         maxGuestsEditText = findViewById(R.id.maxGuestsEditText);
-        bedTypeSpinner = findViewById(R.id.bedTypeSpinner);
+
+        //bedTypeSpinner = findViewById(R.id.bedTypeSpinner); // [주석 처리됨 - 메인 화면 bedTypeSpinner 제거]
         checkInTimeSpinner = findViewById(R.id.checkInTimeSpinner);
         checkOutTimeSpinner = findViewById(R.id.checkOutTimeSpinner);
+
         uploadImagesButton = findViewById(R.id.uploadImagesButton);
         savePropertyButton = findViewById(R.id.savePropertyButton);
         pickLocationButton = findViewById(R.id.pickLocationButton);
         addBedTypeButton = findViewById(R.id.addBedTypeButton);
         imagesGridView = findViewById(R.id.imagesGridView);
         progressBar = findViewById(R.id.progressBar);
+
+        // [새로 추가됨] ListView 초기화
+        bedTypesListView = findViewById(R.id.bedTypesListView);
+        bedTypesList = new ArrayList<>();
+        bedTypesListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, bedTypesList);
+        bedTypesListView.setAdapter(bedTypesListAdapter);
 
         // Disable addressEditText to make it non-editable
         addressEditText.setFocusable(false);
@@ -115,12 +134,15 @@ public class CreatePropertyActivity extends AppCompatActivity {
         pickLocationButton.setOnClickListener(v -> openLocationPicker());
         addBedTypeButton.setOnClickListener(v -> openAddBedTypeDialog());
 
-        // Setup spinners for bed types, check-in, and check-out times
-        setupBedTypeSpinner();
+        // [주석 처리됨] 메인 화면의 bedTypeSpinner 설정 로직은 제거
+        //setupBedTypeSpinner();
+
         setupCheckInTimeSpinner();
         setupCheckOutTimeSpinner();
     }
 
+    // [주석 처리됨 - 기존 bedType 스피너 초기화 로직(메인화면)은 삭제 대신 주석 보존]
+    /*
     private void setupBedTypeSpinner() {
         // Define bed types locally
         String[] bedTypes = {"King Size", "Queen Size", "Double", "Single", "Studio"};
@@ -143,6 +165,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
             }
         });
     }
+    */
 
     private void setupCheckInTimeSpinner() {
         // Define extended check-in times
@@ -266,8 +289,18 @@ public class CreatePropertyActivity extends AppCompatActivity {
         uploadImages(new UploadImagesCallback() {
             @Override
             public void onUploadComplete(ArrayList<String> urls) {
-                saveToFirestore(name, description, address, Double.parseDouble(price),
-                        Integer.parseInt(rooms), Integer.parseInt(maxGuests), selectedCheckInTime, selectedCheckOutTime, urls);
+                // [수정됨] numOfBedsEditText 대신, 자동 계산된 totalBeds를 사용
+                saveToFirestore(
+                        name,
+                        description,
+                        address,
+                        Double.parseDouble(price),
+                        Integer.parseInt(rooms),
+                        Integer.parseInt(maxGuests),
+                        selectedCheckInTime,
+                        selectedCheckOutTime,
+                        urls
+                );
             }
 
             @Override
@@ -296,9 +329,32 @@ public class CreatePropertyActivity extends AppCompatActivity {
 
     private void openAddBedTypeDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_bed_type, null);
-        EditText bedTypeEditText = dialogView.findViewById(R.id.bedTypeEditText);
+
+        // [주석 처리됨] 기존 EditText bedTypeEditText는 제거 또는 주석
+//        EditText bedTypeEditText = dialogView.findViewById(R.id.bedTypeEditText);
+        // [새로 추가됨] 팝업에 뜨는 Spinner
+        Spinner dialogBedTypeSpinner = dialogView.findViewById(R.id.dialogBedTypeSpinner);
+
         EditText bedCountEditText = dialogView.findViewById(R.id.bedCountEditText);
         Button addButton = dialogView.findViewById(R.id.addButton);
+
+        // [새로 추가됨] 팝업에 표시할 침대 타입 리스트
+        String[] bedTypesForDialog = {"King Size", "Queen Size", "Double", "Single", "Studio"};
+
+        // [새로 추가됨] 팝업 스피너 세팅
+        ArrayAdapter<String> bedTypeDialogAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                bedTypesForDialog
+        );
+        bedTypeDialogAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dialogBedTypeSpinner.setAdapter(bedTypeDialogAdapter);
+
+        // [새로 추가됨] EditText는 주석만 유지(아래를 참고).
+        // 실제로는 free text 입력 대신 Spinner에서 선택하여 사용.
+        /*
+        bedTypeEditText.setVisibility(View.GONE); // 필요하다면 이렇게 숨길 수도 있습니다.
+        */
 
         android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
                 .setTitle("Add Bed Type")
@@ -306,17 +362,31 @@ public class CreatePropertyActivity extends AppCompatActivity {
                 .create();
 
         addButton.setOnClickListener(v -> {
-            String bedType = bedTypeEditText.getText().toString().trim();
+            // [수정됨] bedTypeEditText 대신 dialogBedTypeSpinner로 bedType을 선택
+            String selectedBedType = dialogBedTypeSpinner.getSelectedItem().toString().trim();
+
+            // 만약 기존의 EditText를 활용하고 싶다면 아래처럼 사용 가능(현재는 미사용):
+            // String bedType = bedTypeEditText.getText().toString().trim();
+
             String bedCountStr = bedCountEditText.getText().toString().trim();
 
-            if (TextUtils.isEmpty(bedType) || TextUtils.isEmpty(bedCountStr)) {
+            if (TextUtils.isEmpty(selectedBedType) || TextUtils.isEmpty(bedCountStr)) {
                 Toast.makeText(CreatePropertyActivity.this, "Please enter bed type and count", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             int bedCount = Integer.parseInt(bedCountStr);
-            bedTypesMap.put(bedType, bedTypesMap.getOrDefault(bedType, 0) + bedCount);
+
+            // HashMap 업데이트
+            bedTypesMap.put(selectedBedType, bedTypesMap.getOrDefault(selectedBedType, 0) + bedCount);
+
+            // 총 침대수 업데이트
             updateTotalBeds();
+
+            // [새로 추가됨] ListView에 "침대타입 x 개수" 형태로 표시
+            // 만약 이미 같은 타입이 들어갔다면 누적된 개수가 표시됨
+            refreshBedTypesList();
+
             dialog.dismiss();
         });
 
@@ -324,14 +394,27 @@ public class CreatePropertyActivity extends AppCompatActivity {
     }
 
     private void updateTotalBeds() {
-        int totalBeds = 0;
+        totalBeds = 0;
         for (int count : bedTypesMap.values()) {
             totalBeds += count;
         }
-        numOfBedsEditText.setText(String.valueOf(totalBeds));
+        // [주석 처리됨] numOfBedsEditText.setText(String.valueOf(totalBeds));
+        // 더 이상 EditText로 표시하지 않고, totalBeds만 내부적으로 관리
     }
 
-    private void saveToFirestore(String name, String description, String address, double price, int rooms, int maxGuests, String checkInTime, String checkOutTime, ArrayList<String> imageUrls) {
+    // [새로 추가됨] 현재 bedTypesMap을 바탕으로 ListView에 반영
+    private void refreshBedTypesList() {
+        bedTypesList.clear();
+        for (Map.Entry<String, Integer> entry : bedTypesMap.entrySet()) {
+            String type = entry.getKey();
+            int count = entry.getValue();
+            bedTypesList.add(type + " x " + count);
+        }
+        bedTypesListAdapter.notifyDataSetChanged();
+    }
+
+    private void saveToFirestore(String name, String description, String address, double price, int rooms,
+                                 int maxGuests, String checkInTime, String checkOutTime, ArrayList<String> imageUrls) {
         String userId = sessionManager.getUserId(); // Changed to SessionManager
         String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
@@ -341,7 +424,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         property.put("address", address);
         property.put("pricePerNight", price);
         property.put("numOfRooms", rooms);
-        property.put("numOfBeds", Integer.parseInt(numOfBedsEditText.getText().toString()));
+
+        // [수정됨] 자동 계산된 totalBeds를 저장
+        //property.put("numOfBeds", Integer.parseInt(numOfBedsEditText.getText().toString())); // [주석 처리됨]
+        property.put("numOfBeds", totalBeds); // [새로 추가됨]
+
         property.put("maxNumOfGuests", maxGuests);
         property.put("checkInTime", checkInTime);
         property.put("checkOutTime", checkOutTime);
