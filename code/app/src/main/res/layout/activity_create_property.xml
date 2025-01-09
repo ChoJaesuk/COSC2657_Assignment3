@@ -89,13 +89,15 @@
             android:inputType="number"
             android:layout_marginTop="8dp" />
 
-        <!-- Number of Beds Input Field -->
+        <!-- [주석 처리됨] Number of Beds Input Field -->
+        <!--
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Number of Beds"
             android:textSize="16sp"
             android:layout_marginTop="16dp" />
+
         <EditText
             android:id="@+id/numOfBedsEditText"
             android:layout_width="match_parent"
@@ -103,19 +105,23 @@
             android:hint="Enter number of beds"
             android:inputType="number"
             android:layout_marginTop="8dp" />
+        -->
 
-        <!-- Bed Type Spinner -->
+        <!-- [주석 처리됨] Bed Type Spinner -->
+        <!--
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Bed Type"
             android:textSize="16sp"
             android:layout_marginTop="16dp" />
+
         <Spinner
             android:id="@+id/bedTypeSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp" />
+        -->
 
         <!-- Add Bed Type Button -->
         <Button
@@ -124,6 +130,13 @@
             android:layout_height="wrap_content"
             android:text="Add Bed Type"
             android:layout_marginTop="16dp" />
+
+        <!-- [새로 추가됨] 추가된 BedType들을 표시할 ListView -->
+        <ListView
+            android:id="@+id/bedTypesListView"
+            android:layout_width="match_parent"
+            android:layout_height="182dp"
+            android:layout_marginTop="8dp" />
 
         <!-- Max Number of Guests Input Field -->
         <TextView
@@ -200,5 +213,6 @@
             android:layout_gravity="center"
             android:visibility="gone"
             android:layout_marginTop="16dp" />
+
     </LinearLayout>
 </ScrollView>
