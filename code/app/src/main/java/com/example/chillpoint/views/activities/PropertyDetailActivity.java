@@ -300,7 +300,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 contactUser(userId,hostId);
             }
         });
-        
+
     }
 
     private void openDatePicker() {
@@ -568,12 +568,12 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                         String checkInTime = documentSnapshot.getString("checkInTime");
                         String checkOutTime = documentSnapshot.getString("checkOutTime");
 
-                        // ★ 수정: 'Long maxNumOfGuests' → 별도 변수 없이 전역 변수에 직접 할당
+                        // 최대 게스트 수와 가격 정보 가져오기
                         Long maxGuestsFromDB = documentSnapshot.getLong("maxNumOfGuests");
-                        // pricePerNight 필드도 있으면 가져와야 함
                         Long priceFromDB = documentSnapshot.getLong("pricePerNight");
 
-                        List<String> bedTypes = (List<String>) documentSnapshot.get("bedTypes");
+                        // 침대 타입 데이터 가져오기
+                        Map<String, Long> bedTypesMap = (Map<String, Long>) documentSnapshot.get("bedTypes");
 
                         // UI 업데이트
                         if (checkInTime != null) {
@@ -586,19 +586,23 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                             checkOutTimeTextView.setText("Check-out: " + checkOutTime);
                         }
 
-                        // 여기서 전역 변수에 값 대입
                         if (maxGuestsFromDB != null) {
-                            this.maxNumOfGuests = maxGuestsFromDB;  // 전역 변수 할당
+                            this.maxNumOfGuests = maxGuestsFromDB;
                             TextView maxNumOfGuestsTextView = findViewById(R.id.maxNumOfGuestsTextView);
                             maxNumOfGuestsTextView.setText("Maximum Guests: " + this.maxNumOfGuests);
                         }
 
                         if (priceFromDB != null) {
-                            this.pricePerNight = priceFromDB;  // 전역 변수 할당
+                            this.pricePerNight = priceFromDB;
                         }
 
-                        if (bedTypes != null) {
-                            displayBedTypes(bedTypes);
+                        if (bedTypesMap != null) {
+                            // Long 타입을 Integer로 변환하여 전달
+                            Map<String, Integer> convertedBedTypes = new HashMap<>();
+                            for (Map.Entry<String, Long> entry : bedTypesMap.entrySet()) {
+                                convertedBedTypes.put(entry.getKey(), entry.getValue().intValue());
+                            }
+                            displayBedTypes(convertedBedTypes);
                         }
                     } else {
                         Log.e("fetchPropertyDetails", "Property not found for ID: " + propertyId);
@@ -608,6 +612,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                     Log.e("fetchPropertyDetails", "Error fetching property details", e);
                 });
     }
+
 
     private void contactUser(String currentLoginUserId, String hostId) {
         // Reference to the "Chats" collection
@@ -721,32 +726,33 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         }
     }
 
-    private void displayBedTypes(List<String> bedTypes) {
+    private void displayBedTypes(Map<String, Integer> bedTypesMap) {
         LinearLayout bedTypesContainer = findViewById(R.id.bedTypesContainer);
         bedTypesContainer.removeAllViews(); // 기존 뷰 초기화
 
-        for (String bedType : bedTypes) {
+        for (Map.Entry<String, Integer> entry : bedTypesMap.entrySet()) {
+            String bedType = entry.getKey();
+            int count = entry.getValue();
+
             // 아이콘 설정
             ImageView bedIcon = new ImageView(this);
             bedIcon.setLayoutParams(new LinearLayout.LayoutParams(150, 150));
 
-            // 매핑된 아이콘 리소스를 가져옴
             Integer iconRes = bedTypeIcons.get(bedType);
             if (iconRes != null) {
                 bedIcon.setImageResource(iconRes); // 매핑된 아이콘 사용
             } else {
                 bedIcon.setImageResource(R.drawable.ic_bed_default); // 기본 아이콘
             }
-
             bedIcon.setPadding(16, 16, 16, 16);
 
-            // 침대 타입 이름 추가
+            // 침대 타입과 개수 추가
             TextView bedLabel = new TextView(this);
             bedLabel.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             ));
-            bedLabel.setText(bedType);
+            bedLabel.setText(bedType + " x " + count);
             bedLabel.setTextSize(16);
             bedLabel.setPadding(16, 16, 16, 16);
 
@@ -763,6 +769,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             bedTypesContainer.addView(bedItemLayout);
         }
     }
+
 
 
 
