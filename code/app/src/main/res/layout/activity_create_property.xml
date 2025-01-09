@@ -117,6 +117,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp" />
 
+        <!-- Add Bed Type Button -->
+        <Button
+            android:id="@+id/addBedTypeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Bed Type"
+            android:layout_marginTop="16dp" />
+
         <!-- Max Number of Guests Input Field -->
         <TextView
             android:layout_width="match_parent"
