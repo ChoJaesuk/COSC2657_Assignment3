@@ -114,15 +114,7 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
         propertyAdapter = new PropertyAdapter(this, propertyList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(propertyAdapter);
-        Button createPropertyButton = findViewById(R.id.createPropertyButton);
-        createPropertyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to CreatePropertyActivity
-                Intent intent = new Intent(UserMainActivity.this, CreatePropertyActivity.class);
-                startActivity(intent);
-            }
-        });
+
         firestore = FirebaseFirestore.getInstance();
 
         // 처음에는 모든 Properties 불러오기
