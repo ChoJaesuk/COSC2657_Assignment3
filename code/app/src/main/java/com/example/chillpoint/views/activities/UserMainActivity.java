@@ -1,7 +1,12 @@
 package com.example.chillpoint.views.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,7 +19,10 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +33,8 @@ import com.example.chillpoint.utils.NavigationSetup;
 import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.PropertyAdapter;
 import com.example.chillpoint.views.models.Property;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -40,6 +50,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.HashMap;
@@ -48,6 +59,7 @@ import java.util.Map;
 
 public class UserMainActivity extends AppCompatActivity implements NavigationSetup {
     private static final String TAG = "UserMainActivity";
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
     private RecyclerView recyclerView;
     private PropertyAdapter propertyAdapter;
@@ -65,12 +77,15 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
     private String selectedBeds = null;
     private String selectedDateRange = "None";
 
+    private double userLat = 0.0;
+    private double userLng = 0.0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_main);
 
         setupNavigationBar();
+        checkLocationPermission();
 
         // 세션 데이터 로드
         SessionManager sessionManager = new SessionManager(this);
@@ -231,6 +246,7 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
                             propertyList.add(property);
                         }
                     }
+                    geocodeAndSortProperties(propertyList);
                     propertyAdapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(this, "Failed to load properties", Toast.LENGTH_SHORT).show();
@@ -356,6 +372,100 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
             return text.split(" ")[0]; // e.g. "2 Rooms" -> "2"
         }
         return null;
+    }
+
+    // 위치 권한 확인 및 요청
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // 권한이 부여되지 않은 경우 요청
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            // 권한이 이미 부여된 경우
+            fetchUserLocation();
+        }
+    }
+
+    // 권한 요청 결과 처리
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 권한이 허용된 경우
+                fetchUserLocation();
+            } else {
+                // 권한이 거부된 경우
+                Toast.makeText(this, "Location permission is required to use this feature", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    private void fetchUserLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "Location permission not granted");
+            return;
+        }
+
+        FusedLocationProviderClient fusedLocationClient =
+                LocationServices.getFusedLocationProviderClient(this);
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        userLat = location.getLatitude();
+                        userLng = location.getLongitude();
+                        Log.d(TAG, "User location: " + userLat + ", " + userLng);
+                    } else {
+                        Log.e(TAG, "Location is null. Make sure GPS is on.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to get user location", e);
+                });
+    }
+
+
+    private void geocodeAndSortProperties(ArrayList<Property> properties) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        for (Property prop : properties) {
+            String addressStr = prop.getAddress();
+            if (addressStr != null && !addressStr.isEmpty()) {
+                try {
+                    List<Address> addresses = geocoder.getFromLocationName(addressStr, 1);
+                    if (addresses != null && !addresses.isEmpty()) {
+                        Address location = addresses.get(0);
+                        double lat = location.getLatitude();
+                        double lng = location.getLongitude();
+                        prop.setLatitude(lat);
+                        prop.setLongitude(lng);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Geocoding failed for address: " + addressStr, e);
+                }
+            }
+        }
+
+        // 이제 각 property에 lat/lng가 세팅되었으니, 사용자 위치와의 거리 계산
+        Collections.sort(properties, (p1, p2) -> {
+            double dist1 = computeDistance(userLat, userLng, p1.getLatitude(), p1.getLongitude());
+            double dist2 = computeDistance(userLat, userLng, p2.getLatitude(), p2.getLongitude());
+            return Double.compare(dist1, dist2); // ASC
+        });
+    }
+
+    private double computeDistance(double lat1, double lng1, double lat2, double lng2) {
+        // 보통 Haversine formula 등 사용
+        // 간단히 Android의 Location.distanceBetween() 써도 됨
+        float[] results = new float[1];
+        Location.distanceBetween(lat1, lng1, lat2, lng2, results);
+        return results[0]; // meters
     }
 
     @Override

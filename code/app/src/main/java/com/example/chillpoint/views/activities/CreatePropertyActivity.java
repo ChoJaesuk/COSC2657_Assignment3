@@ -23,8 +23,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.views.adapters.ImageAdapter;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -46,11 +46,10 @@ public class CreatePropertyActivity extends AppCompatActivity {
 
     private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, numOfBedsEditText, maxGuestsEditText;
     private Spinner bedTypeSpinner, checkInTimeSpinner, checkOutTimeSpinner;
-    private Button uploadImagesButton, savePropertyButton, pickLocationButton;
+    private Button uploadImagesButton, savePropertyButton, pickLocationButton, addBedTypeButton;
     private GridView imagesGridView;
     private ProgressBar progressBar;
 
-    private FirebaseAuth auth;
     private FirebaseFirestore firestore;
     private FirebaseStorage storage;
 
@@ -59,6 +58,10 @@ public class CreatePropertyActivity extends AppCompatActivity {
     private ImageAdapter imageAdapter;
 
     private String selectedBedType, selectedCheckInTime, selectedCheckOutTime; // To store selected options
+
+    private SessionManager sessionManager; // SessionManager for user data
+
+    private HashMap<String, Integer> bedTypesMap = new HashMap<>(); // To store bed types and their counts
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +82,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
         uploadImagesButton = findViewById(R.id.uploadImagesButton);
         savePropertyButton = findViewById(R.id.savePropertyButton);
         pickLocationButton = findViewById(R.id.pickLocationButton);
+        addBedTypeButton = findViewById(R.id.addBedTypeButton);
         imagesGridView = findViewById(R.id.imagesGridView);
         progressBar = findViewById(R.id.progressBar);
 
@@ -87,9 +91,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         addressEditText.setClickable(false);
 
         // Initialize Firebase services
-        auth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
+
+        // Initialize SessionManager
+        sessionManager = new SessionManager(this);
 
         // Initialize image lists
         imageUris = new ArrayList<>();
@@ -107,6 +113,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
         uploadImagesButton.setOnClickListener(v -> openImagePicker());
         savePropertyButton.setOnClickListener(v -> saveProperty());
         pickLocationButton.setOnClickListener(v -> openLocationPicker());
+        addBedTypeButton.setOnClickListener(v -> openAddBedTypeDialog());
 
         // Setup spinners for bed types, check-in, and check-out times
         setupBedTypeSpinner();
@@ -242,11 +249,10 @@ public class CreatePropertyActivity extends AppCompatActivity {
         String address = addressEditText.getText().toString().trim();
         String price = priceEditText.getText().toString().trim();
         String rooms = roomsEditText.getText().toString().trim();
-        String numOfBeds = numOfBedsEditText.getText().toString().trim();
         String maxGuests = maxGuestsEditText.getText().toString().trim();
 
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(description) || TextUtils.isEmpty(address) ||
-                TextUtils.isEmpty(price) || TextUtils.isEmpty(rooms) || TextUtils.isEmpty(numOfBeds) || TextUtils.isEmpty(maxGuests)) {
+                TextUtils.isEmpty(price) || TextUtils.isEmpty(rooms) || TextUtils.isEmpty(maxGuests)) {
             Toast.makeText(CreatePropertyActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -261,7 +267,7 @@ public class CreatePropertyActivity extends AppCompatActivity {
             @Override
             public void onUploadComplete(ArrayList<String> urls) {
                 saveToFirestore(name, description, address, Double.parseDouble(price),
-                        Integer.parseInt(rooms), Integer.parseInt(numOfBeds), Integer.parseInt(maxGuests), selectedCheckInTime, selectedCheckOutTime, selectedBedType, urls);
+                        Integer.parseInt(rooms), Integer.parseInt(maxGuests), selectedCheckInTime, selectedCheckOutTime, urls);
             }
 
             @Override
@@ -288,8 +294,45 @@ public class CreatePropertyActivity extends AppCompatActivity {
         }
     }
 
-    private void saveToFirestore(String name, String description, String address, double price, int rooms, int numOfBeds, int maxGuests, String checkInTime, String checkOutTime, String bedType, ArrayList<String> imageUrls) {
-        String userId = auth.getCurrentUser().getUid();
+    private void openAddBedTypeDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_bed_type, null);
+        EditText bedTypeEditText = dialogView.findViewById(R.id.bedTypeEditText);
+        EditText bedCountEditText = dialogView.findViewById(R.id.bedCountEditText);
+        Button addButton = dialogView.findViewById(R.id.addButton);
+
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+                .setTitle("Add Bed Type")
+                .setView(dialogView)
+                .create();
+
+        addButton.setOnClickListener(v -> {
+            String bedType = bedTypeEditText.getText().toString().trim();
+            String bedCountStr = bedCountEditText.getText().toString().trim();
+
+            if (TextUtils.isEmpty(bedType) || TextUtils.isEmpty(bedCountStr)) {
+                Toast.makeText(CreatePropertyActivity.this, "Please enter bed type and count", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            int bedCount = Integer.parseInt(bedCountStr);
+            bedTypesMap.put(bedType, bedTypesMap.getOrDefault(bedType, 0) + bedCount);
+            updateTotalBeds();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void updateTotalBeds() {
+        int totalBeds = 0;
+        for (int count : bedTypesMap.values()) {
+            totalBeds += count;
+        }
+        numOfBedsEditText.setText(String.valueOf(totalBeds));
+    }
+
+    private void saveToFirestore(String name, String description, String address, double price, int rooms, int maxGuests, String checkInTime, String checkOutTime, ArrayList<String> imageUrls) {
+        String userId = sessionManager.getUserId(); // Changed to SessionManager
         String createdAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
         Map<String, Object> property = new HashMap<>();
@@ -298,11 +341,11 @@ public class CreatePropertyActivity extends AppCompatActivity {
         property.put("address", address);
         property.put("pricePerNight", price);
         property.put("numOfRooms", rooms);
-        property.put("numOfBeds", numOfBeds);
+        property.put("numOfBeds", Integer.parseInt(numOfBedsEditText.getText().toString()));
         property.put("maxNumOfGuests", maxGuests);
         property.put("checkInTime", checkInTime);
         property.put("checkOutTime", checkOutTime);
-        property.put("bedType", bedType);
+        property.put("bedTypes", bedTypesMap); // Save bed types map
         property.put("createdAt", createdAt);
         property.put("updatedAt", createdAt);
         property.put("userId", userId);

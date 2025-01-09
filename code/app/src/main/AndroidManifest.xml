@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -17,6 +19,13 @@
         tools:targetApi="31">
         <activity
             android:name=".views.activities.HostBookingManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.UpdatePropertyActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".views.activities.PropertyManagementActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.ChatDetailsActivity"
@@ -41,6 +50,9 @@
             android:exported="false" />
         <activity
             android:name=".views.activities.ReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.CreatePropertyActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.BookingActivity"
