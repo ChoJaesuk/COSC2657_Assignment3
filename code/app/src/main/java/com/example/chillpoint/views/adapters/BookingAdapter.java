@@ -30,7 +30,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
 
     public BookingAdapter(Context context, List<Booking> bookings) {
         this.context = context;
-        this.bookings = bookings;
+        this.bookings = bookings;d
     }
 
     @NonNull
