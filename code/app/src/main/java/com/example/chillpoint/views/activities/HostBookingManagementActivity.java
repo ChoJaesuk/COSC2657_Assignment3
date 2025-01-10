@@ -1,8 +1,10 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,7 +52,24 @@ public class HostBookingManagementActivity extends AppCompatActivity {
         // Load bookings
         loadBookings();
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        Log.d("BookingActivity", "onActivityResult called with requestCode: " + requestCode + ", resultCode: " + resultCode);
+
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            if (data != null && data.hasExtra("updatedStatus")) {
+                String updatedStatus = data.getStringExtra("updatedStatus");
+                Log.d("BookingActivity", "Received updated status: " + updatedStatus);
+                loadBookings(); // 데이터 새로 로드
+            } else {
+                Log.d("BookingActivity", "No data or updatedStatus extra found");
+            }
+        } else {
+            Log.d("BookingActivity", "Unexpected resultCode or requestCode");
+        }
+    }
     private void loadBookings() {
         Log.e("HostBookingManagement", "Loading bookings for hostId: " + hostId);
 

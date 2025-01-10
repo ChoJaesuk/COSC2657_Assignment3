@@ -1,5 +1,6 @@
 package com.example.chillpoint.views.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -69,8 +70,9 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
             intent.putExtra("bookingId", booking.getBookingId());
             intent.putExtra("dates", booking.getStartDate() + " - " + booking.getEndDate());
             intent.putStringArrayListExtra("images", booking.getImages());
-            intent.putExtra("isFromMyBookings", true); // My Booking에서 호출됨을 알리는 플래그
-            context.startActivity(intent);
+            intent.putExtra("status",booking.getStatus());
+            // startActivityForResult로만 호출
+            ((Activity) context).startActivityForResult(intent, 1001);
         });
 
 
