@@ -46,9 +46,10 @@ public class BookingActivity extends AppCompatActivity implements NavigationSetu
             String userId = new SessionManager(this).getUserId();
             String username = new SessionManager(this).getUsername(); // Assuming you have this method
             String propertyId = booking.getPropertyId();
+            long totalPrice = booking.getTotalPrice();
 
             // Navigate to BillSplittingActivity
-            navigateToBillSplitting(userId, username, propertyId);
+            navigateToBillSplitting(userId, username, propertyId, totalPrice);
         });
 
             // Initialize Firestore
@@ -76,6 +77,9 @@ public class BookingActivity extends AppCompatActivity implements NavigationSetu
                             String startDate = document.getString("fromDate");
                             String endDate = document.getString("toDate");
                             String status = document.getString("status");
+                            long totalPrice = document.contains("totalPrice") && document.getLong("totalPrice") != null
+                                    ? document.getLong("totalPrice")
+                                    : 0; // Default to 0 if totalPrice is null
 
                             Log.e("ReservationDetails", "Booking ID: " + bookingId);
                             Log.e("ReservationDetails", "Property ID: " + propertyId);
@@ -114,7 +118,8 @@ public class BookingActivity extends AppCompatActivity implements NavigationSetu
                                                     imageUrl,
                                                     startDate,
                                                     endDate,
-                                                    status
+                                                    status,
+                                                    totalPrice
                                             );
                                             bookingsList.add(booking);
 
@@ -134,11 +139,12 @@ public class BookingActivity extends AppCompatActivity implements NavigationSetu
     }
 
     // Inside BookingActivity
-    private void navigateToBillSplitting(String userId, String username, String propertyId) {
+    private void navigateToBillSplitting(String userId, String username, String propertyId, long totalPrice) {
         Intent intent = new Intent(BookingActivity.this, BillSplittingActivity.class);
         intent.putExtra("userId", userId);
         intent.putExtra("username", username);
         intent.putExtra("propertyId", propertyId);
+        intent.putExtra("totalPrice", totalPrice);
         startActivity(intent);
     }
 

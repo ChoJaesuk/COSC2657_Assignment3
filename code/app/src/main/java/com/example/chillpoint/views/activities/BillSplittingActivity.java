@@ -17,7 +17,7 @@ public class BillSplittingActivity extends AppCompatActivity {
         String userId = incomingIntent.getStringExtra("userId");
         String username = incomingIntent.getStringExtra("username");
         String propertyId = incomingIntent.getStringExtra("propertyId");
-        double propertyPrice = incomingIntent.getDoubleExtra("propertyPrice", 0.0);
+        long propertyPrice = incomingIntent.getLongExtra("propertyPrice", 0);
 
         Button nextButton = findViewById(R.id.toPaymentButton);
         nextButton.setOnClickListener(v -> {

@@ -44,13 +44,16 @@ import com.google.firebase.firestore.Query;
 import android.util.Pair;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import android.location.Address;
 import android.location.Geocoder;
@@ -371,6 +374,32 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
 
 
     private void bookProperty() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Date start = null;
+        Date end = null;
+        try {
+            start = sdf.parse(selectedStartDate);
+            end = sdf.parse(selectedEndDate);
+        } catch (ParseException e) {
+            Log.e("bookProperty", "Error parsing dates", e);
+            totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            totalPriceOrErrorTextView.setText("Error parsing dates");
+            return;
+        }
+
+        long diffInMillis = end.getTime() - start.getTime();
+        long diffInDays = (diffInMillis / (24 * 60 * 60 * 1000)) + 1; // +1 to include the last day
+
+        if (diffInDays < 1) {
+            // Invalid date range
+            totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            totalPriceOrErrorTextView.setText("Invalid date range selected");
+            return;
+        }
+
+        // Calculate total price based on the number of days
+        long totalPrice = diffInDays * pricePerNight;
+
         HashMap<String, Object> reservation = new HashMap<>();
         reservation.put("propertyId", propertyId);
         reservation.put("userId", userId);
@@ -378,6 +407,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         reservation.put("toDate", selectedEndDate);
         reservation.put("guestCount", selectedGuests); // 추가
         reservation.put("timestamp", System.currentTimeMillis());
+        reservation.put("totalPrice", totalPrice);
 
         firestore.collection("reservations")
                 .add(reservation)
@@ -554,7 +584,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                         // pricePerNight 필드도 있으면 가져와야 함
                         Long priceFromDB = documentSnapshot.getLong("pricePerNight");
 
-                        List<String> bedTypes = (List<String>) documentSnapshot.get("bedTypes");
+                        Map<String, Object> bedTypesMap = (Map<String, Object>) documentSnapshot.get("bedTypes");
 
                         // UI 업데이트
                         if (checkInTime != null) {
@@ -578,7 +608,13 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                             this.pricePerNight = priceFromDB;  // 전역 변수 할당
                         }
 
-                        if (bedTypes != null) {
+                        if (bedTypesMap != null) {
+                            // Convert Map values to a List<String>
+                            List<String> bedTypes = bedTypesMap.values()
+                                    .stream()
+                                    .map(Object::toString)
+                                    .collect(Collectors.toList());
+
                             displayBedTypes(bedTypes);
                         }
                     } else {

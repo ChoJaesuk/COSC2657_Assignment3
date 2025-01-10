@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_margin="3dp"
-            android:text="Next"
+            android:text="Go to checkout"
             app:backgroundTint="@null"
             android:layout_marginTop="16dp" />
 

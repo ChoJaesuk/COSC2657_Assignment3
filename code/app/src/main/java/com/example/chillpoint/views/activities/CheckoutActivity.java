@@ -15,11 +15,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.stripe.android.PaymentConfiguration;
 import com.stripe.android.paymentsheet.PaymentSheet;
 import com.stripe.android.paymentsheet.PaymentSheetResult;
 import okhttp3.*;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
@@ -37,6 +40,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private Button payButton;
     private FirebaseFirestore db;
     private String propertyId;
+    private long amount;
 
 
     @Override
@@ -57,6 +61,7 @@ public class CheckoutActivity extends AppCompatActivity {
         String userId = incomingIntent.getStringExtra("userId");
         String username = incomingIntent.getStringExtra("username");
         propertyId = incomingIntent.getStringExtra("propertyId");
+        amount = incomingIntent.getLongExtra("totalPrice", 0);
 
         if (userId == null || username == null) {
             Toast.makeText(this, "Failed to load session. Please log in again.", Toast.LENGTH_SHORT).show();
@@ -91,44 +96,82 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void fetchPaymentIntent() {
-        final String shoppingCartContent = "{\"items\": [{\"id\":\"xl-tshirt\", \"amount\": 5000}]}";
+        if (propertyId == null || propertyId.isEmpty()) {
+            showAlert("Error", "Invalid property ID");
+            return;
+        }
 
-        final RequestBody requestBody = RequestBody.create(
-                shoppingCartContent,
-                MediaType.get("application/json; charset=utf-8")
-        );
-
-        Request request = new Request.Builder()
-                .url(BACKEND_URL + "/create-payment-intent")
-                .post(requestBody)
-                .build();
-
-        new OkHttpClient()
-                .newCall(request)
-                .enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                        showAlert("Failed to load data", "Error: " + e.toString());
-                    }
-
-                    @Override
-                    public void onResponse(
-                            @NonNull Call call,
-                            @NonNull Response response
-                    ) throws IOException {
-                        if (!response.isSuccessful()) {
-                            showAlert(
-                                    "Failed to load page",
-                                    "Error: " + response.toString()
-                            );
-                        } else {
-                            final JSONObject responseJson = parseResponse(response.body());
-                            paymentIntentClientSecret = responseJson.optString("clientSecret");
-                            runOnUiThread(() -> payButton.setEnabled(true));
-                            Log.i(TAG, "Retrieved PaymentIntent");
+        db.collection("reservations")
+                .whereEqualTo("propertyId", propertyId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                        long totalPrice = 0;
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            totalPrice = document.getLong("totalPrice"); // Assuming all reservations for a property have the same price
+                            break; // Use the first matched document
                         }
+
+                        if (totalPrice <= 0) {
+                            showAlert("Error", "Invalid total price from Firestore");
+                            return;
+                        }
+
+                        long amountInCents = totalPrice * 100;
+
+                        // Create a JSON object to send to the server
+                        JSONObject paymentDetails = new JSONObject();
+                        try {
+                            paymentDetails.put("items", new JSONArray().put(new JSONObject()
+                                    .put("id", "booking")
+                                    .put("amount", amountInCents)
+                            ));
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Failed to create payment JSON", e);
+                            return;
+                        }
+
+                        RequestBody requestBody = RequestBody.create(
+                                paymentDetails.toString(),
+                                MediaType.get("application/json; charset=utf-8")
+                        );
+
+                        Request request = new Request.Builder()
+                                .url(BACKEND_URL + "/create-payment-intent")
+                                .post(requestBody)
+                                .build();
+
+                        new OkHttpClient()
+                                .newCall(request)
+                                .enqueue(new Callback() {
+                                    @Override
+                                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                                        showAlert("Failed to load data", "Error: " + e.toString());
+                                    }
+
+                                    @Override
+                                    public void onResponse(
+                                            @NonNull Call call,
+                                            @NonNull Response response
+                                    ) throws IOException {
+                                        if (!response.isSuccessful()) {
+                                            showAlert(
+                                                    "Failed to load page",
+                                                    "Error: " + response.toString()
+                                            );
+                                        } else {
+                                            final JSONObject responseJson = parseResponse(response.body());
+                                            paymentIntentClientSecret = responseJson.optString("clientSecret");
+                                            runOnUiThread(() -> payButton.setEnabled(true));
+                                            Log.i(TAG, "Retrieved PaymentIntent");
+                                        }
+                                    }
+                                });
+                    } else {
+                        showAlert("Error", "No reservation found for this property");
                     }
-                });
+                })
+                .addOnFailureListener(e -> showAlert("Error", "Failed to fetch total price: " + e.getMessage()));
     }
 
     private JSONObject parseResponse(ResponseBody responseBody) {
@@ -170,7 +213,7 @@ public class CheckoutActivity extends AppCompatActivity {
         paymentRecord.put("propertyId", propertyId); // The property being paid for
         paymentRecord.put("userId", new SessionManager(this).getUserId());
         paymentRecord.put("username", new SessionManager(this).getUsername());
-        paymentRecord.put("amount", 5000);
+        paymentRecord.put("amount", amount);
         paymentRecord.put("status", "success");
         paymentRecord.put("timestamp", System.currentTimeMillis());
 

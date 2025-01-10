@@ -9,10 +9,11 @@ public class Booking {
     private String endDate;
     private String status;
     private String bookingId;
+    private long totalPrice;
     public Booking() {
     }
 
-    public Booking(String bookingId, String propertyId, String propertyName, String propertyLocation, String imageUrl, String startDate, String endDate, String status) {
+    public Booking(String bookingId, String propertyId, String propertyName, String propertyLocation, String imageUrl, String startDate, String endDate, String status, long totalPrice) {
         this.propertyId = propertyId;
         this.propertyName = propertyName;
         this.propertyLocation = propertyLocation;
@@ -21,6 +22,8 @@ public class Booking {
         this.endDate = endDate;
         this.status = status;
         this.bookingId = bookingId;
+        this.totalPrice = totalPrice;
+
     }
 
     public String getPropertyId() {
@@ -84,5 +87,12 @@ public class Booking {
     }
     public void setBookingId(String bookingId) {
         this.bookingId = bookingId;
+    }
+    public long getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(long totalPrice) {
+        this.totalPrice = totalPrice;
     }
 }
