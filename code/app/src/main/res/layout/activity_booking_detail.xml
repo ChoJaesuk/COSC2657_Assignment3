@@ -70,7 +70,33 @@
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray"
                 android:layout_marginVertical="16dp" />
+            <!-- 호스트 전용 영역 -->
+            <TextView
+                android:id="@+id/hostManagementSectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Host Management"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" /> <!-- 기본적으로 숨김 -->
 
+            <Spinner
+                android:id="@+id/statusDropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone" /> <!-- 기본적으로 숨김 -->
+
+            <Button
+                android:id="@+id/confirmStatusButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Confirm Status"
+                android:backgroundTint="@android:color/holo_blue_light"
+                android:textColor="@android:color/white"
+                android:visibility="gone" /> <!-- 기본적으로 숨김 -->
             <!-- Detailed Information Section -->
             <TextView
                 android:id="@+id/detailedInfo"
@@ -158,6 +184,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Booking ID: 12345"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="8dp"
+                    android:textStyle="bold" />
+
+                <!-- Booking Status -->
+                <TextView
+                    android:id="@+id/bookingStatusTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Booking Status: "
                     android:textSize="16sp"
                     android:textColor="@android:color/black"
                     android:layout_marginBottom="8dp"

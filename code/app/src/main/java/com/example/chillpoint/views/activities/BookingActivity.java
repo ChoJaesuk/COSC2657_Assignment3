@@ -1,8 +1,10 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,6 +48,7 @@ public class BookingActivity extends AppCompatActivity implements NavigationSetu
         // Load bookings
         loadBookings();
     }
+
 
     private void loadBookings() {
         // Fetch bookings for the logged-in user

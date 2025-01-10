@@ -14,6 +14,7 @@ public class Booking {
     private double pricePerNight;
     private String description;
     private ArrayList<String> images;
+
     public Booking() {
     }
 
