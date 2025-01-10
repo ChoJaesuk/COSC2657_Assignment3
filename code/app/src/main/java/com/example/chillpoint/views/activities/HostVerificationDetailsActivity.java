@@ -30,6 +30,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
 
     private FirebaseFirestore firestore;
     private String verificationId;
+    private String userId; // **추가된 변수**: 사용자 ID 저장
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +68,9 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         Map<String, Object> verificationData = documentSnapshot.getData();
                         if (verificationData != null) {
+                            // **추가된 부분**: 사용자 ID 가져오기
+                            userId = documentSnapshot.getString("userId");
+
                             displayDetails(verificationData);
                         }
                     } else {
@@ -125,6 +129,29 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
 
         firestore.collection("HostVerifications").document(verificationId).update(update)
                 .addOnSuccessListener(aVoid -> {
+                    // **추가된 부분**: 유저 테이블 업데이트
+                    updateUserValidationStatus(status);
+
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this, "Failed to update verification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // **추가된 메서드**: 유저 테이블의 isValidated 필드 업데이트
+    private void updateUserValidationStatus(String status) {
+        if (userId == null) {
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(this, "User ID not found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean isValidated = "Approved".equalsIgnoreCase(status);
+
+        firestore.collection("Users").document(userId)
+                .update("isValidated", isValidated)
+                .addOnSuccessListener(aVoid -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Verification updated successfully.", Toast.LENGTH_SHORT).show();
 
@@ -137,7 +164,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Failed to update verification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to update user validation status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }
