@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@drawable/bg_voucher"
+    android:layout_marginBottom="8dp">
+
+    <!-- Discount Badge -->
+    <TextView
+        android:id="@+id/voucherDiscountBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:padding="10dp"
+        android:background="@drawable/bg_discount_badge"
+        android:text="10% OFF"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <!-- Voucher Code -->
+    <TextView
+        android:id="@+id/voucherCodeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@id/voucherDiscountBadge"
+        android:layout_marginStart="16dp"
+        android:text="CODE: VOUCHER123"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/voucherDiscountBadge"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/darker_gray" />
+
+    <!-- Voucher Details Section -->
+    <LinearLayout
+        android:id="@+id/voucherDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/divider"
+        android:orientation="vertical"
+        android:paddingTop="8dp">
+
+        <!-- Valid Dates -->
+        <TextView
+            android:id="@+id/voucherDatesTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Valid: 2023-01-01 to 2023-12-31"
+            android:textColor="@color/black"
+            android:textSize="14sp" />
+
+        <!-- Voucher Content -->
+        <TextView
+            android:id="@+id/voucherContentTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Use this voucher to get discounts on your next purchase!"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Status and Owner Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/voucherDetails"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <!-- Voucher Status -->
+        <TextView
+            android:id="@+id/voucherStatusTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Status: Active"
+            android:textColor="@color/green"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+
+        <!-- Collect Voucher -->
+        <TextView
+            android:id="@+id/collectVoucherTextView"
+            android:layout_width="wrap_content"
+            android:background="@drawable/bg_text_round"
+            android:backgroundTint="@color/red"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:text="Collect"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+    </LinearLayout>
+</RelativeLayout>

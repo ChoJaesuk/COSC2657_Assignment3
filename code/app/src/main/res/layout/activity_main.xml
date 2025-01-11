@@ -30,11 +30,12 @@
           app:layout_constraintBottom_toBottomOf="parent" />
 
       <TextView
+          android:id="@+id/paymentButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:background="@drawable/bg_text_round"
           android:padding="10dp"
-          android:text="Welcome to Main Activity"
+          android:text="Go to Payment Activity"
           android:textColor="@android:color/black"
           android:textSize="18sp"
           app:layout_constraintBottom_toBottomOf="parent"

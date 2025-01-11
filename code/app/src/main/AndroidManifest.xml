@@ -18,6 +18,9 @@
         android:theme="@style/Theme.ChillPoint"
         tools:targetApi="31">
         <activity
+            android:name=".views.activities.PaymentActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.BookingDetailActivity"
             android:exported="false" />
         <activity

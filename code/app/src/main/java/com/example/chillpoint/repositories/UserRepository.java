@@ -130,4 +130,27 @@ public class UserRepository {
                     }
                 });
     }
+
+    public Task<String> checkUserExistByEmail(String email) {
+        return firestore.collection("Users")
+                .whereEqualTo("email", email)
+                .get()
+                .continueWith(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        if (!task.getResult().isEmpty()) {
+                            // User exists, return the user's ID
+                            return task.getResult().getDocuments().get(0).getId();
+                        } else {
+                            // No user found with the provided email
+                            return null;
+                        }
+                    } else {
+                        // Throw an exception to propagate the failure
+                        throw task.getException() != null
+                                ? task.getException()
+                                : new Exception("Failed to query user existence.");
+                    }
+                });
+    }
+
 }
