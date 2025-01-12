@@ -11,4 +11,6 @@
         <item>Date: Newest First</item>
         <item>Date: Oldest First</item>
     </string-array>
+
+    <string name="select_voucher_prompt">Select a voucher</string>
 </resources>

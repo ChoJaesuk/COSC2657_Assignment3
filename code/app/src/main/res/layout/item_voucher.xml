@@ -80,17 +80,6 @@
         android:orientation="horizontal"
         android:layout_marginTop="8dp">
 
-        <!-- Voucher Status -->
-        <TextView
-            android:id="@+id/voucherStatusTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Status: Active"
-            android:textColor="@color/green"
-            android:textStyle="bold"
-            android:textSize="14sp" />
-
         <!-- Collect Voucher -->
         <TextView
             android:id="@+id/collectVoucherTextView"

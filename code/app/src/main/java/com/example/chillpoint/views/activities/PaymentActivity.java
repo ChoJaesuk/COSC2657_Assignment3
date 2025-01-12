@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,6 +56,9 @@ public class PaymentActivity extends AppCompatActivity {
     private String numberOfGuests;
     private String totalPrice;
     private double totalAmount;
+    private Spinner voucherSpinner;
+    private ArrayList<Voucher> userVouchers = new ArrayList<>(); // 유저의 바우처 목록
+    private ArrayList<String> voucherDescriptions = new ArrayList<>(); // Spinner에 표시될 바우처 설명
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,7 +125,44 @@ public class PaymentActivity extends AppCompatActivity {
                 // Do something if no item is selected
             }
         });
-        voucherCodeEditText = findViewById(R.id.voucherCodeEditText);
+
+        loadUserVouchers();
+
+        voucherSpinner = findViewById(R.id.voucherSpinner);
+        voucherSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d("PaymentActivity", "Selected position: " + position);
+
+                // 디폴트 옵션 확인
+                if (position == 0) {
+                    Log.d("PaymentActivity", "Default option selected.");
+                    return; // 디폴트 옵션 선택 시 아무 동작도 하지 않음
+                }
+
+                // 실제 데이터 인덱스 매핑
+                int actualPosition = position - 1; // 디폴트 항목을 제외한 인덱스
+                if (actualPosition >= 0 && actualPosition < userVouchers.size()) {
+                    Voucher selectedVoucher = userVouchers.get(actualPosition);
+                    if (selectedVoucher != null) {
+                        Log.d("PaymentActivity", "Selected voucher: " + selectedVoucher);
+                        applyVoucherDiscount(selectedVoucher); // 바우처 할인 적용
+                    } else {
+                        Log.e("PaymentActivity", "Selected voucher is null.");
+                    }
+                } else {
+                    Log.e("PaymentActivity", "Invalid voucher position: " + actualPosition);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.d("PaymentActivity", "No voucher selected.");
+            }
+        });
+
+
+
         friendEmailEditText = findViewById(R.id.friendEmailEditText);
         addNewFriendButton = findViewById(R.id.addNewFriendButton);
 
@@ -213,10 +254,8 @@ public class PaymentActivity extends AppCompatActivity {
         TextView guestsTextView = findViewById(R.id.guestsTextView);
         TextView totalPriceTextView = findViewById(R.id.totalPriceTextView);
         TextView totalPriceTextViewNeedToPay = findViewById(R.id.totalPriceTextViewNeedToPay);
-        TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);  // New TextView for the discounted price
-
+        TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView); // New TextView for the discounted price
         ImageView propertyImageView = findViewById(R.id.bookingPropertyImageView);
-        EditText voucherCodeEditText = findViewById(R.id.voucherCodeEditText);  // Voucher code EditText
 
         if (propertyNameTextView == null || propertyLocationTextView == null ||
                 bookingDateTextView == null || guestsTextView == null ||
@@ -235,58 +274,50 @@ public class PaymentActivity extends AppCompatActivity {
 
         // Calculate the total amount (divide by the number of friends)
         double totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
+        Log.d("PaymentActivity", "Calculated totalAmount: " + totalAmount);
         String totalAmountTemp = String.format("%.2f", totalAmount);
         totalPriceTextViewNeedToPay.setText(totalAmountTemp);
 
-        // Check if voucher code is entered and apply a discount
-        String voucherCode = voucherCodeEditText.getText().toString().trim();
-        Log.e("voucherCode", "Voucher Code: " + voucherCode);
-        AtomicReference<Double> discountedTotalAmount = new AtomicReference<>(totalAmount);  // Default to original amount
-        Log.e("discountedTotalAmount", "discountedTotalAmount: " + discountedTotalAmount);
-        if (!voucherCode.isEmpty()) {
-            // Fetch voucher details from Firestore
-            firestore.collection("Vouchers")
-                    .whereEqualTo(FieldPath.documentId(), voucherCode)
-                    .whereEqualTo("status", true)  // Ensure voucher is active
-                    .get()
-                    .addOnSuccessListener(querySnapshot -> {
-                        if (!querySnapshot.isEmpty()) {
-                            // Voucher found, apply discount
-                            DocumentSnapshot documentSnapshot = querySnapshot.getDocuments().get(0);
-                            Voucher voucher = documentSnapshot.toObject(Voucher.class);
+// 바우처 선택 적용
+        int selectedPosition = voucherSpinner.getSelectedItemPosition();
+        Log.d("PaymentActivity", "Selected voucher position: " + selectedPosition);
 
-                            if (voucher != null) {
-                                // Check if the voucher is within the valid date range
-                                String currentDate = getCurrentDate(); // Implement this method to get the current date in the same format
-                                if (isValidVoucher(voucher, currentDate)) {
-                                    // Apply discount
-                                    discountedTotalAmount.set(totalAmount - (totalAmount * (voucher.getAmountOfDiscount() / 100)));
+// 디폴트 옵션 확인
+        if (selectedPosition == 0) { // 기본 옵션인 "Select a voucher"가 선택된 경우
+            Log.d("PaymentActivity", "No voucher selected. Default total amount applied.");
+            newTotalPriceTextView.setText("Total: " + totalAmountTemp);
+            return; // 아무 동작도 하지 않음
+        }
 
-                                    // Assuming discountedTotalAmount is an AtomicReference<Double>
-                                    double discountedPriceValue = discountedTotalAmount.get(); // Extract the value
+// 실제 데이터 인덱스 매핑
+        int actualPosition = selectedPosition - 1; // 기본 옵션을 제외한 실제 위치
+        if (actualPosition >= 0 && actualPosition < userVouchers.size()) {
+            Voucher selectedVoucher = userVouchers.get(actualPosition);
+            Log.d("PaymentActivity", "Selected voucher details: " + selectedVoucher);
 
-                                    // Now use the value to format it
-                                    String discountedPrice = String.format("%.2f", discountedPriceValue);
+            // 바우처 할인 계산
+            String currentDate = getCurrentDate(); // 현재 날짜 가져오기
+            Log.d("PaymentActivity", "Current date: " + currentDate);
+            if (selectedVoucher != null && isValidVoucher(selectedVoucher, currentDate)) {
+                double discount = selectedVoucher.getAmountOfDiscount(); // 바우처의 할인율
+                Log.d("PaymentActivity", "Voucher discount amount: " + discount);
+                double discountedTotalAmount = totalAmount - (totalAmount * discount); // 할인 적용
+                Log.d("PaymentActivity", "Discounted totalAmount: " + discountedTotalAmount);
+                String discountedPrice = String.format("%.2f", discountedTotalAmount);
 
-                                    // Update the TextView
-                                    newTotalPriceTextView.setText("Total after discount: " + discountedPrice);
-                                } else {
-                                    newTotalPriceTextView.setText("Voucher expired or invalid.");
-                                }
-                            }
-                        } else {
-                            // Voucher not found or inactive
-                            newTotalPriceTextView.setText("Invalid or inactive voucher.");
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e("PaymentActivity", "Error fetching voucher: " + e.getMessage());
-                        newTotalPriceTextView.setText("Error applying voucher.");
-                    });
+                // 할인 적용된 가격 업데이트
+                newTotalPriceTextView.setText("Total after discount: " + discountedPrice);
+            } else {
+                // 바우처가 만료되었거나 유효하지 않을 경우
+                Log.d("PaymentActivity", "Voucher expired or invalid.");
+                newTotalPriceTextView.setText("Voucher expired or invalid.");
+            }
         } else {
-            // If voucher code is empty, keep the original price
+            // 잘못된 인덱스
+            Log.e("PaymentActivity", "Invalid voucher position: " + actualPosition);
             newTotalPriceTextView.setText("Total: " + totalAmountTemp);
         }
+
 
         // Load property image
         Glide.with(this)
@@ -294,6 +325,8 @@ public class PaymentActivity extends AppCompatActivity {
                 .placeholder(R.drawable.ic_launcher_background)
                 .into(propertyImageView);
     }
+
+
 
     // Helper method to get the current date in the same format as the voucher's date
     private String getCurrentDate() {
@@ -310,6 +343,12 @@ public class PaymentActivity extends AppCompatActivity {
         // Create a map to store the bill data
         Map<String, Object> billMap = new HashMap<>();
         ArrayList<String> receiptIds = new ArrayList<>(); // List to store receipt IDs
+
+        // Get selected voucher from Spinner
+        int selectedPosition = voucherSpinner.getSelectedItemPosition();
+        String voucherId = (selectedPosition > 0 && selectedPosition - 1 < userVouchers.size())
+                ? userVouchers.get(selectedPosition - 1).getId() // 디폴트 옵션 제외
+                : null;
 
         // Add the bill to Firestore with auto-generated ID
         firestore.collection("Bills")
@@ -332,55 +371,33 @@ public class PaymentActivity extends AppCompatActivity {
                         receiptMap.put("zipCode", zipCodeEditText.getText().toString());
                         receiptMap.put("cityName", cityEditText.getText().toString());
                         receiptMap.put("country", countrySpinner.getSelectedItem().toString());
-                        receiptMap.put("voucherId", voucherCodeEditText.getText().toString());
+                        receiptMap.put("voucherId", voucherId); // Selected voucher ID
                         receiptMap.put("numberOfPayers", friendEmailIds.size());
                         receiptMap.put("payerId", payerId);  // Payer's ID for this receipt
                         receiptMap.put("billId", billId);    // Associate the receipt with the billId
 
                         // Parse and add totalAmount
-                        AtomicReference<Double> totalAmount = new AtomicReference<>((double) 0);
                         try {
-                            totalAmount.set(Double.parseDouble(totalPrice) / friendEmailIds.size());
+                            double totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
 
-                            // Check if voucher code is provided
-                            String voucherCode = voucherCodeEditText.getText().toString().trim();
-
-                            // Apply discount if voucher code is provided
-                            if (!voucherCode.isEmpty()) {
-                                // Fetch voucher details from Firestore
-                                firestore.collection("Vouchers")
-                                        .whereEqualTo(FieldPath.documentId(), voucherCode)
-                                        .whereEqualTo("status", true)  // Ensure voucher is active
-                                        .get()
-                                        .addOnSuccessListener(querySnapshot -> {
-                                            if (!querySnapshot.isEmpty()) {
-                                                // Voucher found, apply discount
-                                                DocumentSnapshot documentSnapshot = querySnapshot.getDocuments().get(0);
-                                                Voucher voucher = documentSnapshot.toObject(Voucher.class);
-
-                                                if (voucher != null) {
-                                                    // Check if the voucher is within the valid date range
-                                                    String currentDate = getCurrentDate(); // Implement this method to get the current date in the same format
-                                                    if (isValidVoucher(voucher, currentDate)) {
-                                                        // Apply the discount to the total amount
-                                                        double discount = voucher.getAmountOfDiscount();
-                                                        totalAmount.set(totalAmount.get() - (totalAmount.get() * (discount / 100))); // Apply percentage discount
-                                                        receiptMap.put("totalAmount", totalAmount);
-                                                    } else {
-                                                        // Voucher is expired or invalid
-                                                        Log.e("Voucher", "Voucher is expired or invalid");
-                                                    }
-                                                }
-                                            } else {
-                                                // Voucher not found or inactive
-                                                Log.e("Voucher", "Voucher is invalid or inactive");
-                                            }
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e("Voucher Error", "Failed to fetch voucher: " + e.getMessage());
-                                        });
+                            // Apply discount if voucher is selected
+                            if (voucherId != null && selectedPosition > 0) {
+                                Voucher selectedVoucher = userVouchers.get(selectedPosition - 1); // 디폴트 옵션 제외
+                                if (selectedVoucher != null) {
+                                    // Check if the voucher is within the valid date range
+                                    String currentDate = getCurrentDate(); // Get current date
+                                    if (isValidVoucher(selectedVoucher, currentDate)) {
+                                        // Apply the discount to the total amount
+                                        double discount = selectedVoucher.getAmountOfDiscount();
+                                        totalAmount -= totalAmount * discount; // 할인 적용
+                                        receiptMap.put("totalAmount", totalAmount); // 할인 후 금액 저장
+                                    } else {
+                                        Log.e("Voucher", "Voucher is expired or invalid");
+                                        receiptMap.put("totalAmount", totalAmount); // Save without discount
+                                    }
+                                }
                             } else {
-                                receiptMap.put("totalAmount", totalAmount);
+                                receiptMap.put("totalAmount", totalAmount); // Save without discount
                             }
 
                         } catch (NumberFormatException e) {
@@ -426,6 +443,8 @@ public class PaymentActivity extends AppCompatActivity {
                     Toast.makeText(this, "Failed to save bill: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+
 
     private String getSelectedTitle() {
         int selectedId = titleRadioGroup.getCheckedRadioButtonId();
@@ -485,4 +504,109 @@ public class PaymentActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    private void loadUserVouchers() {
+        Log.d("PaymentActivity", "Starting to load vouchers...");
+
+        SessionManager sessionManager = new SessionManager(this);
+        String userId = sessionManager.getUserId();
+        Log.d("PaymentActivity", "Fetched User ID from SessionManager: " + userId);
+
+        firestore.collection("Users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Log.d("PaymentActivity", "User document fetched: " + documentSnapshot.getId());
+
+                    if (documentSnapshot.exists() && documentSnapshot.contains("voucherIds")) { // 필드 이름 수정
+                        List<String> voucherIds = (List<String>) documentSnapshot.get("voucherIds"); // 필드 이름 수정
+                        Log.d("PaymentActivity", "Fetched voucher IDs: " + voucherIds);
+
+                        if (voucherIds != null && !voucherIds.isEmpty()) {
+                            Log.d("PaymentActivity", "Voucher IDs are valid. Fetching vouchers from Firestore...");
+
+                            firestore.collection("Vouchers")
+                                    .whereIn(FieldPath.documentId(), voucherIds)
+                                    .get()
+                                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                                        Log.d("PaymentActivity", "Vouchers fetched successfully: " + queryDocumentSnapshots.size() + " vouchers.");
+
+                                        voucherDescriptions.clear();
+                                        voucherDescriptions.add("Select a voucher"); // Default option
+                                        userVouchers.clear();
+
+                                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                                            try {
+                                                Voucher voucher = doc.toObject(Voucher.class);
+                                                if (voucher != null) {
+                                                    voucher.setId(doc.getId());
+                                                    userVouchers.add(voucher);
+                                                    voucherDescriptions.add(String.format("%.0f%% OFF - %s",
+                                                            voucher.getAmountOfDiscount() * 100, voucher.getContent()));
+                                                    Log.d("PaymentActivity", "Voucher added: " + voucher.getContent());
+                                                }
+                                            } catch (Exception e) {
+                                                Log.e("PaymentActivity", "Failed to parse voucher document: " + doc.getId(), e);
+                                            }
+                                        }
+
+                                        // 어댑터 설정
+                                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                                this, android.R.layout.simple_spinner_item, voucherDescriptions);
+                                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                        voucherSpinner.setAdapter(adapter);
+
+                                        Log.d("PaymentActivity", "Voucher Spinner updated. Descriptions: " + voucherDescriptions);
+                                    })
+                                    .addOnFailureListener(e -> Log.e("PaymentActivity", "Failed to load vouchers: " + e.getMessage()));
+
+                        } else {
+                            Log.e("PaymentActivity", "Voucher IDs are null or empty for this user.");
+                            showNoVouchersMessage();
+                        }
+                    } else {
+                        Log.e("PaymentActivity", "No 'voucherIds' field found in user document.");
+                        showNoVouchersMessage();
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("PaymentActivity", "Failed to fetch user document: " + e.getMessage()));
+    }
+
+    private void showNoVouchersMessage() {
+        Toast.makeText(this, "No vouchers available for this user.", Toast.LENGTH_SHORT).show();
+        voucherDescriptions.clear();
+        voucherDescriptions.add("No vouchers available");
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, voucherDescriptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        voucherSpinner.setAdapter(adapter);
+        Log.d("PaymentActivity", "Voucher Spinner updated with no vouchers.");
+    }
+
+
+
+    private void applyVoucherDiscount(Voucher selectedVoucher) {
+        if (selectedVoucher != null) {
+            String currentDate = getCurrentDate(); // Get the current date
+            if (isValidVoucher(selectedVoucher, currentDate)) {
+                double discount = selectedVoucher.getAmountOfDiscount(); // Get the discount percentage
+                double discountedTotalAmount = totalAmount - (totalAmount * discount); // Apply the discount
+
+                Log.d("applyVoucherDiscount", "Discount applied: " + discount + ", Final Price: " + discountedTotalAmount);
+
+                // Update the UI with the discounted price
+                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
+                newTotalPriceTextView.setText("Total after discount: $" + String.format("%.2f", discountedTotalAmount));
+            } else {
+                // If the voucher is expired or invalid
+                Log.e("applyVoucherDiscount", "Invalid or expired voucher selected.");
+                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
+                newTotalPriceTextView.setText("Voucher expired or invalid.");
+            }
+        } else {
+            Log.e("applyVoucherDiscount", "Voucher is null.");
+        }
+    }
+
+
 }

@@ -5,9 +5,8 @@ public class Voucher {
     private String startDate;
     private String endDate;
     private double amountOfDiscount;
-    private boolean status;
     private String content;
-    private String ownerId;
+
 
     public String getId() {
         return id;
@@ -41,14 +40,6 @@ public class Voucher {
         this.amountOfDiscount = amountOfDiscount;
     }
 
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-
     public String getContent() {
         return content;
     }
@@ -56,12 +47,15 @@ public class Voucher {
     public void setContent(String content) {
         this.content = content;
     }
-
-    public String getOwnerId() {
-        return ownerId;
+    @Override
+    public String toString() {
+        return "Voucher{" +
+                "id='" + id + '\'' +
+                ", startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                ", amountOfDiscount=" + amountOfDiscount +
+                ", content='" + content + '\'' +
+                '}';
     }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
-    }
 }
