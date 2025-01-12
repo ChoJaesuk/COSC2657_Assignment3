@@ -385,9 +385,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Show All Reviews"
-                android:backgroundTint="@android:color/holo_blue_dark"
+                style="@style/BlueButton"
+                app:backgroundTint="@android:color/holo_blue_dark"
                 android:textColor="@android:color/white"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="15dp"/>
 
             <!-- 구분선 -->
             <View
@@ -477,8 +479,10 @@
                     android:id="@+id/contactHostButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Contact Host"
-                    android:backgroundTint="@android:color/holo_blue_light"
+                    android:text="CONTACT HOST"
+                    android:textSize="15sp"
+                    style="@style/BlueButton"
+                    app:backgroundTint="@android:color/holo_blue_light"
                     android:textColor="@android:color/white" />
             </LinearLayout>
 
@@ -519,8 +523,10 @@
                 android:id="@+id/selectDatesButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Select Dates"
-                android:backgroundTint="@android:color/holo_blue_dark"
+                android:text="SELECT DATES"
+                android:textSize="15sp"
+                style="@style/BlueButton"
+                app:backgroundTint="@android:color/holo_blue_dark"
                 android:textColor="@android:color/white"
                 android:layout_marginBottom="16dp"
                 android:elevation="4dp" />
@@ -619,8 +625,10 @@
                 android:id="@+id/bookButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Book Now"
-                android:backgroundTint="@android:color/holo_blue_dark"
+                android:text="BOOK NOW"
+                android:textSize="16sp"
+                style="@style/BlueButton"
+                app:backgroundTint="@android:color/holo_blue_dark"
                 android:textColor="@android:color/white"
                 android:layout_marginBottom="16dp"
                 android:elevation="4dp" />

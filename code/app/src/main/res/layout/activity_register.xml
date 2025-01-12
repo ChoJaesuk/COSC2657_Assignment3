@@ -2,8 +2,9 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="16dp"
-    android:background="#E1F7F5">
+    android:background="@color/custom_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Username"
+            android:background="@drawable/bg_text_round"
             android:layout_marginTop="16dp" />
 
         <EditText
@@ -23,6 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Full Name"
+            android:background="@drawable/bg_text_round"
             android:layout_marginTop="8dp" />
 
         <EditText
@@ -31,6 +34,7 @@
             android:layout_height="wrap_content"
             android:hint="Email"
             android:inputType="textEmailAddress"
+            android:background="@drawable/bg_text_round"
             android:layout_marginTop="8dp" />
 
         <EditText
@@ -38,6 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Phone"
+            android:background="@drawable/bg_text_round"
             android:inputType="phone"
             android:layout_marginTop="8dp" />
 
@@ -46,6 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Password"
+            android:background="@drawable/bg_text_round"
             android:inputType="textPassword"
             android:layout_marginTop="8dp" />
 
@@ -54,14 +60,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Confirm Password"
+            android:background="@drawable/bg_text_round"
             android:inputType="textPassword"
             android:layout_marginTop="8dp" />
         <Button
             android:id="@+id/uploadImagesButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Upload Image"
-            android:layout_marginTop="16dp" />
+            android:text="Upload image"
+            android:layout_marginTop="18dp"
+            style="@style/BlueButton"
+            app:backgroundTint="@null"/>
 
         <GridView
             android:id="@+id/imagesGridView"
@@ -77,6 +86,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Bio"
+            android:background="@drawable/bg_text_round"
             android:layout_marginTop="8dp" />
 
 
@@ -92,7 +102,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Register"
-            android:layout_marginTop="16dp" />
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"
+            style="@style/BlueButton"
+            app:backgroundTint="@null" />
 
         <!-- ProgressBar -->
         <ProgressBar
@@ -101,7 +114,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:visibility="gone"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="20dp" />
 
         <!-- Login Link -->
         <TextView
@@ -110,7 +123,7 @@
             android:layout_height="wrap_content"
             android:text="Already have an account? Login"
             android:textColor="#0000FF"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="18dp"
             android:layout_gravity="center_horizontal"
             android:clickable="true" />
     </LinearLayout>
