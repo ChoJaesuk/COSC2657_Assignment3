@@ -12,7 +12,7 @@
         android:padding="12dp"
         android:background="@drawable/search_background"
         android:gravity="center_vertical"
-        android:layout_margin="16dp">
+        android:layout_margin="20dp">
         <!-- 검색 입력 -->
         <EditText
             android:id="@+id/searchEditText"
@@ -29,7 +29,7 @@
             android:id="@+id/filterButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Filter"
             android:src="@drawable/ic_filter"
@@ -40,7 +40,7 @@
             android:id="@+id/searchButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Search"
             android:src="@drawable/ic_search"

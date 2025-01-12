@@ -2,8 +2,9 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="16dp"
-    android:background="#E1F7F5">
+    android:background="@color/custom_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,14 +29,23 @@
             android:textStyle="bold"
             android:layout_marginTop="16dp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Your Perfect Chill, Anytime, Anywhere"
+            android:textSize="18sp"
+            android:layout_marginTop="10dp" />
+
         <!-- Email Input -->
         <EditText
             android:id="@+id/emailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email"
+            android:background="@drawable/bg_text_round"
             android:inputType="textEmailAddress"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="20dp" />
 
         <!-- Password Input -->
         <EditText
@@ -43,8 +53,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Password"
+            android:background="@drawable/bg_text_round"
             android:inputType="textPassword"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="10dp" />
 
         <!-- Login Button -->
         <Button
@@ -52,7 +63,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Login"
-            android:layout_marginTop="16dp" />
+            android:textSize="20sp"
+            android:layout_marginTop="25dp"
+            style="@style/BlueButton"
+            app:backgroundTint="@null"/>
 
         <!-- ProgressBar -->
         <ProgressBar
@@ -68,14 +82,14 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="OR"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textStyle="bold"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="22dp" />
 
         <com.google.android.gms.common.SignInButton
-            android:layout_width="200sp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20sp"
+            android:layout_marginTop="18sp"
             android:id="@+id/signInGoogle"/>
 
         <!-- Register Link -->
@@ -85,7 +99,7 @@
             android:layout_height="wrap_content"
             android:text="Don't have an account? Register"
             android:textColor="#0000FF"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             android:layout_gravity="center_horizontal"
             android:clickable="true" />
     </LinearLayout>
