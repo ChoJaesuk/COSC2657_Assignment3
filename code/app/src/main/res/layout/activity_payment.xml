@@ -12,8 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#E8F7F9"
-        android:orientation="vertical"
-        android:visibility="gone">
+        android:orientation="vertical">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -242,8 +241,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/white_smoke"
-        android:orientation="vertical"
-        android:visibility="gone">
+        android:orientation="vertical">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -550,8 +548,7 @@
         android:layout_height="match_parent"
         android:background="#F0FFFF"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone"> <!-- Light cyan background -->
+        android:padding="16dp"> <!-- Light cyan background -->
 
         <!-- Title -->
         <TextView
@@ -629,6 +626,7 @@
 
         <!-- Next button -->
         <Button
+            android:id="@+id/processPaymentButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"

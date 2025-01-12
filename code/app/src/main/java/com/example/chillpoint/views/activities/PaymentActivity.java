@@ -16,19 +16,35 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.PropertyRepository;
 import com.example.chillpoint.repositories.UserRepository;
 import com.example.chillpoint.views.models.Property;
+import com.example.chillpoint.views.models.Receipt;
 import com.example.chillpoint.views.models.Voucher;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.stripe.android.PaymentConfiguration;
+import com.stripe.android.paymentsheet.PaymentSheet;
+import com.stripe.android.paymentsheet.PaymentSheetResult;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +59,7 @@ public class PaymentActivity extends AppCompatActivity {
     private RadioButton yesRadioButton, noRadioButton;
     private EditText userNameEditText, emailEditText, phoneEditText, addressEditText, zipCodeEditText, cityEditText, voucherCodeEditText, friendEmailEditText;
     private Spinner countrySpinner;
-    private Button nextButton, splitBillNextButton, bookingSummaryNextButton,addNewFriendButton;
+    private Button nextButton, splitBillNextButton, bookingSummaryNextButton,addNewFriendButton, processPaymentButton;
     private boolean isBillSplit = false; // Tracks if the user chooses to split the bill
     private ArrayList<String> friendEmailIds = new ArrayList<>();
     private FirebaseFirestore firestore = FirebaseFirestore.getInstance(); // Firestore instance
@@ -55,12 +71,25 @@ public class PaymentActivity extends AppCompatActivity {
     private String numberOfGuests;
     private String totalPrice;
     private double totalAmount;
+    private String billId;
+    private String PublishableKey = "pk_test_51QeHVRCEu9hglsZOJi2iypmyk0Pq3BEgh7HaSMf8GUdeXohp9diQnSLVZL511yw7ypAT1yx1xwN8pVnVxwkGI2cA00X1hScVXa";
+    private String SecretKey = "sk_test_51QeHVRCEu9hglsZO3hULaZDemp0UQZZ3goIX1oxI4PjMyV7qEZ7WDVuHv5Nepbhs6RYG6uvvAPT7FJlxAYCeKqSR00JNalnVc6";
+    private SessionManager sessionManager;
+    private String EphemeralKey ;
+    private String ClientSecret;
+    private String CustomerId;
+    private PaymentSheet paymentSheet;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment);
-        SessionManager sessionManager = new SessionManager(this);
+        sessionManager = new SessionManager(this);
         friendEmailIds.add(sessionManager.getUserId());
+        // Initialize Stripe Payment configuration
+        PaymentConfiguration.init(this, PublishableKey);
+
+        // Initialize paymentSheet only when needed
+        paymentSheet = new PaymentSheet(this, this::onPaymentResult);
 
         Intent intent = getIntent();
          startDate = (String) intent.getExtras().get("fromDate");
@@ -85,6 +114,7 @@ public class PaymentActivity extends AppCompatActivity {
         nextButton = findViewById(R.id.nextButton);
         splitBillNextButton = findViewById(R.id.billSplittingNextButton);
         bookingSummaryNextButton = findViewById(R.id.bookingSummaryNextButton);
+        processPaymentButton = findViewById(R.id.processPaymentButton);
 
         // Set the initial visibility
         paymentLinearLayout.setVisibility(View.VISIBLE);
@@ -183,12 +213,20 @@ public class PaymentActivity extends AppCompatActivity {
             }
         });
 
+
         // Handle "Next" button in bookingSummaryLinearLayout
         bookingSummaryNextButton.setOnClickListener(v -> {
             if (areFieldsValid(bookingSummaryLinearLayout)) {
                 saveBillAndReceiptToFirestore();
                 bookingSummaryLinearLayout.setVisibility(View.GONE);
                 paymentMethodLinearLayout.setVisibility(View.VISIBLE);
+                onPaymentAction();
+            }
+        });
+        processPaymentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                paymentFlow();
             }
         });
         // Initialize views
@@ -234,7 +272,7 @@ public class PaymentActivity extends AppCompatActivity {
         totalPriceTextView.setText(totalPrice);
 
         // Calculate the total amount (divide by the number of friends)
-        double totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
+        totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
         String totalAmountTemp = String.format("%.2f", totalAmount);
         totalPriceTextViewNeedToPay.setText(totalAmountTemp);
 
@@ -316,7 +354,7 @@ public class PaymentActivity extends AppCompatActivity {
                 .add(billMap) // Automatically generates a document ID
                 .addOnSuccessListener(documentReference -> {
                     // Get the generated billId
-                    String billId = documentReference.getId();
+                    billId = documentReference.getId();
                     Toast.makeText(this, "Bill saved successfully with ID: " + billId, Toast.LENGTH_SHORT).show();
 
                     // Iterate over each friend's email and create a receipt for each
@@ -337,10 +375,9 @@ public class PaymentActivity extends AppCompatActivity {
                         receiptMap.put("payerId", payerId);  // Payer's ID for this receipt
                         receiptMap.put("billId", billId);    // Associate the receipt with the billId
 
-                        // Parse and add totalAmount
-                        AtomicReference<Double> totalAmount = new AtomicReference<>((double) 0);
+                        // Initialize totalAmount and calculate
                         try {
-                            totalAmount.set(Double.parseDouble(totalPrice) / friendEmailIds.size());
+                            totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
 
                             // Check if voucher code is provided
                             String voucherCode = voucherCodeEditText.getText().toString().trim();
@@ -364,7 +401,7 @@ public class PaymentActivity extends AppCompatActivity {
                                                     if (isValidVoucher(voucher, currentDate)) {
                                                         // Apply the discount to the total amount
                                                         double discount = voucher.getAmountOfDiscount();
-                                                        totalAmount.set(totalAmount.get() - (totalAmount.get() * (discount / 100))); // Apply percentage discount
+                                                        totalAmount = totalAmount - (totalAmount * (discount / 100)); // Apply percentage discount
                                                         receiptMap.put("totalAmount", totalAmount);
                                                     } else {
                                                         // Voucher is expired or invalid
@@ -485,4 +522,195 @@ public class PaymentActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    private void onPaymentAction(){
+        StringRequest request = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/customers", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject object = new JSONObject(response);
+                    CustomerId = object.getString("id");
+                    Toast.makeText(PaymentActivity.this,"Customer ID: " + CustomerId, Toast.LENGTH_SHORT).show();
+                    getEphemeralKey();
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                String errorMessage = error.getLocalizedMessage();
+                if (errorMessage == null) {
+                    errorMessage = "An unexpected error occurred.";  // Fallback error message
+                }
+
+                // Check for 401 Unauthorized error
+                if (error.networkResponse != null && error.networkResponse.statusCode == 401) {
+                    errorMessage = "Authorization error: Invalid API key or permissions.";
+                }
+
+                Toast.makeText(PaymentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + SecretKey);
+                return headers;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
+    }
+
+    private void getEphemeralKey(){
+        StringRequest request = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/ephemeral_keys", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject object = new JSONObject(response);
+                    EphemeralKey = object.getString("id");
+                    Toast.makeText(PaymentActivity.this,"EphemeralKey id: " + EphemeralKey, Toast.LENGTH_SHORT).show();
+                    getClientSecret(CustomerId,EphemeralKey);
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(PaymentActivity.this, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + SecretKey);
+                headers.put("Stripe-Version", "2022-08-01");
+                return headers;
+            }
+
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("customer", CustomerId);
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
+    }
+
+    private void getClientSecret(String CustomerId, String EphemeralKey){
+        StringRequest request = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/payment_intents", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject object = new JSONObject(response);
+                    ClientSecret = object.getString("client_secret");
+                    Log.d("Stripe", "Client Secret: " + ClientSecret);
+                    Toast.makeText(PaymentActivity.this,"ClientSecret: " + ClientSecret, Toast.LENGTH_SHORT).show();
+
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(PaymentActivity.this, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + SecretKey);
+                return headers;
+            }
+
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("customer", CustomerId);
+                int totalAmountInt = (int) Math.ceil(totalAmount);
+                String totalAmountStr = String.valueOf(totalAmountInt);
+                Log.e("totalAmountStr", "totalAmountStr: " + totalAmountStr);
+                params.put("amount", totalAmountStr +"00");
+                params.put("currency", "USD");
+                params.put("automatic_payment_methods[enabled]", "true");
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
+    }
+
+    private void onPaymentResult(PaymentSheetResult paymentSheetResult){
+        if(paymentSheetResult instanceof PaymentSheetResult.Completed){
+            Toast.makeText(this, "Payment completed", Toast.LENGTH_SHORT).show();
+            updateStatusReceipt(sessionManager.getUserId(), billId);
+        }else if(paymentSheetResult instanceof PaymentSheetResult.Canceled){
+            Toast.makeText(this, "Payment canceled", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void paymentFlow(){
+        if (CustomerId == null || EphemeralKey == null || ClientSecret == null) {
+            // Show an error message if any of the required values are missing
+            Toast.makeText(this, "Customer ID, Ephemeral Key, or Client Secret is missing.", Toast.LENGTH_SHORT).show();
+            return; // Prevent the flow if the required values are null
+        }
+        paymentSheet.presentWithPaymentIntent(ClientSecret, new PaymentSheet.Configuration("RMIT Froyo Group", new PaymentSheet.CustomerConfiguration(CustomerId,EphemeralKey)));
+    }
+
+    private void updateStatusReceipt(String userId, String billId) {
+        // Query the Receipts collection with payerId and billId conditions
+        firestore.collection("Receipts")
+                .whereEqualTo("payerId", userId) // Check if payerId matches
+                .whereEqualTo("billId", billId)  // Check if billId matches
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // Iterate over the documents that match the query
+                        for (DocumentSnapshot documentSnapshot : querySnapshot.getDocuments()) {
+                            // Get the receipt document ID
+                            String receiptId = documentSnapshot.getId();
+
+                            // Update the status of the matching receipt document
+                            firestore.collection("Receipts")
+                                    .document(receiptId)
+                                    .update("status", "Completed") // Update the status field to "Completed"
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Successfully updated the status
+                                        Log.d("PaymentActivity", "Receipt status updated to 'Completed' for receipt ID: " + receiptId);
+                                        Toast.makeText(PaymentActivity.this, "Receipt payment status updated.", Toast.LENGTH_SHORT).show();
+
+                                        // Optionally, you can also log or perform other actions like notifying the user, etc.
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Handle the failure (e.g., network issue, document not found)
+                                        Log.e("PaymentActivity", "Failed to update receipt status: " + e.getMessage());
+                                        Toast.makeText(PaymentActivity.this, "Failed to update receipt status.", Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+                    } else {
+                        // No matching receipts found
+                        Log.e("PaymentActivity", "No matching receipt found for userId: " + userId + " and billId: " + billId);
+                        Toast.makeText(PaymentActivity.this, "No matching receipt found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Handle any errors in the query
+                    Log.e("PaymentActivity", "Error fetching receipts: " + e.getMessage());
+                    Toast.makeText(PaymentActivity.this, "Error fetching receipts.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
 }
