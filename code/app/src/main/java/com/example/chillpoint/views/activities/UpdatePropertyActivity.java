@@ -1,10 +1,16 @@
 package com.example.chillpoint.views.activities;
 
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +29,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
@@ -41,6 +48,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
 
     private static final int IMAGE_PICKER_REQUEST = 100;
     private static final int LOCATION_PICKER_REQUEST = 200;
+    private static final String NOTIFICATION_CHANNEL_ID = "property_update_channel";
 
     private EditText nameEditText, descriptionEditText, addressEditText, priceEditText, roomsEditText, maxGuestsEditText;
     private Spinner checkInTimeSpinner, checkOutTimeSpinner;
@@ -120,8 +128,12 @@ public class UpdatePropertyActivity extends AppCompatActivity {
 
         setupCheckInTimeSpinner();
         setupCheckOutTimeSpinner();
+
+        // Create notification channel for devices running Android O and above
+        createNotificationChannel();
     }
 
+    // Loads property data from Firestore
     private void loadPropertyData() {
         firestore.collection("Properties").document(propertyId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -168,11 +180,8 @@ public class UpdatePropertyActivity extends AppCompatActivity {
 
         // Handle image picker result
         if (requestCode == IMAGE_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            // ... 이미지 선택 결과 처리 (생략)
-        }
-
-        // Handle location picker result
-        else if (requestCode == LOCATION_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            // Handle image selection result
+        } else if (requestCode == LOCATION_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
             double lat = data.getDoubleExtra("latitude", 0);
             double lng = data.getDoubleExtra("longitude", 0);
             String address = data.getStringExtra("address");
@@ -213,6 +222,8 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(UpdatePropertyActivity.this, "Property updated successfully.", Toast.LENGTH_SHORT).show();
+                    saveNotification("Property Updated", "Your property has been successfully updated.");
+                    showNotification("Property Updated", "Your property has been successfully updated.");
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -220,6 +231,79 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                     Toast.makeText(UpdatePropertyActivity.this, "Error updating property: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+    private void saveNotification(String title, String message) {
+        String userId = sessionManager.getUserId();
+        if (userId == null) {
+            Toast.makeText(this, "User session invalid. Notification not saved.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("userId", userId);
+        notification.put("title", title);
+        notification.put("message", message);
+        notification.put("timestamp", new Date());
+        notification.put("isRead", false);
+
+        firestore.collection("Notifications").add(notification)
+                .addOnSuccessListener(documentReference -> {
+                    // Successfully saved notification
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to save notification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void showNotification(String title, String message) {
+        Log.d("Notification", "Starting to show notification");
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Log.d("NotificationManager", "NotificationManager initialized: " + notificationManager);
+
+        if (notificationManager != null) {
+            notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+            Log.d("Notification", "Notification sent to system");
+        } else {
+            Log.e("Notification", "NotificationManager is null");
+        }
+    }
+
+
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID,
+                    "Property Update Notifications",
+                    NotificationManager.IMPORTANCE_HIGH);
+
+            channel.setDescription("Channel for property update notifications");
+
+            // 소리 설정
+            channel.setSound(
+                    RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                    new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
+            );
+
+            // 진동 패턴 설정 (밀리초 단위: 대기, 진동, 대기, 진동...)
+            channel.setVibrationPattern(new long[]{0, 500, 250, 500});
+            channel.enableVibration(true);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
 
     private void setupCheckInTimeSpinner() {
         String[] checkInTimes = {"12:00", "13:00", "14:00", "15:00", "16:00", "17:00"};
