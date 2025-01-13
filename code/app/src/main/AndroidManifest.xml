@@ -41,6 +41,9 @@
             android:name=".views.activities.PropertyManagementActivity"
             android:exported="false" />
         <activity
+            android:name=".views.activities.NotificationActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.ChatDetailsActivity"
             android:exported="false" />
         <activity

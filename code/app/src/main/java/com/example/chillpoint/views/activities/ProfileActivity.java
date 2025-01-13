@@ -15,7 +15,7 @@ import com.example.chillpoint.managers.SessionManager;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends BaseActivity {
 
     private ImageView profileImageView;
     private TextView usernameTextView;
