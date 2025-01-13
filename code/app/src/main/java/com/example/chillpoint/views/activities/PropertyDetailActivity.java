@@ -76,6 +76,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
     private Button guestsMinusButton, guestsPlusButton;
     private TextView totalPriceOrErrorTextView;
     private Button contactHostButton;
+    private long totalPrice;
     
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -231,9 +232,23 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 Toast.makeText(this, "Please select a date range first", Toast.LENGTH_SHORT).show();
                 return;
             }
+            Intent intent = new Intent(PropertyDetailActivity.this, PaymentActivity.class);
+            String selectedGuestsStr = String.valueOf(selectedGuests);
+            String totalPriceStr = String.valueOf(totalPrice);
+            intent.putExtra("fromDate", selectedStartDate);
+            intent.putExtra("toDate", selectedEndDate);
+            intent.putExtra("numberOfGuests", selectedGuestsStr);
+            intent.putExtra("totalPrice", totalPriceStr);
+            intent.putExtra("propertyId", propertyId);
 
+            Log.e("IntentData", "fromDate: " + selectedStartDate);
+            Log.e("IntentData", "toDate: " + selectedEndDate);
+            Log.e("IntentData", "numberOfGuests: " + selectedGuests);
+            Log.e("IntentData", "totalPrice: " + totalPrice);
+            Log.e("IntentData", "propertyId: " + propertyId);
+            startActivity(intent);
             // 모두 정상 -> bookProperty
-            bookProperty();
+//            bookProperty();
         });
 
 
@@ -713,7 +728,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             }
 
             // 4) 총 가격 계산
-            long totalPrice = diffInDays * pricePerNight;
+            totalPrice = diffInDays * pricePerNight;
 
             // 5) 화면에 표시
             totalPriceOrErrorTextView.setTextColor(getResources().getColor(android.R.color.black));

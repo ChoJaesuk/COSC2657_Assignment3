@@ -3,27 +3,48 @@
     android:layout_height="match_parent"
     android:background="@color/custom_background">
 
-    <!-- Welcome Text -->
-    <TextView
-        android:id="@+id/welcomeTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="100dp"
-        android:text="Welcome, Admin"
-        android:textSize="24sp"
-        android:textColor="#000" />
+<!--    &lt;!&ndash; Welcome Text &ndash;&gt;-->
+<!--    <TextView-->
+<!--        android:id="@+id/welcomeTextView"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_marginTop="100dp"-->
+<!--        android:text="Welcome, Admin"-->
+<!--        android:textSize="24sp"-->
+<!--        android:textColor="#000" />-->
 
-    <!-- Button to navigate to Host Verification List -->
-    <Button
-        android:id="@+id/hostVerificationButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/welcomeTextView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:text="Manage Host Verifications"
-        android:backgroundTint="#03A9F4"
-        android:textColor="@android:color/white"
-        android:padding="12dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/hostVerificationButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Host Verification"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/createVoucherButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Create Voucher"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/viewVoucherListButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="View Voucher List"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
+    </LinearLayout>
+
 </RelativeLayout>

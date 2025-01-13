@@ -47,12 +47,27 @@
             app:tint="@android:color/black" />
     </LinearLayout>
 
+    <!-- Encourage Voucher Collection Button -->
+    <Button
+        android:id="@+id/viewVoucherListButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/searchBarLayout"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:padding="12dp"
+        android:text="Collect Your First Voucher Now!"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:elevation="4dp" />
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/searchBarLayout" />
+        android:layout_below="@id/viewVoucherListButton" />
+
 
     <!-- ProgressBar -->
     <ProgressBar
