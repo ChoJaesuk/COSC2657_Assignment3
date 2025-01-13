@@ -13,4 +13,9 @@
     </string-array>
 
     <string name="select_voucher_prompt">Select a voucher</string>
+    <string-array name="reservation_status_array">
+        <item>Confirmed</item>
+        <item>In-Process</item>
+        <item>Completed</item>
+    </string-array>
 </resources>
