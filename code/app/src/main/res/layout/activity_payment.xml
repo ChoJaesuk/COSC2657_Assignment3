@@ -11,7 +11,7 @@
         android:id="@+id/paymentLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#E8F7F9"
+        android:background="@color/custom_background"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -345,9 +345,9 @@
         android:id="@+id/bookingSummaryLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FFFFFF"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/custom_background">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -531,7 +531,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="10dp"
                     android:text="Depending on the rental and local tourism tax regulations, you might be asked to pay for utility fees and/or tourism tax on the spot"
                     android:textColor="#666666"
                     android:textSize="12sp" />
@@ -541,9 +541,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:backgroundTint="#8EE6F0"
-                    android:text="Next"
-                    android:textColor="#000000"
+                    android:text="NEXT"
+                    style="@style/BlueButton"
+                    app:backgroundTint="@null"
                     android:textStyle="bold" />
             </LinearLayout>
         </ScrollView>

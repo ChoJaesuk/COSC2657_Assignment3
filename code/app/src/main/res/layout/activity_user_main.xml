@@ -9,10 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:padding="15dp"
         android:background="@drawable/search_background"
         android:gravity="center_vertical"
-        android:layout_margin="20dp">
+        android:layout_margin="25dp">
         <!-- 검색 입력 -->
         <EditText
             android:id="@+id/searchEditText"
@@ -50,17 +50,22 @@
     <!-- Encourage Voucher Collection Button -->
     <Button
         android:id="@+id/viewVoucherListButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/searchBarLayout"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
         android:layout_marginTop="8dp"
-        android:padding="12dp"
+        android:layout_marginBottom="18dp"
+        android:padding="16dp"
         android:text="Collect Your First Voucher Now!"
-        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        style="@style/BlueButton"
+        app:backgroundTint="@null"
         android:textStyle="bold"
         android:elevation="4dp" />
+
+
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
