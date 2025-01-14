@@ -73,9 +73,17 @@ public class NotificationActivity extends AppCompatActivity {
                     if (task.isSuccessful() && task.getResult() != null) {
                         notificationList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
+                            String relatedData = document.getString("relatedData");
+                            String title = document.getString("title");
+
+                            // Update title with relatedData
+                            if (relatedData != null && !relatedData.isEmpty()) {
+                                title = title + ": " + relatedData;
+                            }
+
                             NotificationItem item = new NotificationItem(
                                     document.getId(),
-                                    document.getString("title"),
+                                    title,
                                     document.getString("message"),
                                     document.getBoolean("isRead"),
                                     document.getTimestamp("timestamp")
@@ -92,7 +100,6 @@ public class NotificationActivity extends AppCompatActivity {
                     }
                 });
     }
-
 
     private void updateNotificationsToRead(String userId) {
         firestore.collection("Notifications")
