@@ -2,6 +2,7 @@ package com.example.chillpoint.views.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +23,7 @@ public class ProfileActivity extends BaseActivity {
     private TextView hostVerificationTextView;
     private TextView bookingManagementTextView;
     private TextView propertyManagementTextView;
+    private Button editProfileButton;
 
     private SessionManager sessionManager;
     private FirebaseFirestore firestore;
@@ -41,6 +43,7 @@ public class ProfileActivity extends BaseActivity {
         hostVerificationTextView = findViewById(R.id.hostVerification);
         bookingManagementTextView = findViewById(R.id.bookingManagement);
         propertyManagementTextView = findViewById(R.id.propertyManagement);
+        editProfileButton = findViewById(R.id.editProfileButton);
 
         // Load user profile using SessionManager
         loadUserProfile();
@@ -49,6 +52,9 @@ public class ProfileActivity extends BaseActivity {
         hostVerificationTextView.setOnClickListener(v -> handleHostVerification());
         bookingManagementTextView.setOnClickListener(v -> handleRestrictedActions("Booking Management"));
         propertyManagementTextView.setOnClickListener(v -> handlePropertyManagement());
+
+        // Edit profile button click listener
+        editProfileButton.setOnClickListener(v -> navigateToEditProfile());
     }
 
     private void loadUserProfile() {
@@ -77,6 +83,11 @@ public class ProfileActivity extends BaseActivity {
         if (username == null && imageUrl == null) {
             Toast.makeText(this, "Session data not found. Please log in again.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void navigateToEditProfile() {
+        Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+        startActivity(intent);
     }
 
     private void handleHostVerification() {
