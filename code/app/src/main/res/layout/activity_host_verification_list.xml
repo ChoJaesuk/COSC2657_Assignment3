@@ -1,12 +1,15 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/custom_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:layout_marginTop="10dp">
 
         <!-- Title for Status Filter -->
         <TextView
@@ -15,7 +18,7 @@
             android:text="Filter by Status"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="5dp"
             android:textColor="#000000" />
 
         <!-- Status Filter Spinner -->
@@ -23,7 +26,7 @@
             android:id="@+id/statusFilterSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="10dp" />
 
         <!-- Title for Date Filter -->
         <TextView
@@ -32,7 +35,7 @@
             android:text="Sort by Date"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="5dp"
             android:textColor="#000000" />
 
         <!-- Date Filter Spinner -->
@@ -40,7 +43,7 @@
             android:id="@+id/dateFilterSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="18dp" />
 
         <!-- Apply Filters Button -->
         <Button
@@ -48,6 +51,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Apply Filters"
+            android:textSize="16sp"
+            style="@style/BlueButton"
+            app:backgroundTint="@null"
             android:layout_marginBottom="16dp" />
 
         <!-- Progress Bar -->
