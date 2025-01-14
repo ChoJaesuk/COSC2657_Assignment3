@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
@@ -58,7 +59,7 @@ public class EditProfileActivity extends AppCompatActivity {
         changeImageButton = findViewById(R.id.changeImageButton);
         saveButton = findViewById(R.id.saveButton);
 
-        // Load existing user data from SessionManager
+        // Load user data from Firestore
         loadUserData();
 
         // Change image button logic
@@ -69,27 +70,36 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserData() {
-        String imageUrl = sessionManager.getUserImageUrl();
-        String fullName = sessionManager.getUsername(); // Replace if you save a specific full name key
-        String username = sessionManager.getUsername();
-        String email = sessionManager.getEmail(); // Use actual logic
-        String phone = sessionManager.getPhone(); // Use actual logic
-        String bio = sessionManager.getBio(); // Use actual logic
+        String userId = sessionManager.getUserId();
+        firestore.collection("Users").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String imageUrl = documentSnapshot.getString("imageUrl");
+                        String fullName = documentSnapshot.getString("fullName");
+                        String username = documentSnapshot.getString("username");
+                        String email = documentSnapshot.getString("email");
+                        String phone = documentSnapshot.getString("phone");
+                        String bio = documentSnapshot.getString("bio");
 
-        // Log user data
-        Log.d(TAG, "Loading user data: " + fullName + ", " + username);
+                        // Log user data
+                        Log.d(TAG, "Loading user data from Firestore: " + fullName + ", " + username);
 
-        // Load image using Glide
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            Glide.with(this).load(imageUrl).into(profileImageView);
-        }
+                        // Load image using Glide
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
+                            Glide.with(this).load(imageUrl).into(profileImageView);
+                        }
 
-        // Set placeholders
-        fullNameEditText.setText(fullName);
-        usernameEditText.setText(username);
-        emailEditText.setText(email);
-        phoneEditText.setText(phone);
-        bioEditText.setText(bio);
+                        // Set placeholders
+                        fullNameEditText.setText(fullName);
+                        usernameEditText.setText(username);
+                        emailEditText.setText(email);
+                        phoneEditText.setText(phone);
+                        bioEditText.setText(bio);
+                    } else {
+                        Log.e(TAG, "No user data found in Firestore for userId: " + userId);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error loading user data from Firestore", e));
     }
 
     private void openImagePicker() {
@@ -147,11 +157,16 @@ public class EditProfileActivity extends AppCompatActivity {
         userUpdates.put("bio", bio);
         userUpdates.put("imageUrl", imageUrl);
 
-        firestore.collection("Users").document(userId) // Ensure "Users" matches Firestore
+        firestore.collection("Users").document(userId)
                 .set(userUpdates, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Profile updated successfully for userId: " + userId);
                     Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+
+                    // Update SessionManager with new data
+                    sessionManager.saveUserSession(userId, sessionManager.getRole(), username, imageUrl);
+                    sessionManager.saveAdditionalUserInfo(email, phone, bio);
+
                     setResult(Activity.RESULT_OK);
                     finish();
                 })

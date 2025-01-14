@@ -8,7 +8,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
@@ -17,6 +16,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 public class ProfileActivity extends BaseActivity {
+
+    private static final int EDIT_PROFILE_REQUEST = 1001;
 
     private ImageView profileImageView;
     private TextView usernameTextView;
@@ -87,7 +88,17 @@ public class ProfileActivity extends BaseActivity {
 
     private void navigateToEditProfile() {
         Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, EDIT_PROFILE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == EDIT_PROFILE_REQUEST && resultCode == RESULT_OK) {
+            // Reload updated user profile
+            loadUserProfile();
+        }
     }
 
     private void handleHostVerification() {
