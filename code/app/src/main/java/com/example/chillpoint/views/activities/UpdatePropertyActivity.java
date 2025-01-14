@@ -234,54 +234,82 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         }
         removedImageUrls.clear(); // 삭제 목록 초기화
 
-        Map<String, Object> updatedData = new HashMap<>();
-        updatedData.put("name", name);
-        updatedData.put("description", description);
-        updatedData.put("address", address);
-        updatedData.put("pricePerNight", Double.parseDouble(price));
-        updatedData.put("numOfRooms", Integer.parseInt(rooms));
-        updatedData.put("maxNumOfGuests", Integer.parseInt(maxGuests));
-        updatedData.put("checkInTime", selectedCheckInTime);
-        updatedData.put("checkOutTime", selectedCheckOutTime);
-        updatedData.put("bedTypes", bedTypesMap);
-        updatedData.put("numOfBeds", totalBeds);
-        updatedData.put("updatedAt", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
-        updatedData.put("images", uploadedImageUrls);
+        uploadImages(new UploadImagesCallback() {
+            @Override
+            public void onUploadComplete(ArrayList<String> newImageUrls) {
+                // 새로운 이미지 URL을 기존 이미지 목록에 추가
+                uploadedImageUrls.addAll(newImageUrls);
 
-        firestore.collection("Properties").document(propertyId).update(updatedData)
-                .addOnSuccessListener(aVoid -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Property updated successfully.", Toast.LENGTH_SHORT).show();
-                    saveNotification("Property Updated", "Your property has been successfully updated.", name);
-                    showNotification("Property Updated: " + name, "Your property has been successfully updated.");
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Error updating property: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                Map<String, Object> updatedData = new HashMap<>();
+                updatedData.put("name", name);
+                updatedData.put("description", description);
+                updatedData.put("address", address);
+                updatedData.put("pricePerNight", Double.parseDouble(price));
+                updatedData.put("numOfRooms", Integer.parseInt(rooms));
+                updatedData.put("maxNumOfGuests", Integer.parseInt(maxGuests));
+                updatedData.put("checkInTime", selectedCheckInTime);
+                updatedData.put("checkOutTime", selectedCheckOutTime);
+                updatedData.put("bedTypes", bedTypesMap);
+                updatedData.put("numOfBeds", totalBeds);
+                updatedData.put("updatedAt", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+                updatedData.put("images", uploadedImageUrls);
+
+                firestore.collection("Properties").document(propertyId).update(updatedData)
+                        .addOnSuccessListener(aVoid -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(UpdatePropertyActivity.this, "Property updated successfully.", Toast.LENGTH_SHORT).show();
+                            saveNotification("Property Updated", "Your property has been successfully updated.", name);
+                            showNotification("Property Updated: " + name, "Your property has been successfully updated.");
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(UpdatePropertyActivity.this, "Error updating property: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            }
+
+            @Override
+            public void onUploadFailed(String errorMessage) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(UpdatePropertyActivity.this, "Failed to upload images: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
 
 
 
     private void uploadImages(UploadImagesCallback callback) {
         ArrayList<String> newImageUrls = new ArrayList<>();
+        int uploadCount = 0;
+
         for (Uri uri : imageUris) {
             if (!uri.toString().startsWith("http")) { // Firebase에서 로드된 이미지는 다시 업로드하지 않음
                 String fileName = "property_images/" + System.currentTimeMillis() + "_" + uri.getLastPathSegment();
                 StorageReference reference = storage.getReference(fileName);
+                int finalUploadCount = ++uploadCount; // 로컬 업로드 수 카운트
                 reference.putFile(uri).addOnSuccessListener(taskSnapshot ->
                         reference.getDownloadUrl().addOnSuccessListener(url -> {
                             newImageUrls.add(url.toString());
-                            if (newImageUrls.size() == imageUris.size()) {
+                            if (newImageUrls.size() == finalUploadCount) {
                                 callback.onUploadComplete(newImageUrls);
                             }
                         }).addOnFailureListener(e -> callback.onUploadFailed(e.getMessage()))
                 ).addOnFailureListener(e -> callback.onUploadFailed(e.getMessage()));
+            } else {
+                uploadCount++;
+                if (newImageUrls.size() == uploadCount) {
+                    callback.onUploadComplete(newImageUrls);
+                }
             }
         }
+
+        if (imageUris.isEmpty() || uploadCount == 0) { // 이미지가 없을 경우 바로 콜백 처리
+            callback.onUploadComplete(newImageUrls);
+        }
     }
+
 
     interface UploadImagesCallback {
         void onUploadComplete(ArrayList<String> urls);
