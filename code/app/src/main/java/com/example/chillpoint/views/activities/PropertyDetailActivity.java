@@ -42,6 +42,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+
 import android.util.Pair;
 
 import java.io.IOException;
@@ -240,6 +241,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             intent.putExtra("numberOfGuests", selectedGuestsStr);
             intent.putExtra("totalPrice", totalPriceStr);
             intent.putExtra("propertyId", propertyId);
+            intent.putExtra("hostId",hostUserId);
 
             Log.e("IntentData", "fromDate: " + selectedStartDate);
             Log.e("IntentData", "toDate: " + selectedEndDate);
@@ -399,30 +401,6 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         return sdf.format(new Date(timestamp));
     }
-
-
-    private void bookProperty() {
-        HashMap<String, Object> reservation = new HashMap<>();
-        reservation.put("propertyId", propertyId);
-        reservation.put("userId", userId);
-        reservation.put("fromDate", selectedStartDate);
-        reservation.put("toDate", selectedEndDate);
-        reservation.put("guestCount", selectedGuests); // 추가
-        reservation.put("timestamp", System.currentTimeMillis());
-        reservation.put("hostId", hostUserId);
-        reservation.put("status","Confirmed");
-
-        firestore.collection("reservations")
-                .add(reservation)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(this, "Booking successful!", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Booking failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e("PropertyDetailActivity", "Error booking property", e);
-                });
-    }
-
 
     private void fetchHostInformation(String propertyId, TextView hostNameTextView, TextView hostDetailsTextView, ImageView hostImageView) {
         // Fetch the property data to get the userId

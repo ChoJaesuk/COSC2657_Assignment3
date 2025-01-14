@@ -34,6 +34,7 @@ import com.example.chillpoint.repositories.UserRepository;
 import com.example.chillpoint.views.models.Property;
 import com.example.chillpoint.views.models.Receipt;
 import com.example.chillpoint.views.models.Voucher;
+import com.example.chillpoint.views.models.Bill;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -69,6 +70,7 @@ public class PaymentActivity extends AppCompatActivity {
     private String toDate;
     private String propertyId;
     private String numberOfGuests;
+    private String hostId;
     private String totalPrice;
     private double totalAmount;
     private String billId;
@@ -97,6 +99,7 @@ public class PaymentActivity extends AppCompatActivity {
          propertyId = (String) intent.getExtras().get("propertyId");
          numberOfGuests =(String) intent.getExtras().get("numberOfGuests");
         totalPrice = (String) intent.getExtras().get("totalPrice");
+        hostId = (String) intent.getExtras().get("hostId");
 
 // Log for debugging
         Log.d("PaymentActivity", "StartDate: " + startDate + ", ToDate: " + toDate + ", NumberOfGuests: " + numberOfGuests + ", TotalPrice: " + totalPrice);
@@ -372,8 +375,12 @@ public class PaymentActivity extends AppCompatActivity {
                         receiptMap.put("country", countrySpinner.getSelectedItem().toString());
                         receiptMap.put("voucherId", voucherCodeEditText.getText().toString());
                         receiptMap.put("numberOfPayers", friendEmailIds.size());
-                        receiptMap.put("payerId", payerId);  // Payer's ID for this receipt
-                        receiptMap.put("billId", billId);    // Associate the receipt with the billId
+                        receiptMap.put("payerId", payerId);
+                        receiptMap.put("billId", billId);
+                        receiptMap.put("fromDate", startDate);
+                        receiptMap.put("toDate", toDate);
+                        receiptMap.put("numberOfGuests", numberOfGuests);
+                        receiptMap.put("hostId", hostId);
 
                         // Initialize totalAmount and calculate
                         try {
@@ -494,7 +501,6 @@ public class PaymentActivity extends AppCompatActivity {
                             newEmailEditText.setPadding(paddingInPixels, paddingInPixels, paddingInPixels, paddingInPixels);
                             newEmailEditText.setTextSize(14);
                             emailContainer.addView(newEmailEditText);
-// Log after adding the email
                             Log.e("verifyFriendEmail Size", "Size after adding email: " + friendEmailIds.size());
                             Toast.makeText(this, "Friend email added: " + email, Toast.LENGTH_SHORT).show();
                             friendEmailEditText.setText(""); // Clear input
@@ -651,14 +657,19 @@ public class PaymentActivity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-    private void onPaymentResult(PaymentSheetResult paymentSheetResult){
-        if(paymentSheetResult instanceof PaymentSheetResult.Completed){
+    private void onPaymentResult(PaymentSheetResult paymentSheetResult) {
+        if (paymentSheetResult instanceof PaymentSheetResult.Completed) {
             Toast.makeText(this, "Payment completed", Toast.LENGTH_SHORT).show();
             updateStatusReceipt(sessionManager.getUserId(), billId);
-        }else if(paymentSheetResult instanceof PaymentSheetResult.Canceled){
+            // Check if all receipts are completed before creating the reservation
+            checkReceiptsAndCreateReservation(billId);
+        } else if (paymentSheetResult instanceof PaymentSheetResult.Canceled) {
             Toast.makeText(this, "Payment canceled", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, ReceiptActivity.class);
+            startActivity(intent);
         }
     }
+
 
     private void paymentFlow(){
         if (CustomerId == null || EphemeralKey == null || ClientSecret == null) {
@@ -711,6 +722,82 @@ public class PaymentActivity extends AppCompatActivity {
                     Toast.makeText(PaymentActivity.this, "Error fetching receipts.", Toast.LENGTH_SHORT).show();
                 });
     }
+    private void checkReceiptsAndCreateReservation(String billId) {
+        firestore.collection("Bills")
+                .document(billId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Bill bill = documentSnapshot.toObject(Bill.class);
+                        if (bill != null && bill.getReceiptIds() != null && !bill.getReceiptIds().isEmpty()) {
+                            checkReceiptStatuses(bill.getReceiptIds(), billId);
+                        } else {
+                            Toast.makeText(this, "No receipts found for this bill.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Bill not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to fetch bill: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("checkReceipts", "Error fetching bill", e);
+                });
+    }
 
+    private void checkReceiptStatuses(ArrayList<String> receiptIds, String billId) {
+        firestore.collection("Receipts")
+                .whereIn(FieldPath.documentId(), receiptIds)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        boolean allCompleted = true;
+
+                        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                            Receipt receipt = document.toObject(Receipt.class);
+                            if (receipt != null && !"Completed".equalsIgnoreCase(receipt.getStatus())) {
+                                allCompleted = false;
+                                break;
+                            }
+                        }
+
+                        if (allCompleted) {
+                            createReservation(billId);
+                        } else {
+                            Toast.makeText(this, "All receipts are not completed yet.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "No matching receipts found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to fetch receipts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("checkReceiptStatuses", "Error fetching receipts", e);
+                });
+    }
+
+    private void createReservation(String billId) {
+        HashMap<String, Object> reservation = new HashMap<>();
+        reservation.put("propertyId", propertyId);
+        reservation.put("billId", billId);
+        reservation.put("fromDate", startDate);
+        reservation.put("toDate", toDate);
+        reservation.put("guestCount", numberOfGuests);
+        reservation.put("timestamp", System.currentTimeMillis());
+        reservation.put("hostId", hostId);
+        reservation.put("status", "Confirmed");
+
+        firestore.collection("reservations")
+                .add(reservation)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Booking successful!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, ReceiptActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Booking failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("createReservation", "Error booking property", e);
+                });
+    }
 
 }

@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".views.activities.ReceiptActivity">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/receiptsTitleTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Receipts"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_margin="16dp"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true" />
+
+            <!-- RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/receiptsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/receiptsTitleTextView"
+                android:clipToPadding="false"
+                android:padding="8dp"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/receiptDetailsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:color/holo_green_dark">
+        <ImageButton
+            android:id="@+id/closeButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/ic_link_close"
+            android:contentDescription="Close"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            android:backgroundTint="@color/red"
+            android:layout_gravity="end"/>
+
+        <!-- Receipt Header -->
+        <TextView
+            android:id="@+id/receiptTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Receipt Details"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            android:paddingBottom="16dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Receipt ID -->
+        <TextView
+            android:id="@+id/receiptId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Receipt ID: 123456"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:paddingBottom="8dp" />
+
+        <!-- Property ID -->
+        <TextView
+            android:id="@+id/propertyId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Property ID: PROP789"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:paddingBottom="8dp" />
+
+        <!-- Payer Info -->
+        <TextView
+            android:id="@+id/payerInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Payer Information"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name: John Doe"
+            android:textSize="14sp"
+            android:paddingBottom="4dp"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email: john.doe@example.com"
+            android:textSize="14sp"
+            android:paddingBottom="4dp"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/phoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Phone: +123456789"
+            android:textSize="14sp"
+            android:paddingBottom="4dp"
+            android:textColor="@android:color/black" />
+
+        <!-- Address -->
+        <TextView
+            android:id="@+id/addressHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Address"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="123 Main Street, CityName, Country"
+            android:textSize="14sp"
+            android:paddingBottom="8dp"
+            android:textColor="@android:color/black" />
+
+        <!-- Payment Info -->
+        <TextView
+            android:id="@+id/paymentHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Payment Information"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/numberOfPayers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Number of Payers: 1"
+            android:textSize="14sp"
+            android:paddingBottom="4dp"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/totalAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Total Amount: $150.00"
+            android:textSize="14sp"
+            android:paddingBottom="4dp"
+            android:textColor="@android:color/holo_green_dark" />
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status: Pending"
+            android:textSize="14sp"
+            android:paddingBottom="4dp"
+            android:textColor="@android:color/holo_orange_dark" />
+
+        <!-- Bill ID -->
+        <TextView
+            android:id="@+id/billId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bill ID: BILL123"
+            android:textSize="14sp"
+            android:paddingBottom="8dp"
+            android:textColor="@android:color/black" />
+
+        <Button
+            android:id="@+id/bookNowButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Book Now"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/paymentMethodLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F0FFFF"
+        android:orientation="vertical"
+        android:padding="16dp"> <!-- Light cyan background -->
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Payment method"
+            android:textColor="#000000"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="16dp"
+            android:text="Choose how to pay"
+            android:textColor="#666666"
+            android:textSize="16sp" />
+
+        <!-- Card payment option -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="16dp">
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="#000000"
+                android:checked="true" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Card payment"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pay via credit card, debit card, prepaid card and\nother card payments on the next page to confirm\nyour booking"
+                    android:textColor="#666666"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Terms and conditions -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Terms and conditions"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4dp"
+            android:paddingBottom="16dp"
+            android:text="A contract with the provider comes into effect after the successful completion of your booking. No contractual claims against HomeToGo as a mere marketplace arise due to cancellations, refunds or similar booking related reasons. By clicking 'Next', you accept the Terms of Service of HomeToGo. You can find more information on how we process your data in our Privacy Policy."
+            android:textColor="#666666"
+            android:textSize="14sp" />
+
+        <!-- Next button -->
+        <Button
+            android:id="@+id/processPaymentButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="#00BFFF"
+            android:text="Next"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <!-- Disclaimer -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="You won’t be charged yet"
+            android:textColor="#666666"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>
