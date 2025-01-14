@@ -24,6 +24,9 @@
             android:textSize="16sp"
             style="@style/BlueButton"
             app:backgroundTint="@null"
+            android:text="Create Property"
+
+            style="@style/BlueButton"
             android:padding="10dp" />
 
         <!-- Delete Property Button -->
