@@ -22,12 +22,13 @@
         <item name="android:textAllCaps">false</item>
     </style>
     <!-- 앱 테마 -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="actionBarStyle">@style/CustomActionBar</item>
         <item name="android:actionBarStyle">@style/CustomActionBar</item>
         <item name="windowActionBar">true</item>
         <item name="windowNoTitle">false</item>
     </style>
+
 
     <!-- 커스텀 액션바 스타일 -->
     <style name="CustomActionBar" parent="Widget.AppCompat.Light.ActionBar.Solid">
