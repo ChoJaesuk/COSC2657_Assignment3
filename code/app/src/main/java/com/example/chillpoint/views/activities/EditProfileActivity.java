@@ -72,7 +72,9 @@ public class EditProfileActivity extends AppCompatActivity {
         String imageUrl = sessionManager.getUserImageUrl();
         String fullName = sessionManager.getUsername(); // Replace if you save a specific full name key
         String username = sessionManager.getUsername();
-
+        String email = sessionManager.getEmail(); // Use actual logic
+        String phone = sessionManager.getPhone(); // Use actual logic
+        String bio = sessionManager.getBio(); // Use actual logic
 
         // Log user data
         Log.d(TAG, "Loading user data: " + fullName + ", " + username);
@@ -85,7 +87,9 @@ public class EditProfileActivity extends AppCompatActivity {
         // Set placeholders
         fullNameEditText.setText(fullName);
         usernameEditText.setText(username);
-
+        emailEditText.setText(email);
+        phoneEditText.setText(phone);
+        bioEditText.setText(bio);
     }
 
     private void openImagePicker() {
