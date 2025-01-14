@@ -1,9 +1,13 @@
 package com.example.chillpoint.views.activities;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -11,10 +15,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MenuItemCompat;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 public class BaseActivity extends AppCompatActivity {
+
+    private TextView notificationBadge;
+    private FirebaseFirestore firestore;
+    private SessionManager sessionManager;
 
     @Override
     protected void onStart() {
@@ -52,12 +64,29 @@ public class BaseActivity extends AppCompatActivity {
             // Set the custom layout to the action bar
             actionBar.setCustomView(customActionBarLayout);
         }
+
+        // Initialize Firebase and SessionManager
+        firestore = FirebaseFirestore.getInstance();
+        sessionManager = new SessionManager(this);
+
+        // Update notification badge
+        updateNotificationBadge();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate menu with notification icon
         getMenuInflater().inflate(R.menu.menu_notification, menu);
+
+        MenuItem notificationItem = menu.findItem(R.id.action_notifications);
+        View actionView = MenuItemCompat.getActionView(notificationItem);
+
+        // Set up notification badge
+        notificationBadge = actionView.findViewById(R.id.notificationBadge);
+        actionView.setOnClickListener(v -> {
+            onOptionsItemSelected(notificationItem);
+        });
+
         return true;
     }
 
@@ -74,5 +103,28 @@ public class BaseActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateNotificationBadge() {
+        String userId = sessionManager.getUserId();
+        if (userId == null) {
+            return; // No user logged in
+        }
+
+        firestore.collection("Notifications")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("isRead", false)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        int unreadCount = task.getResult().size();
+                        if (unreadCount > 0) {
+                            notificationBadge.setVisibility(View.VISIBLE);
+                            notificationBadge.setText(String.valueOf(unreadCount));
+                        } else {
+                            notificationBadge.setVisibility(View.GONE);
+                        }
+                    }
+                });
     }
 }
