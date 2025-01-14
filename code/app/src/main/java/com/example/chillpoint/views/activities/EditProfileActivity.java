@@ -19,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -57,7 +58,7 @@ public class EditProfileActivity extends AppCompatActivity {
         changeImageButton = findViewById(R.id.changeImageButton);
         saveButton = findViewById(R.id.saveButton);
 
-        // Load user data from Firestore
+        // Load existing user data from SessionManager
         loadUserData();
 
         // Change image button logic
@@ -68,47 +69,24 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserData() {
-        String userId = sessionManager.getUserId();
-        if (userId == null) {
-            Log.e(TAG, "User ID not found in session.");
-            Toast.makeText(this, "User ID not found in session.", Toast.LENGTH_SHORT).show();
-            return;
+        String imageUrl = sessionManager.getUserImageUrl();
+        String fullName = sessionManager.getUsername(); // Replace if you save a specific full name key
+        String username = sessionManager.getUsername();
+
+
+        // Log user data
+        Log.d(TAG, "Loading user data: " + fullName + ", " + username);
+
+        // Load image using Glide
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(this).load(imageUrl).into(profileImageView);
         }
 
-        firestore.collection("users").document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Log.d(TAG, "Document exists: " + documentSnapshot.getData());
+        // Set placeholders
+        fullNameEditText.setText(fullName);
+        usernameEditText.setText(username);
 
-                        String fullName = documentSnapshot.getString("fullName");
-                        String username = documentSnapshot.getString("username");
-                        String email = documentSnapshot.getString("email");
-                        String phone = documentSnapshot.getString("phone");
-                        String bio = documentSnapshot.getString("bio");
-                        String imageUrl = documentSnapshot.getString("imageUrl");
-
-                        // 필드 값이 null일 경우 기본값 설정
-                        fullNameEditText.setText(fullName != null ? fullName : "");
-                        usernameEditText.setText(username != null ? username : "");
-                        emailEditText.setText(email != null ? email : "");
-                        phoneEditText.setText(phone != null ? phone : "");
-                        bioEditText.setText(bio != null ? bio : "");
-
-                        if (imageUrl != null && !imageUrl.isEmpty()) {
-                            Glide.with(this).load(imageUrl).into(profileImageView);
-                        }
-                    } else {
-                        Log.e(TAG, "No document found for userId: " + userId);
-                        Toast.makeText(this, "No data found for user.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to fetch Firestore data: " + e.getMessage(), e);
-                    Toast.makeText(this, "Failed to load user data.", Toast.LENGTH_SHORT).show();
-                });
     }
-
-
 
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -125,7 +103,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                 profileImageView.setImageBitmap(bitmap);
             } catch (IOException e) {
-                Log.e(TAG, "Failed to load image: " + e.getMessage(), e);
+                Log.e(TAG, "Failed to load image", e);
                 Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
             }
         }
@@ -138,23 +116,17 @@ public class EditProfileActivity extends AppCompatActivity {
         String phone = phoneEditText.getText().toString();
         String bio = bioEditText.getText().toString();
 
-        String userId = sessionManager.getUserId();
-        if (userId == null) {
-            Toast.makeText(this, "User ID not found in session.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         if (imageUri != null) {
             // Upload image to Firebase Storage
-            StorageReference imageRef = storageReference.child("users/" + userId + "/profile.jpg");
+            StorageReference imageRef = storageReference.child("users/" + sessionManager.getUserId() + "/profile.jpg");
             imageRef.putFile(imageUri)
                     .addOnSuccessListener(taskSnapshot -> imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         String imageUrl = uri.toString();
                         updateFirestore(fullName, username, email, phone, bio, imageUrl);
                     }))
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to upload image: " + e.getMessage(), e);
-                        Toast.makeText(this, "Failed to upload image.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Failed to upload image", e);
+                        Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show();
                     });
         } else {
             updateFirestore(fullName, username, email, phone, bio, sessionManager.getUserImageUrl());
@@ -171,21 +143,17 @@ public class EditProfileActivity extends AppCompatActivity {
         userUpdates.put("bio", bio);
         userUpdates.put("imageUrl", imageUrl);
 
-        firestore.collection("users").document(userId)
-                .update(userUpdates)
+        firestore.collection("Users").document(userId) // Ensure "Users" matches Firestore
+                .set(userUpdates, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Firestore successfully updated for userId: " + userId);
-                    sessionManager.saveUserSession(userId, sessionManager.getRole(), username, imageUrl);
-
-                    Toast.makeText(this, "Profile updated successfully.", Toast.LENGTH_SHORT).show();
-
-                    // Navigate back to previous activity
+                    Log.d(TAG, "Profile updated successfully for userId: " + userId);
+                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
                     setResult(Activity.RESULT_OK);
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to update Firestore: " + e.getMessage(), e);
-                    Toast.makeText(this, "Failed to update profile.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Failed to update profile", e);
+                    Toast.makeText(this, "Failed to update profile", Toast.LENGTH_SHORT).show();
                 });
     }
 }
