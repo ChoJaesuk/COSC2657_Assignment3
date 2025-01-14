@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -106,8 +107,19 @@ public class PropertyManagementActivity extends AppCompatActivity {
     private void onEditPropertyClicked(Map<String, Object> property) {
         Intent intent = new Intent(this, UpdatePropertyActivity.class);
         intent.putExtra("propertyId", (String) property.get("id"));
-        startActivity(intent);
+        startActivityForResult(intent, 101); // 요청 코드 설정
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 101 && resultCode == RESULT_OK) {
+            // 업데이트 완료 후 데이터를 다시 로드
+            loadProperties();
+        }
+    }
+
 
     private void onDeletePropertyClicked(Map<String, Object> property) {
         String propertyName = (String) property.get("name");

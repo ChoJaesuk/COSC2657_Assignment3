@@ -144,6 +144,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
     private void loadPropertyData() {
         firestore.collection("Properties").document(propertyId).get()
                 .addOnSuccessListener(documentSnapshot -> {
+
                     if (documentSnapshot.exists()) {
                         // Load property details
                         nameEditText.setText(documentSnapshot.getString("name"));
@@ -258,8 +259,12 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                         .addOnSuccessListener(aVoid -> {
                             progressBar.setVisibility(View.GONE);
                             Toast.makeText(UpdatePropertyActivity.this, "Property updated successfully.", Toast.LENGTH_SHORT).show();
+
                             saveNotification("Property Updated", "Your property has been successfully updated.", name);
                             showNotification("Property Updated: " + name, "Your property has been successfully updated.");
+
+                            // 작업 성공 시 RESULT_OK 전달
+                            setResult(RESULT_OK);
                             finish();
                         })
                         .addOnFailureListener(e -> {
