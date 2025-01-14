@@ -222,8 +222,8 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(UpdatePropertyActivity.this, "Property updated successfully.", Toast.LENGTH_SHORT).show();
-                    saveNotification("Property Updated", "Your property has been successfully updated.");
-                    showNotification("Property Updated", "Your property has been successfully updated.");
+                    saveNotification("Property Updated", "Your property has been successfully updated.", name);
+                    showNotification("Property Updated: " + name, "Your property has been successfully updated.");
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -232,7 +232,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                 });
     }
 
-    private void saveNotification(String title, String message) {
+    private void saveNotification(String title, String message, String relatedData) {
         String userId = sessionManager.getUserId();
         if (userId == null) {
             Toast.makeText(this, "User session invalid. Notification not saved.", Toast.LENGTH_SHORT).show();
@@ -243,6 +243,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         notification.put("userId", userId);
         notification.put("title", title);
         notification.put("message", message);
+        notification.put("relatedData", relatedData);
         notification.put("timestamp", new Date());
         notification.put("isRead", false);
 
@@ -275,8 +276,6 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
@@ -303,7 +302,6 @@ public class UpdatePropertyActivity extends AppCompatActivity {
             notificationManager.createNotificationChannel(channel);
         }
     }
-
 
     private void setupCheckInTimeSpinner() {
         String[] checkInTimes = {"12:00", "13:00", "14:00", "15:00", "16:00", "17:00"};
