@@ -17,7 +17,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ChillPoint"
+        android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
             android:name=".views.activities.VoucherListActivity"
@@ -39,6 +39,9 @@
             android:exported="false" />
         <activity
             android:name=".views.activities.PropertyManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.BaseActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.NotificationActivity"

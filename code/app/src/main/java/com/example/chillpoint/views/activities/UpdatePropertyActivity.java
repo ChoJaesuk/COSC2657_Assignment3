@@ -36,6 +36,7 @@ import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.views.adapters.ImageAdapter;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -61,6 +62,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
 
     private ArrayList<Uri> imageUris;
     private ArrayList<String> uploadedImageUrls;
+    private ArrayList<String> removedImageUrls; // 삭제된 이미지를 임시 저장하는 리스트
     private ImageAdapter imageAdapter;
 
     private String selectedCheckInTime, selectedCheckOutTime;
@@ -79,7 +81,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_property);
 
-        // Initialize UI components
+        // UI 컴포넌트 초기화
         nameEditText = findViewById(R.id.nameEditText);
         descriptionEditText = findViewById(R.id.descriptionEditText);
         addressEditText = findViewById(R.id.addressEditText);
@@ -103,24 +105,29 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         bedTypesListAdapter = new BedTypeAdapter();
         bedTypesListView.setAdapter(bedTypesListAdapter);
 
-        // Initialize Firebase services
+        // Firebase 서비스 초기화
         firestore = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         sessionManager = new SessionManager(this);
 
-        // Initialize image lists
+        // 이미지 리스트 초기화
         imageUris = new ArrayList<>();
         uploadedImageUrls = new ArrayList<>();
+        removedImageUrls = new ArrayList<>(); // 삭제된 이미지 리스트 초기화
 
-        // Get property ID from Intent
+        // Intent에서 Property ID 가져오기
         propertyId = getIntent().getStringExtra("propertyId");
         loadPropertyData();
 
-        // Set up ImageAdapter
-        imageAdapter = new ImageAdapter(this, imageUris);
+        // ImageAdapter 설정
+        imageAdapter = new ImageAdapter(this, imageUris, uploadedImageUrls);
         imagesGridView.setAdapter(imageAdapter);
 
-        // Set listeners
+        imageAdapter.setOnImageRemoveListener(position -> {
+            handleImageRemoval(position);
+            Toast.makeText(this, "Image removed at position: " + position, Toast.LENGTH_SHORT).show();
+        });
+        // 리스너 설정
         uploadImagesButton.setOnClickListener(v -> openImagePicker());
         updatePropertyButton.setOnClickListener(v -> updateProperty());
         pickLocationButton.setOnClickListener(v -> openLocationPicker());
@@ -129,7 +136,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         setupCheckInTimeSpinner();
         setupCheckOutTimeSpinner();
 
-        // Create notification channel for devices running Android O and above
+        // 알림 채널 생성
         createNotificationChannel();
     }
 
@@ -137,7 +144,9 @@ public class UpdatePropertyActivity extends AppCompatActivity {
     private void loadPropertyData() {
         firestore.collection("Properties").document(propertyId).get()
                 .addOnSuccessListener(documentSnapshot -> {
+
                     if (documentSnapshot.exists()) {
+                        // Load property details
                         nameEditText.setText(documentSnapshot.getString("name"));
                         descriptionEditText.setText(documentSnapshot.getString("description"));
                         addressEditText.setText(documentSnapshot.getString("address"));
@@ -145,6 +154,7 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                         roomsEditText.setText(String.valueOf(documentSnapshot.getLong("numOfRooms")));
                         maxGuestsEditText.setText(String.valueOf(documentSnapshot.getLong("maxNumOfGuests")));
 
+                        // Load bed types
                         Map<String, Long> bedTypes = (Map<String, Long>) documentSnapshot.get("bedTypes");
                         if (bedTypes != null) {
                             bedTypes.forEach((key, value) -> bedTypesMap.put(key, value.intValue()));
@@ -152,15 +162,19 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                             refreshBedTypesList();
                         }
 
+                        // Load images
                         ArrayList<String> images = (ArrayList<String>) documentSnapshot.get("images");
                         if (images != null) {
+                            uploadedImageUrls.clear(); // Clear existing list to avoid duplicates
                             uploadedImageUrls.addAll(images);
                         }
-
-                        imageAdapter.notifyDataSetChanged();
+                        imageAdapter.notifyDataSetChanged(); // Notify adapter of data changes
                     }
-                });
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Error loading property data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
+
+
 
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -180,7 +194,17 @@ public class UpdatePropertyActivity extends AppCompatActivity {
 
         // Handle image picker result
         if (requestCode == IMAGE_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            // Handle image selection result
+            // [새로 추가됨] 새로 선택된 이미지를 처리
+            if (data.getClipData() != null) {
+                int count = data.getClipData().getItemCount();
+                for (int i = 0; i < count; i++) {
+                    Uri imageUri = data.getClipData().getItemAt(i).getUri();
+                    imageUris.add(imageUri);
+                }
+            } else if (data.getData() != null) {
+                imageUris.add(data.getData());
+            }
+            imageAdapter.notifyDataSetChanged();
         } else if (requestCode == LOCATION_PICKER_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
             double lat = data.getDoubleExtra("latitude", 0);
             double lng = data.getDoubleExtra("longitude", 0);
@@ -205,34 +229,100 @@ public class UpdatePropertyActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        Map<String, Object> updatedData = new HashMap<>();
-        updatedData.put("name", name);
-        updatedData.put("description", description);
-        updatedData.put("address", address);
-        updatedData.put("pricePerNight", Double.parseDouble(price));
-        updatedData.put("numOfRooms", Integer.parseInt(rooms));
-        updatedData.put("maxNumOfGuests", Integer.parseInt(maxGuests));
-        updatedData.put("checkInTime", selectedCheckInTime);
-        updatedData.put("checkOutTime", selectedCheckOutTime);
-        updatedData.put("bedTypes", bedTypesMap);
-        updatedData.put("numOfBeds", totalBeds);
-        updatedData.put("updatedAt", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+        // Firebase Storage에서 삭제된 이미지 처리
+        for (String removedImageUrl : removedImageUrls) {
+            deleteImageFromFirebaseStorage(removedImageUrl);
+        }
+        removedImageUrls.clear(); // 삭제 목록 초기화
 
-        firestore.collection("Properties").document(propertyId).update(updatedData)
-                .addOnSuccessListener(aVoid -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(UpdatePropertyActivity.this, "Property updated successfully.", Toast.LENGTH_SHORT).show();
-                    saveNotification("Property Updated", "Your property has been successfully updated.");
-                    showNotification("Property Updated", "Your property has been successfully updated.");
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(UpdatePropertyActivity.this, "Error updating property: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        uploadImages(new UploadImagesCallback() {
+            @Override
+            public void onUploadComplete(ArrayList<String> newImageUrls) {
+                // 새로운 이미지 URL을 기존 이미지 목록에 추가
+                uploadedImageUrls.addAll(newImageUrls);
+
+                Map<String, Object> updatedData = new HashMap<>();
+                updatedData.put("name", name);
+                updatedData.put("description", description);
+                updatedData.put("address", address);
+                updatedData.put("pricePerNight", Double.parseDouble(price));
+                updatedData.put("numOfRooms", Integer.parseInt(rooms));
+                updatedData.put("maxNumOfGuests", Integer.parseInt(maxGuests));
+                updatedData.put("checkInTime", selectedCheckInTime);
+                updatedData.put("checkOutTime", selectedCheckOutTime);
+                updatedData.put("bedTypes", bedTypesMap);
+                updatedData.put("numOfBeds", totalBeds);
+                updatedData.put("updatedAt", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+                updatedData.put("images", uploadedImageUrls);
+
+                firestore.collection("Properties").document(propertyId).update(updatedData)
+                        .addOnSuccessListener(aVoid -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(UpdatePropertyActivity.this, "Property updated successfully.", Toast.LENGTH_SHORT).show();
+
+                            saveNotification("Property Updated", "Your property has been successfully updated.", name);
+                            showNotification("Property Updated: " + name, "Your property has been successfully updated.");
+
+                            // 작업 성공 시 RESULT_OK 전달
+                            setResult(RESULT_OK);
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(UpdatePropertyActivity.this, "Error updating property: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            }
+
+            @Override
+            public void onUploadFailed(String errorMessage) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(UpdatePropertyActivity.this, "Failed to upload images: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void saveNotification(String title, String message) {
+
+
+
+
+    private void uploadImages(UploadImagesCallback callback) {
+        ArrayList<String> newImageUrls = new ArrayList<>();
+        int uploadCount = 0;
+
+        for (Uri uri : imageUris) {
+            if (!uri.toString().startsWith("http")) { // Firebase에서 로드된 이미지는 다시 업로드하지 않음
+                String fileName = "property_images/" + System.currentTimeMillis() + "_" + uri.getLastPathSegment();
+                StorageReference reference = storage.getReference(fileName);
+                int finalUploadCount = ++uploadCount; // 로컬 업로드 수 카운트
+                reference.putFile(uri).addOnSuccessListener(taskSnapshot ->
+                        reference.getDownloadUrl().addOnSuccessListener(url -> {
+                            newImageUrls.add(url.toString());
+                            if (newImageUrls.size() == finalUploadCount) {
+                                callback.onUploadComplete(newImageUrls);
+                            }
+                        }).addOnFailureListener(e -> callback.onUploadFailed(e.getMessage()))
+                ).addOnFailureListener(e -> callback.onUploadFailed(e.getMessage()));
+            } else {
+                uploadCount++;
+                if (newImageUrls.size() == uploadCount) {
+                    callback.onUploadComplete(newImageUrls);
+                }
+            }
+        }
+
+        if (imageUris.isEmpty() || uploadCount == 0) { // 이미지가 없을 경우 바로 콜백 처리
+            callback.onUploadComplete(newImageUrls);
+        }
+    }
+
+
+    interface UploadImagesCallback {
+        void onUploadComplete(ArrayList<String> urls);
+
+        void onUploadFailed(String errorMessage);
+    }
+
+    private void saveNotification(String title, String message, String relatedData) {
         String userId = sessionManager.getUserId();
         if (userId == null) {
             Toast.makeText(this, "User session invalid. Notification not saved.", Toast.LENGTH_SHORT).show();
@@ -243,20 +333,19 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         notification.put("userId", userId);
         notification.put("title", title);
         notification.put("message", message);
+        notification.put("relatedData", relatedData);
         notification.put("timestamp", new Date());
         notification.put("isRead", false);
 
         firestore.collection("Notifications").add(notification)
-                .addOnSuccessListener(documentReference -> {
-                    // Successfully saved notification
-                })
+                .addOnSuccessListener(documentReference -> Log.d("Notification", "Notification saved successfully"))
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to save notification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
+
     private void showNotification(String title, String message) {
-        Log.d("Notification", "Starting to show notification");
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
@@ -265,16 +354,10 @@ public class UpdatePropertyActivity extends AppCompatActivity {
                 .setAutoCancel(true);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        Log.d("NotificationManager", "NotificationManager initialized: " + notificationManager);
-
         if (notificationManager != null) {
             notificationManager.notify((int) System.currentTimeMillis(), builder.build());
-            Log.d("Notification", "Notification sent to system");
-        } else {
-            Log.e("Notification", "NotificationManager is null");
         }
     }
-
 
 
     private void createNotificationChannel() {
@@ -304,7 +387,6 @@ public class UpdatePropertyActivity extends AppCompatActivity {
         }
     }
 
-
     private void setupCheckInTimeSpinner() {
         String[] checkInTimes = {"12:00", "13:00", "14:00", "15:00", "16:00", "17:00"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, checkInTimes);
@@ -322,6 +404,32 @@ public class UpdatePropertyActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void handleImageRemoval(int position) {
+        if (position < uploadedImageUrls.size()) {
+            // If the image is from Firebase
+            String removedImageUrl = uploadedImageUrls.get(position);
+            removedImageUrls.add(removedImageUrl); // Add to list of removed images
+            uploadedImageUrls.remove(position); // Remove from displayed list
+        } else {
+            // If the image is locally added
+            int localPosition = position - uploadedImageUrls.size();
+            imageUris.remove(localPosition); // Remove from local list
+        }
+
+        imageAdapter.notifyDataSetChanged(); // Notify adapter of data changes
+    }
+
+
+    private void deleteImageFromFirebaseStorage(String imageUrl) {
+        StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+        storageReference.delete()
+                .addOnSuccessListener(aVoid -> Log.d("FirebaseStorage", "Image deleted: " + imageUrl))
+                .addOnFailureListener(e -> Log.e("FirebaseStorage", "Failed to delete image: " + e.getMessage()));
+    }
+
+
+
 
     private void setupCheckOutTimeSpinner() {
         String[] checkOutTimes = {"06:00", "07:00", "08:00", "09:00", "10:00", "11:00"};

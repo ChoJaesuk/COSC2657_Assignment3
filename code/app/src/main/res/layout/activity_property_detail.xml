@@ -480,6 +480,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="CONTACT HOST"
+                    android:textStyle="bold"
                     android:textSize="15sp"
                     style="@style/BlueButton"
                     app:backgroundTint="@null" />
@@ -523,6 +524,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="SELECT DATES"
+                android:textStyle="bold"
                 android:textSize="15sp"
                 style="@style/BlueButton"
                 app:backgroundTint="@null"
@@ -624,10 +626,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="BOOK NOW"
+                android:textStyle="bold"
                 android:textSize="16sp"
                 style="@style/BlueButton"
                 app:backgroundTint="@null"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="30dp"
                 android:elevation="4dp" />
 
         </LinearLayout>

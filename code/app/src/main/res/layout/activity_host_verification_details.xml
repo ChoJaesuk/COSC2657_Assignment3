@@ -60,12 +60,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:gravity="center"
             android:layout_marginTop="16dp">
 
             <Button
                 android:id="@+id/approveButton"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="Approve"
                 android:textSize="16sp"
@@ -74,8 +76,9 @@
 
             <Button
                 android:id="@+id/rejectButton"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="Reject"
                 android:textSize="16sp"
