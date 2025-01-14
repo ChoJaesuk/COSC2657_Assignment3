@@ -206,8 +206,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Confirm Status"
-                    android:backgroundTint="@android:color/holo_blue_light"
-                    android:textColor="@android:color/white"
+                    style="@style/BlueButton"
+                    app:backgroundTint="@null"
+                    android:layout_marginTop="10dp"
                     android:visibility="gone" /> <!-- 기본적으로 숨김 -->
             </LinearLayout>
             <!-- Divider -->
@@ -297,9 +298,10 @@
                     android:id="@+id/contactHostButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Contact Host"
-                    android:backgroundTint="@android:color/holo_blue_light"
-                    android:textColor="@android:color/white" />
+                    android:text="CONTACT HOST"
+                    android:textSize="16sp"
+                    style="@style/BlueButton"
+                    app:backgroundTint="@null" />
             </LinearLayout>
 
             <!-- Divider -->
@@ -308,7 +310,6 @@
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray"
                 android:layout_marginVertical="16dp" />
-
 
         </LinearLayout>
 

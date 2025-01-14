@@ -385,9 +385,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Show All Reviews"
+                android:textSize="16sp"
                 style="@style/BlueButton"
-                app:backgroundTint="@android:color/holo_blue_dark"
-                android:textColor="@android:color/white"
+                app:backgroundTint="@null"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="15dp"/>
 
@@ -482,8 +482,7 @@
                     android:text="CONTACT HOST"
                     android:textSize="15sp"
                     style="@style/BlueButton"
-                    app:backgroundTint="@android:color/holo_blue_light"
-                    android:textColor="@android:color/white" />
+                    app:backgroundTint="@null" />
             </LinearLayout>
 
             <!-- 구분선 -->
@@ -526,8 +525,7 @@
                 android:text="SELECT DATES"
                 android:textSize="15sp"
                 style="@style/BlueButton"
-                app:backgroundTint="@android:color/holo_blue_dark"
-                android:textColor="@android:color/white"
+                app:backgroundTint="@null"
                 android:layout_marginBottom="16dp"
                 android:elevation="4dp" />
 
@@ -628,8 +626,7 @@
                 android:text="BOOK NOW"
                 android:textSize="16sp"
                 style="@style/BlueButton"
-                app:backgroundTint="@android:color/holo_blue_dark"
-                android:textColor="@android:color/white"
+                app:backgroundTint="@null"
                 android:layout_marginBottom="16dp"
                 android:elevation="4dp" />
 
