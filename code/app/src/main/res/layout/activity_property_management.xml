@@ -20,8 +20,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Create Property"
-            android:backgroundTint="#9AC8CD"
-            android:textColor="#FFFFFF"
+
+            style="@style/BlueButton"
             android:padding="10dp" />
 
         <!-- Delete Property Button -->
