@@ -45,6 +45,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("com.itextpdf:itext7-core:7.2.5") {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+    }
 
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-analytics")
