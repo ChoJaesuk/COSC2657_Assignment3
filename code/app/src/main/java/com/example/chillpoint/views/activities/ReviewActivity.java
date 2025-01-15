@@ -10,13 +10,16 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ReviewActivity extends AppCompatActivity {
+public class ReviewActivity extends BaseActivity implements NavigationSetup {
     private RatingBar ratingBar;
     private EditText feedbackEditText;
     private Button submitButton;
@@ -115,5 +118,16 @@ public class ReviewActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> Log.e("ReviewStats", "Failed to fetch property details", e));
+    }
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_booking);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
     }
 }

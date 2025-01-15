@@ -22,8 +22,11 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.ImageSliderAdapter;
 import com.example.chillpoint.managers.SessionManager;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -39,7 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BookingDetailActivity extends AppCompatActivity {
+public class BookingDetailActivity extends BaseActivity implements NavigationSetup {
     private FirebaseFirestore firestore;
     private String propertyId, bookingId, bookingDates, hostUserId, bookingStatus, userId;
 
@@ -490,5 +493,15 @@ public class BookingDetailActivity extends AppCompatActivity {
                     Log.e("fetchPropertyDetailsForPDF", "Error fetching property details", e);
                 });
     }
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_trips);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
 
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
 }

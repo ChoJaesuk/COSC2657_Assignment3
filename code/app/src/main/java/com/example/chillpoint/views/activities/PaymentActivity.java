@@ -31,10 +31,13 @@ import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.PropertyRepository;
 import com.example.chillpoint.repositories.UserRepository;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.models.Property;
 import com.example.chillpoint.views.models.Receipt;
 import com.example.chillpoint.views.models.Voucher;
 import com.example.chillpoint.views.models.Bill;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -56,7 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class PaymentActivity extends AppCompatActivity {
+public class PaymentActivity extends BaseActivity implements NavigationSetup {
     private LinearLayout paymentLinearLayout, billSplitLinearLayout, bookingSummaryLinearLayout, paymentMethodLinearLayout, emailContainer;
     private RadioGroup splitBillRadioGroup,titleRadioGroup;
     private RadioButton yesRadioButton, noRadioButton;
@@ -917,5 +920,15 @@ public class PaymentActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("PaymentActivity", "Failed to fetch user info: " + e.getMessage()));
     }
 
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_trips);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
 
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
 }

@@ -26,7 +26,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.ImageAdapter;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -41,7 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class CreatePropertyActivity extends AppCompatActivity {
+public class CreatePropertyActivity extends BaseActivity implements NavigationSetup {
 
     private static final int IMAGE_PICKER_REQUEST = 100;
     private static final int LOCATION_PICKER_REQUEST = 200; // For map location picking
@@ -454,5 +457,16 @@ public class CreatePropertyActivity extends AppCompatActivity {
         void onUploadComplete(ArrayList<String> urls);
 
         void onUploadFailed(String errorMessage);
+    }
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_profile);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
     }
 }

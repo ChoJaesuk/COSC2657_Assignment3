@@ -16,12 +16,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.ImageAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -30,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class HostVerificationActivity extends AppCompatActivity {
+public class HostVerificationActivity extends BaseActivity implements NavigationSetup {
 
     private static final String TAG = "HostVerification";
 
@@ -44,6 +47,8 @@ public class HostVerificationActivity extends AppCompatActivity {
     private ImageAdapter imageAdapter;
     private ArrayList<Uri> imageUris;
 
+    private SessionManager sessionManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +58,9 @@ public class HostVerificationActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         storageReference = FirebaseStorage.getInstance().getReference();
+
+        // Initialize SessionManager
+        sessionManager = new SessionManager(this);
 
         // Initialize UI components
         uploadImageButton = findViewById(R.id.uploadImageButton);
@@ -110,7 +118,15 @@ public class HostVerificationActivity extends AppCompatActivity {
             return;
         }
 
-        String userId = auth.getCurrentUser().getUid();
+        // Retrieve user details from SessionManager
+        String userId = sessionManager.getUserId();
+        String username = sessionManager.getUsername();
+        String phone = sessionManager.getPhone();
+
+        if (userId == null || username == null || phone == null) {
+            Toast.makeText(this, "Error retrieving user details. Please log in again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // Check if there is already a pending verification
         firestore.collection("HostVerifications")
@@ -121,12 +137,12 @@ public class HostVerificationActivity extends AppCompatActivity {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         Toast.makeText(this, "You already have a pending verification.", Toast.LENGTH_SHORT).show();
                     } else {
-                        uploadImagesAndSaveData(userId);
+                        uploadImagesAndSaveData(userId, username, phone);
                     }
                 });
     }
 
-    private void uploadImagesAndSaveData(String userId) {
+    private void uploadImagesAndSaveData(String userId, String username, String phone) {
         ArrayList<String> imageUrls = new ArrayList<>();
         for (Uri uri : imageUris) {
             String fileName = "host_verifications/" + userId + "/" + System.currentTimeMillis() + ".jpg";
@@ -140,7 +156,7 @@ public class HostVerificationActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 imageUrls.add(task.getResult().toString());
                                 if (imageUrls.size() == imageUris.size()) {
-                                    saveVerificationData(userId, imageUrls);
+                                    saveVerificationData(userId, username, phone, imageUrls);
                                 }
                             } else {
                                 Toast.makeText(HostVerificationActivity.this, "Error uploading images.", Toast.LENGTH_SHORT).show();
@@ -150,35 +166,24 @@ public class HostVerificationActivity extends AppCompatActivity {
         }
     }
 
-    private void saveVerificationData(String userId, ArrayList<String> imageUrls) {
-        // Get user details from Firestore
-        firestore.collection("Users").document(userId).get()
+    private void saveVerificationData(String userId, String username, String phone, ArrayList<String> imageUrls) {
+        // Create verification data
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        String status = "Pending";
+        String adminNote = "";
+
+        // Prepare data to save
+        HostVerification verification = new HostVerification(
+                userId, username, phone, imageUrls, status, timestamp, adminNote
+        );
+
+        firestore.collection("HostVerifications").add(verification)
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult().exists()) {
-                        String username = task.getResult().getString("username");
-                        String phone = task.getResult().getString("phone");
-
-                        // Create verification data
-                        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-                        String status = "Pending";
-                        String adminNote = "";
-
-                        // Prepare data to save
-                        HostVerification verification = new HostVerification(
-                                userId, username, phone, imageUrls, status, timestamp, adminNote
-                        );
-
-                        firestore.collection("HostVerifications").add(verification)
-                                .addOnCompleteListener(task1 -> {
-                                    if (task1.isSuccessful()) {
-                                        Toast.makeText(HostVerificationActivity.this, "Verification submitted successfully.", Toast.LENGTH_SHORT).show();
-                                        finish(); // Close the activity
-                                    } else {
-                                        Toast.makeText(HostVerificationActivity.this, "Error submitting verification.", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                    if (task.isSuccessful()) {
+                        Toast.makeText(HostVerificationActivity.this, "Verification submitted successfully.", Toast.LENGTH_SHORT).show();
+                        finish(); // Close the activity
                     } else {
-                        Toast.makeText(HostVerificationActivity.this, "Error retrieving user details.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(HostVerificationActivity.this, "Error submitting verification.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -202,5 +207,16 @@ public class HostVerificationActivity extends AppCompatActivity {
             this.timestamp = timestamp;
             this.adminNote = adminNote;
         }
+    }
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_profile);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
     }
 }
