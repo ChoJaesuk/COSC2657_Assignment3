@@ -16,9 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseMessaging;
-import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.messaging.FirebaseMessaging;
+
 
 import java.util.Date;
 import java.util.HashMap;
@@ -177,19 +175,11 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
 
         firestore.collection("Notifications").add(notification)
                 .addOnSuccessListener(documentReference -> {
-                    sendRealTimeNotification(title, message);
+
                     Toast.makeText(this, "Notification sent to user.", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to save notification: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    private void sendRealTimeNotification(String title, String message) {
-        FirebaseMessaging.getInstance().subscribeToTopic(userId)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        // Real-time notification logic (if applicable with Firebase Cloud Messaging)
-                        Toast.makeText(this, "Real-time notification sent to user.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
+
 }
