@@ -15,6 +15,8 @@
         android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -31,6 +33,18 @@
             android:name=".views.activities.ReceiptActivity"
             android:exported="false" />
         <activity
+            android:name=".views.activities.CustomerSupportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.EditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.VoucherListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.CreateVoucherActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.activities.PaymentActivity"
             android:exported="false" />
         <activity
@@ -44,6 +58,12 @@
             android:exported="false" />
         <activity
             android:name=".views.activities.PropertyManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.BaseActivity"
+            android:exported="false" />
+        <activity
+            android:name=".views.activities.NotificationActivity"
             android:exported="false" />
         <activity
             android:name=".views.activities.ChatDetailsActivity"

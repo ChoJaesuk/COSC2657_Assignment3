@@ -2,26 +2,33 @@ package com.example.chillpoint.views.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.utils.NavigationUtils;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends BaseActivity {
+
+    private static final int EDIT_PROFILE_REQUEST = 1001;
 
     private ImageView profileImageView;
     private TextView usernameTextView;
     private TextView hostVerificationTextView;
     private TextView bookingManagementTextView;
     private TextView propertyManagementTextView;
+    private Button editProfileButton;
+    private TextView customerSupportTv;
 
     private SessionManager sessionManager;
     private FirebaseFirestore firestore;
@@ -30,6 +37,7 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        setupNavigationBar();
 
         // Initialize SessionManager and Firestore
         sessionManager = new SessionManager(this);
@@ -41,6 +49,8 @@ public class ProfileActivity extends AppCompatActivity {
         hostVerificationTextView = findViewById(R.id.hostVerification);
         bookingManagementTextView = findViewById(R.id.bookingManagement);
         propertyManagementTextView = findViewById(R.id.propertyManagement);
+        customerSupportTv = findViewById(R.id.customerSupportTv);
+        editProfileButton = findViewById(R.id.editProfileButton);
 
         // Load user profile using SessionManager
         loadUserProfile();
@@ -49,6 +59,17 @@ public class ProfileActivity extends AppCompatActivity {
         hostVerificationTextView.setOnClickListener(v -> handleHostVerification());
         bookingManagementTextView.setOnClickListener(v -> handleRestrictedActions("Booking Management"));
         propertyManagementTextView.setOnClickListener(v -> handlePropertyManagement());
+
+        // Edit profile button click listener
+        editProfileButton.setOnClickListener(v -> navigateToEditProfile());
+        propertyManagementTextView.setOnClickListener(v -> handleRestrictedActions("Property Management"));
+        customerSupportTv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ProfileActivity.this, CustomerSupportActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void loadUserProfile() {
@@ -76,6 +97,21 @@ public class ProfileActivity extends AppCompatActivity {
         // Check if session data exists, else show an error
         if (username == null && imageUrl == null) {
             Toast.makeText(this, "Session data not found. Please log in again.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void navigateToEditProfile() {
+        Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+        startActivityForResult(intent, EDIT_PROFILE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == EDIT_PROFILE_REQUEST && resultCode == RESULT_OK) {
+            // Reload updated user profile
+            loadUserProfile();
         }
     }
 
@@ -190,5 +226,17 @@ public class ProfileActivity extends AppCompatActivity {
                 .setMessage(message)
                 .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                 .show();
+    }
+
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_profile);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
     }
 }

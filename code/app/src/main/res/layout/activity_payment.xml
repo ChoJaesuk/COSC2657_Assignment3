@@ -11,7 +11,7 @@
         android:id="@+id/paymentLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#E8F7F9"
+        android:background="@color/custom_background"
         android:orientation="vertical">
 
         <ScrollView
@@ -168,15 +168,20 @@
                     android:padding="12dp"
                     android:textSize="14sp" />
 
-                <!-- Voucher Code -->
-                <EditText
-                    android:id="@+id/voucherCodeEditText"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:hint="Voucher Code"
-                    android:padding="12dp"
-                    android:textSize="14sp" />
+                    android:orientation="vertical">
+                    <!-- Voucher Selection Spinner -->
+                    <Spinner
+                        android:id="@+id/voucherSpinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:spinnerMode="dropdown" />
+                </LinearLayout>
+
+
 
                 <!-- Split Bill Option -->
                 <TextView
@@ -338,9 +343,9 @@
         android:id="@+id/bookingSummaryLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FFFFFF"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="@color/custom_background">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -534,9 +539,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:backgroundTint="#8EE6F0"
-                    android:text="Next"
-                    android:textColor="#000000"
+                    android:text="NEXT"
+                    style="@style/BlueButton"
+                    app:backgroundTint="@null"
                     android:textStyle="bold" />
             </LinearLayout>
         </ScrollView>

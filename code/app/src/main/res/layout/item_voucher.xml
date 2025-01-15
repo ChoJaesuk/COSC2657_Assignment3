@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:padding="16dp"
     android:background="@drawable/bg_voucher"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="8dp"
+    android:elevation="8dp">
 
     <!-- Discount Badge -->
     <TextView
@@ -28,11 +29,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@id/voucherDiscountBadge"
+        android:layout_alignBaseline="@id/voucherDiscountBadge"
         android:layout_marginStart="16dp"
         android:text="CODE: VOUCHER123"
         android:textColor="@color/black"
         android:textStyle="bold"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:maxLines="1"
+        android:ellipsize="end"/>
 
     <!-- Divider -->
     <View
@@ -40,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_below="@id/voucherDiscountBadge"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:background="@android:color/darker_gray" />
 
     <!-- Voucher Details Section -->
@@ -80,17 +84,6 @@
         android:orientation="horizontal"
         android:layout_marginTop="8dp">
 
-        <!-- Voucher Status -->
-        <TextView
-            android:id="@+id/voucherStatusTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Status: Active"
-            android:textColor="@color/green"
-            android:textStyle="bold"
-            android:textSize="14sp" />
-
         <!-- Collect Voucher -->
         <TextView
             android:id="@+id/collectVoucherTextView"
@@ -103,6 +96,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:text="Collect"
+            android:elevation="2dp"
             android:textStyle="bold"
             android:textColor="@color/white"
             android:textSize="14sp" />

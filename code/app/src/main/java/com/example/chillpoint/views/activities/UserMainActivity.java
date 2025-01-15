@@ -76,7 +76,7 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
     private String selectedRooms = null;
     private String selectedBeds = null;
     private String selectedDateRange = "None";
-
+    private Button viewVoucherListButton;
     private double userLat = 0.0;
     private double userLng = 0.0;
     @Override
@@ -109,6 +109,7 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
         filterButton = findViewById(R.id.filterButton);
         searchButton = findViewById(R.id.searchButton);
         searchEditText = findViewById(R.id.searchEditText);
+        viewVoucherListButton = findViewById(R.id.viewVoucherListButton);
 
         propertyList = new ArrayList<>();
         propertyAdapter = new PropertyAdapter(this, propertyList);
@@ -133,6 +134,12 @@ public class UserMainActivity extends AppCompatActivity implements NavigationSet
             selectedDateRange = "None";
             // 검색창도 초기화할지 여부는 자유
             //searchEditText.setText("");
+        });
+
+        // Set click listener for View Voucher List button
+        viewVoucherListButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UserMainActivity.this, VoucherListActivity.class);
+            startActivity(intent);
         });
 
         // ========== 필터 버튼 (BottomSheetDialog) ==========

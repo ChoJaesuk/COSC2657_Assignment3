@@ -16,7 +16,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +33,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
 
     private FirebaseFirestore firestore;
     private String verificationId;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +71,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         Map<String, Object> verificationData = documentSnapshot.getData();
                         if (verificationData != null) {
+                            userId = documentSnapshot.getString("userId");
                             displayDetails(verificationData);
                         }
                     } else {
@@ -86,7 +91,6 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         statusTextView.setText(verificationData.containsKey("status") ? verificationData.get("status").toString() : "N/A");
         timestampTextView.setText(verificationData.containsKey("timestamp") ? verificationData.get("timestamp").toString() : "N/A");
 
-        // Set text color for status
         String status = verificationData.get("status").toString();
         if ("Approved".equalsIgnoreCase(status)) {
             statusTextView.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
@@ -100,10 +104,10 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                 String imageUrl = ((java.util.List<String>) verificationData.get("imageUrls")).get(0);
                 Glide.with(this).load(imageUrl).into(imageView);
             } catch (Exception e) {
-                Glide.with(this).load(R.drawable.placeholder_image).into(imageView); // Default placeholder
+                Glide.with(this).load(R.drawable.placeholder_image).into(imageView);
             }
         } else {
-            Glide.with(this).load(R.drawable.placeholder_image).into(imageView); // Default placeholder
+            Glide.with(this).load(R.drawable.placeholder_image).into(imageView);
         }
 
         adminNoteEditText.setText(verificationData.containsKey("adminNote") ? verificationData.get("adminNote").toString() : "");
@@ -124,11 +128,29 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         update.put("adminNote", adminNote);
 
         firestore.collection("HostVerifications").document(verificationId).update(update)
+                .addOnSuccessListener(aVoid -> updateUserValidationStatus(status))
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(this, "Failed to update verification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updateUserValidationStatus(String status) {
+        if (userId == null) {
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(this, "User ID not found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean isValidated = "Approved".equalsIgnoreCase(status);
+
+        firestore.collection("Users").document(userId)
+                .update("isValidated", isValidated)
                 .addOnSuccessListener(aVoid -> {
                     progressBar.setVisibility(View.GONE);
+                    saveNotificationForUser(status);
                     Toast.makeText(this, "Verification updated successfully.", Toast.LENGTH_SHORT).show();
 
-                    // Return to the list activity and notify data update
                     Intent intent = new Intent();
                     intent.putExtra("verificationId", verificationId);
                     intent.putExtra("status", status);
@@ -137,7 +159,48 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Failed to update verification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to update user validation status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveNotificationForUser(String status) {
+        String title = "Host Verification " + status;
+        String message = "Your host verification request has been " + status.toLowerCase() + ".";
+
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("userId", userId);
+        notification.put("title", title);
+        notification.put("message", message);
+        notification.put("timestamp", new Date());
+        notification.put("isRead", false);
+
+        // Save notification to Firestore
+        firestore.collection("Notifications").add(notification)
+                .addOnSuccessListener(documentReference -> {
+                    // Send real-time notification
+                    sendRealTimeNotification(title, message);
+                    Toast.makeText(this, "Notification sent to user.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to save notification: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void sendRealTimeNotification(String title, String message) {
+        // Use Firebase Cloud Messaging to send a message to the user
+        Map<String, String> payload = new HashMap<>();
+        payload.put("title", title);
+        payload.put("message", message);
+
+        firestore.collection("FCMUsers").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String userToken = documentSnapshot.getString("fcmToken");
+                        if (userToken != null) {
+                            FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(userToken)
+                                    .setData(payload)
+                                    .build());
+                        }
+                    }
                 });
     }
 }
+

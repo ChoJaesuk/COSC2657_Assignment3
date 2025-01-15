@@ -2,7 +2,9 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp"
+    android:background="@color/custom_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,7 +23,8 @@
             android:id="@+id/nameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter the name of the property"
+            android:background="@drawable/bg_text_round"
+            android:hint="Enter property name"
             android:layout_marginTop="8dp" />
 
         <!-- Description Input Field -->
@@ -35,6 +38,7 @@
             android:id="@+id/descriptionEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_text_round"
             android:hint="Enter a short description"
             android:layout_marginTop="8dp" />
 
@@ -49,7 +53,8 @@
             android:id="@+id/addressEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Property address"
+            android:background="@drawable/bg_text_round"
+            android:hint="Enter property address"
             android:layout_marginTop="8dp"
             android:focusable="false" />
         <Button
@@ -57,7 +62,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Pick Location from Map"
-            android:layout_marginTop="8dp" />
+            android:textSize="16sp"
+            style="@style/BlueButton"
+            app:backgroundTint="@null"
+            android:layout_marginTop="15dp" />
 
         <!-- Price Per Night Input Field -->
         <TextView
@@ -70,6 +78,7 @@
             android:id="@+id/priceEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_text_round"
             android:hint="Enter price per night"
             android:inputType="numberDecimal"
             android:layout_marginTop="8dp" />
@@ -85,6 +94,7 @@
             android:id="@+id/roomsEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_text_round"
             android:hint="Enter number of rooms"
             android:inputType="number"
             android:layout_marginTop="8dp" />
@@ -129,6 +139,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Add Bed Type"
+            android:textSize="16sp"
+            style="@style/BlueButton"
+            app:backgroundTint="@null"
             android:layout_marginTop="16dp" />
 
         <!-- [새로 추가됨] 추가된 BedType들을 표시할 ListView -->
@@ -149,6 +162,7 @@
             android:id="@+id/maxGuestsEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_text_round"
             android:hint="Enter maximum guests"
             android:inputType="number"
             android:layout_marginTop="8dp" />
@@ -184,7 +198,10 @@
             android:id="@+id/uploadImagesButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            style="@style/BlueButton"
+            app:backgroundTint="@null"
             android:text="Upload Images"
+            android:textSize="16sp"
             android:layout_marginTop="16dp" />
 
         <!-- Images Grid View -->
@@ -203,6 +220,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Property"
+            android:textSize="16sp"
+            style="@style/BlueButton"
+            app:backgroundTint="@null"
             android:layout_marginTop="16dp" />
 
         <!-- Progress Bar -->

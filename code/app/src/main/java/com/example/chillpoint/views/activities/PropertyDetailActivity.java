@@ -336,10 +336,10 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                         for (DocumentSnapshot document : task.getResult()) {
                             try {
                                 String fromDateStr = document.getString("fromDate"); // "2025-01-10"
-                                String toDateStr   = document.getString("toDate");
+                                String toDateStr = document.getString("toDate");
                                 if (fromDateStr != null && toDateStr != null) {
                                     long fromDate = sdf.parse(fromDateStr).getTime();
-                                    long toDate   = sdf.parse(toDateStr).getTime();
+                                    long toDate = sdf.parse(toDateStr).getTime();
 
                                     for (long date = fromDate; date <= toDate; date += 24 * 60 * 60 * 1000) {
                                         reservedDates.add(date);
@@ -367,7 +367,6 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                             }
                         };
 
-                        // 아래 동일
                         CalendarConstraints.Builder constraintsBuilder =
                                 new CalendarConstraints.Builder().setValidator(dateValidator);
 
@@ -379,15 +378,39 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                         MaterialDatePicker<androidx.core.util.Pair<Long, Long>> datePicker = datePickerBuilder.build();
 
                         datePicker.addOnPositiveButtonClickListener(selection -> {
-                            // selection.first, selection.second -> 이미 UTC 기준 0시 timestamp
-                            selectedStartDate = formatDate(selection.first);
-                            selectedEndDate   = formatDate(selection.second);
+                            long startDate = selection.first;
+                            long endDate = selection.second;
 
-                            Toast.makeText(this,
-                                    "Selected Dates: " + selectedStartDate + " ~ " + selectedEndDate,
-                                    Toast.LENGTH_SHORT
-                            ).show();
-                            updateBookingInfo();
+                            // 선택한 날짜 범위와 예약된 날짜가 겹치는지 검증
+                            boolean isConflict = false;
+                            for (long reservedDate : reservedDates) {
+                                if (startDate <= reservedDate && reservedDate <= endDate) {
+                                    isConflict = true;
+                                    break;
+                                }
+                            }
+
+                            if (isConflict) {
+                                // 겹치는 날짜가 있는 경우 사용자에게 알림
+                                Toast.makeText(this,
+                                        "Selected dates conflict with existing reservations. Please choose a different range.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            } else {
+                                // 겹치는 날짜가 없으면 예약 처리
+                                String formattedStartDate = formatDate(startDate);
+                                String formattedEndDate = formatDate(endDate);
+
+                                Toast.makeText(this,
+                                        "Selected Dates: " + formattedStartDate + " ~ " + formattedEndDate,
+                                        Toast.LENGTH_SHORT
+                                ).show();
+
+                                selectedStartDate = formattedStartDate;
+                                selectedEndDate = formattedEndDate;
+
+                                updateBookingInfo();
+                            }
                         });
 
                         datePicker.show(getSupportFragmentManager(), "DATE_PICKER");
@@ -401,6 +424,30 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         return sdf.format(new Date(timestamp));
     }
+
+
+    private void bookProperty() {
+        HashMap<String, Object> reservation = new HashMap<>();
+        reservation.put("propertyId", propertyId);
+        reservation.put("userId", userId);
+        reservation.put("fromDate", selectedStartDate);
+        reservation.put("toDate", selectedEndDate);
+        reservation.put("guestCount", selectedGuests); // 추가
+        reservation.put("timestamp", System.currentTimeMillis());
+        reservation.put("hostId", hostUserId);
+        reservation.put("status","Confirmed");
+
+        firestore.collection("reservations")
+                .add(reservation)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Booking successful!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Booking failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("PropertyDetailActivity", "Error booking property", e);
+                });
+    }
+
 
     private void fetchHostInformation(String propertyId, TextView hostNameTextView, TextView hostDetailsTextView, ImageView hostImageView) {
         // Fetch the property data to get the userId

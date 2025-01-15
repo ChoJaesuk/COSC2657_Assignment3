@@ -1,13 +1,18 @@
 package com.example.chillpoint.views.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +21,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
+import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.views.adapters.ImageSliderAdapter;
 import com.example.chillpoint.managers.SessionManager;
 import com.google.firebase.firestore.FieldPath;
@@ -24,6 +30,7 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,26 +40,28 @@ import java.util.List;
 import java.util.Map;
 
 public class BookingDetailActivity extends AppCompatActivity {
-    private SessionManager sessionManager;
     private FirebaseFirestore firestore;
-    private String propertyId, bookingId, bookingDates, hostUserId;
+    private String propertyId, bookingId, bookingDates, hostUserId, bookingStatus, userId;
 
     private TextView propertyNameTextView, propertyDescriptionTextView, propertyAddressTextView;
     private TextView hostNameTextView, hostDetailsTextView;
-    private TextView bookingIdTextView, bookingDatesTextView;
+    private TextView bookingIdTextView, bookingDatesTextView, bookingStatusTextView;
     private ImageView hostImageView;
     private ViewPager2 propertyImageViewPager;
     private Map<String, Integer> bedTypeIcons;
     private Button downloadConfirmationForm;
+    private Spinner statusDropdown;
+    private Button confirmStatusButton;
+    private SessionManager sessionManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking_detail);
-        sessionManager = new SessionManager(this);
-
         // Firestore 초기화
         firestore = FirebaseFirestore.getInstance();
-
+        sessionManager = new SessionManager(this);
+        userId = sessionManager.getUserId();
         // View 초기화
         propertyNameTextView = findViewById(R.id.propertyDetailNameTextView);
         propertyDescriptionTextView = findViewById(R.id.propertyDetailDescriptionTextView);
@@ -63,6 +72,10 @@ public class BookingDetailActivity extends AppCompatActivity {
         hostDetailsTextView = findViewById(R.id.hostDetailsTextView);
         hostImageView = findViewById(R.id.hostImageView);
         propertyImageViewPager = findViewById(R.id.propertyImageViewPager);
+        bookingStatusTextView = findViewById(R.id.bookingStatusTextView);
+
+        statusDropdown = findViewById(R.id.statusDropdown);
+        confirmStatusButton = findViewById(R.id.confirmStatusButton);
 
         // 침대 타입 아이콘 초기화
         setupBedTypeIcons();
@@ -71,6 +84,7 @@ public class BookingDetailActivity extends AppCompatActivity {
         propertyId = getIntent().getStringExtra("propertyId");
         bookingId = getIntent().getStringExtra("bookingId");
         bookingDates = getIntent().getStringExtra("dates");
+        bookingStatus = getIntent().getStringExtra("status");
 
         if (propertyId == null || propertyId.isEmpty()) {
             Toast.makeText(this, "Invalid Property ID", Toast.LENGTH_SHORT).show();
@@ -81,12 +95,15 @@ public class BookingDetailActivity extends AppCompatActivity {
         // Booking ID 및 Dates 데이터 바인딩
         bookingIdTextView.setText(bookingId != null ? "Booking ID: " + bookingId : "No Booking ID");
         bookingDatesTextView.setText(bookingDates != null ? "Booking Dates: " + bookingDates : "No Booking Dates");
+        bookingStatusTextView.setText(bookingStatus != null ? "Booking Status: " + bookingStatus : "No Booking Status");
 
         // Fetch Property Details
         fetchPropertyDetails(propertyId);
 
         // Fetch Host Information
         fetchHostInformation(propertyId);
+
+        checkHostVerification();
         downloadConfirmationForm = findViewById(R.id.downloadConfirmationForm);
         downloadConfirmationForm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -254,6 +271,81 @@ public class BookingDetailActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> Log.e("BookingDetailActivity", "Error fetching property data", e));
+    }
+
+    private void checkHostVerification() {
+        if (userId == null) {
+            showAlert("Error", "Session expired. Please log in again.");
+            return;
+        }
+
+        firestore.collection("HostVerifications")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("status", "Approved")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        QuerySnapshot querySnapshot = task.getResult();
+                        if (!querySnapshot.isEmpty()) {
+                            setupHostControls(); // Host 전용 UI 설정
+                        } else {
+                            hideHostControls(); // 일반 사용자 UI 설정
+                        }
+                    } else {
+                        showAlert("Error", "Error checking host verification status.");
+                    }
+                });
+    }
+    private void showAlert(String title, String message) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+    private void setupHostControls() {
+        statusDropdown.setVisibility(View.VISIBLE);
+        confirmStatusButton.setVisibility(View.VISIBLE);
+
+        // 드롭다운 메뉴에 Status 목록 설정
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this,
+                R.array.reservation_status_array, // strings.xml에 정의된 status 배열
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        statusDropdown.setAdapter(adapter);
+
+        // Confirm 버튼 클릭 리스너
+        confirmStatusButton.setOnClickListener(v -> updateReservationStatus());
+    }
+
+    private void hideHostControls() {
+        statusDropdown.setVisibility(View.GONE);
+        confirmStatusButton.setVisibility(View.GONE);
+    }
+
+    private void updateReservationStatus() {
+        String newStatus = statusDropdown.getSelectedItem().toString();
+        Log.d("BookingDetailActivity", "Selected new status: " + newStatus);
+
+        firestore.collection("reservations")
+                .document(bookingId)
+                .update("status", newStatus)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("BookingDetailActivity", "Status successfully updated in Firestore to: " + newStatus);
+                    Toast.makeText(this, "Status updated to " + newStatus, Toast.LENGTH_SHORT).show();
+
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("updatedStatus", newStatus); // 변경된 상태 전달
+                    setResult(RESULT_OK, resultIntent); // RESULT_OK로 설정
+                    Log.d("BookingDetailActivity", "setResult called with RESULT_OK");
+                    finish(); // 이전 액티비티로 돌아가기
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("BookingDetailActivity", "Error updating status", e);
+                    Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show();
+                });
     }
     private void downloadConfirmationForm() {
         try {
