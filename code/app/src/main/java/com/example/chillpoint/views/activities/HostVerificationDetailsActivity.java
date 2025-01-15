@@ -76,21 +76,29 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     progressBar.setVisibility(View.GONE);
                     if (documentSnapshot.exists()) {
-                        Map<String, Object> verificationData = documentSnapshot.getData();
-                        if (verificationData != null) {
-                            userId = documentSnapshot.getString("userId");
-                            displayDetails(verificationData);
+                        userId = documentSnapshot.getString("userId");
+                        if (userId == null || userId.isEmpty()) {
+                            Log.e("HostVerification", "userId is null or empty in Firestore document.");
+                            Toast.makeText(this, "User ID is missing. Please check Firestore data.", Toast.LENGTH_SHORT).show();
+                            finish(); // 또는 에러 처리 로직 추가
+                        } else {
+                            Log.d("HostVerification", "Fetched userId: " + userId);
                         }
+                        displayDetails(documentSnapshot.getData());
                     } else {
+                        Log.e("HostVerification", "Verification document not found.");
                         Toast.makeText(this, "Verification not found.", Toast.LENGTH_SHORT).show();
                         finish();
                     }
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Failed to load verification details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("HostVerification", "Failed to load verification details: " + e.getMessage());
+                    Toast.makeText(this, "Failed to load verification details.", Toast.LENGTH_SHORT).show();
                 });
     }
+
+
 
     private void displayDetails(Map<String, Object> verificationData) {
         usernameTextView.setText(verificationData.containsKey("username") ? verificationData.get("username").toString() : "N/A");
@@ -209,19 +217,23 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
     private void fetchAndSaveFCMToken() {
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
-                        return;
+                    if (task.isSuccessful()) {
+                        String fcmToken = task.getResult();
+                        if (userId == null || userId.isEmpty()) {
+                            Log.e("FCM", "userId is null or empty. Cannot save FCM token.");
+                            return;
+                        }
+
+                        // Users 컬렉션으로 수정
+                        FirebaseFirestore.getInstance().collection("Users")
+                                .document(userId)
+                                .update("fcmToken", fcmToken)
+                                .addOnSuccessListener(aVoid -> Log.d("FCM", "Token saved successfully"))
+                                .addOnFailureListener(e -> Log.e("FCM", "Error saving token", e));
+                    } else {
+                        Log.e("FCM", "Failed to fetch FCM token", task.getException());
                     }
-
-                    String token = task.getResult();
-                    Log.d("FCM", "FCM Token: " + token);
-
-                    firestore.collection("Users")
-                            .document(userId)
-                            .update("fcmToken", token)
-                            .addOnSuccessListener(aVoid -> Log.d("FCM", "Token saved successfully"))
-                            .addOnFailureListener(e -> Log.e("FCM", "Error saving token", e));
                 });
     }
+
 }
