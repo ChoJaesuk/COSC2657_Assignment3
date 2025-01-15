@@ -2,6 +2,7 @@ package com.example.chillpoint.views.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.view.View;
 import android.widget.ImageView;
@@ -125,31 +126,29 @@ public class ProfileActivity extends BaseActivity {
 
         firestore.collection("HostVerifications")
                 .whereEqualTo("userId", userId)
+                .whereEqualTo("status", "Approved")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         QuerySnapshot querySnapshot = task.getResult();
                         if (!querySnapshot.isEmpty()) {
-                            String status = querySnapshot.getDocuments().get(0).getString("status");
+                            // 쿼리가 성공적으로 반환되고, 승인된 호스트가 확인된 경우
+                            Intent intent = new Intent(this, PropertyManagementActivity.class);
+                            Log.d("IntentDebug", "Navigating to PropertyManagementActivity");
+                            startActivity(intent);
 
-                            switch (status) {
-                                case "Approved":
-                                    showAlert("Already Verified", "You have already been verified as a host.");
-                                    break;
-                                case "Pending":
-                                    showAlert("Pending Approval", "Your verification request is still pending. Please wait for admin approval.");
-                                    break;
-                                default: // Rejected case
-                                    navigateToHostVerification();
-                                    break;
-                            }
                         } else {
-                            navigateToHostVerification();
+                            // 문서가 비어 있을 경우
+                            showAlert("Host Verification Required",
+                                    "To manage properties, you need to be an approved host. Please submit a host verification request.");
                         }
                     } else {
-                        Toast.makeText(this, "Error checking host verification status.", Toast.LENGTH_SHORT).show();
+                        // 쿼리 실패의 이유를 로그로 출력
+                        Log.e("FirestoreError", "Error checking host verification status", task.getException());
+                        showAlert("Error", "Error checking host verification status.");
                     }
                 });
+
     }
 
     private void navigateToHostVerification() {
@@ -174,9 +173,11 @@ public class ProfileActivity extends BaseActivity {
                         QuerySnapshot querySnapshot = task.getResult();
                         if (!querySnapshot.isEmpty()) {
                             if ("Booking Management".equals(actionName)) {
-                                // Navigate to HostBookingManagementActivity
                                 Intent intent = new Intent(ProfileActivity.this, HostBookingManagementActivity.class);
-                                intent.putExtra("hostId", userId); //
+                                intent.putExtra("hostId", userId);
+                                startActivity(intent);
+                            } else if ("Property Management".equals(actionName)) {
+                                Intent intent = new Intent(ProfileActivity.this, PropertyManagementActivity.class);
                                 startActivity(intent);
                             } else {
                                 Toast.makeText(this, actionName + " is not yet implemented.", Toast.LENGTH_SHORT).show();
