@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.example.chillpoint.repositories.UserRepository;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -76,10 +77,10 @@ public class ChatDetailsActivity extends AppCompatActivity {
                                     if (message != null) {
                                         String senderId = (String) message.get("senderId");
                                         String content = (String) message.get("content");
-                                        Log.d("ChatDetailsActivity", "Message: " + senderId + ": " + content);
 
                                         if (senderId != null && content != null) {
-                                            messages.add(senderId + ": " + content);
+                                            // Fetch user details for the senderId
+                                            fetchUserName(senderId, content);
                                         } else {
                                             Log.d("ChatDetailsActivity", "Message fields are null: " + message);
                                         }
@@ -96,6 +97,26 @@ public class ChatDetailsActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    // Fetch user name using UserRepository
+    private void fetchUserName(String senderId, String content) {
+        UserRepository userRepository = new UserRepository();
+
+        userRepository.getUserDetails(senderId).addOnSuccessListener(snapshot -> {
+            if (snapshot != null && snapshot.exists()) {
+                String username = snapshot.getString("username");
+                if (username != null) {
+                    messages.add(username + ": " + content);
+                    adapter.notifyDataSetChanged();
+                } else {
+                    Log.e("ChatDetailsActivity", "Username not found for senderId: " + senderId);
+                }
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("ChatDetailsActivity", "Failed to fetch user details for senderId: " + senderId, e);
+        });
+    }
+
 
     private void sendMessage(String userId) {
         String content = messageInput.getText().toString();
