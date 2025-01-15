@@ -9,12 +9,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
-import com.example.chillpoint.utils.NavigationSetup;
 import com.example.chillpoint.utils.NavigationUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;

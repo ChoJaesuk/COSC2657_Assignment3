@@ -24,7 +24,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import javax.annotation.Nullable;
 
-public class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
     private TextView notificationBadge;
     private FirebaseFirestore firestore;
@@ -135,4 +135,6 @@ public class BaseActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    public abstract void setupNavigationBar();
 }

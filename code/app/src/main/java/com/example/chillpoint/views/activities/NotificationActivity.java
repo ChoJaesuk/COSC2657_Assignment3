@@ -91,7 +91,7 @@ public class NotificationActivity extends AppCompatActivity {
 
         firestore.collection("Notifications")
                 .whereEqualTo("userId", userId)
-                .orderBy("timestamp", Query.Direction.DESCENDING) // 최신순으로 정렬
+                .orderBy("timestamp", Query.Direction.ASCENDING) // 최신순으로 정렬
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
