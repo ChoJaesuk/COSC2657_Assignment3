@@ -9,6 +9,10 @@ public class NotificationItem {
     public boolean isRead;
     public Timestamp timestamp;
 
+    // Default no-argument constructor required for Firestore
+    public NotificationItem() {
+    }
+
     public NotificationItem(String id, String title, String message, Boolean isRead, Timestamp timestamp) {
         this.id = id;
         this.title = title;

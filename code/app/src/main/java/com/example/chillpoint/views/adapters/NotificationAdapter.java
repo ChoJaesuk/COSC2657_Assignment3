@@ -12,13 +12,27 @@ import androidx.annotation.Nullable;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.views.activities.NotificationItem;
+import com.example.chillpoint.views.activities.NotificationActivity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class NotificationAdapter extends android.widget.ArrayAdapter<NotificationItem> {
 
+    private final HashSet<String> initialUnreadNotifications;
+
     public NotificationAdapter(Context context, ArrayList<NotificationItem> notifications) {
         super(context, 0, notifications);
+
+        // Get initial unread notifications from the activity or initialize a new HashSet
+        if (context instanceof NotificationActivity) {
+            NotificationActivity activity = (NotificationActivity) context;
+            initialUnreadNotifications = activity.getInitialUnreadNotifications() != null
+                    ? activity.getInitialUnreadNotifications()
+                    : new HashSet<>();
+        } else {
+            initialUnreadNotifications = new HashSet<>();
+        }
     }
 
     @NonNull
@@ -39,10 +53,10 @@ public class NotificationAdapter extends android.widget.ArrayAdapter<Notificatio
         timestampTextView.setText(item.timestamp.toDate().toString());
 
         // Highlight unread notifications
-        if (!item.isRead) {
-            convertView.setBackgroundColor(Color.parseColor("#FFF6E5")); // 연한 주황색 배경
+        if (initialUnreadNotifications != null && initialUnreadNotifications.contains(item.id)) {
+            convertView.setBackgroundColor(Color.parseColor("#FFF6E5")); // Highlight unread
         } else {
-            convertView.setBackgroundColor(Color.WHITE); // 흰색 배경
+            convertView.setBackgroundColor(Color.WHITE); // Default background
         }
 
         return convertView;

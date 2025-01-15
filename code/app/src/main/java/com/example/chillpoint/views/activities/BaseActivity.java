@@ -2,8 +2,6 @@ package com.example.chillpoint.views.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,14 +17,19 @@ import androidx.core.view.MenuItemCompat;
 
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import javax.annotation.Nullable;
 
 public class BaseActivity extends AppCompatActivity {
 
     private TextView notificationBadge;
     private FirebaseFirestore firestore;
     private SessionManager sessionManager;
+    private MenuItem notificationItem;
 
     @Override
     protected void onStart() {
@@ -68,9 +71,6 @@ public class BaseActivity extends AppCompatActivity {
         // Initialize Firebase and SessionManager
         firestore = FirebaseFirestore.getInstance();
         sessionManager = new SessionManager(this);
-
-        // Update notification badge
-        updateNotificationBadge();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class BaseActivity extends AppCompatActivity {
         // Inflate menu with notification icon
         getMenuInflater().inflate(R.menu.menu_notification, menu);
 
-        MenuItem notificationItem = menu.findItem(R.id.action_notifications);
+        notificationItem = menu.findItem(R.id.action_notifications);
         View actionView = MenuItemCompat.getActionView(notificationItem);
 
         // Set up notification badge
@@ -86,6 +86,9 @@ public class BaseActivity extends AppCompatActivity {
         actionView.setOnClickListener(v -> {
             onOptionsItemSelected(notificationItem);
         });
+
+        // Start listening for notifications after menu is created
+        listenForNotifications();
 
         return true;
     }
@@ -105,7 +108,7 @@ public class BaseActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void updateNotificationBadge() {
+    private void listenForNotifications() {
         String userId = sessionManager.getUserId();
         if (userId == null) {
             return; // No user logged in
@@ -114,15 +117,20 @@ public class BaseActivity extends AppCompatActivity {
         firestore.collection("Notifications")
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("isRead", false)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        int unreadCount = task.getResult().size();
-                        if (unreadCount > 0) {
-                            notificationBadge.setVisibility(View.VISIBLE);
-                            notificationBadge.setText(String.valueOf(unreadCount));
-                        } else {
-                            notificationBadge.setVisibility(View.GONE);
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            return; // Handle error if needed
+                        }
+                        if (snapshots != null && notificationBadge != null) {
+                            int unreadCount = snapshots.size();
+                            if (unreadCount > 0) {
+                                notificationBadge.setVisibility(View.VISIBLE);
+                                notificationBadge.setText(String.valueOf(unreadCount));
+                            } else {
+                                notificationBadge.setVisibility(View.GONE);
+                            }
                         }
                     }
                 });
