@@ -343,9 +343,9 @@
         android:id="@+id/bookingSummaryLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/custom_background"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@color/custom_background">
+        android:padding="16dp">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -359,12 +359,14 @@
 
                 <!-- User Info -->
                 <LinearLayout
+                    android:id="@+id/userInfoLinearLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:padding="8dp">
 
                     <ImageView
+                        android:id="@+id/userImageView"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_marginEnd="8dp"
@@ -376,6 +378,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/userNameTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="luy nguyen"
@@ -383,6 +386,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/userEmailTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="nguyenaluy7@gmail.com"
@@ -403,7 +407,7 @@
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:layout_marginEnd="8dp"
-                        android:src="@drawable/ic_launcher_background" />
+                        android:background="@drawable/ic_location"/>
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -453,7 +457,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
-                    android:text="Price for 42 nights"
+                    android:textStyle="bold"
+                    android:text="Price In Total:"
                     android:textColor="#000000"
                     android:textSize="14sp" />
 
@@ -492,15 +497,17 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-                                <TextView
-                                    android:id="@+id/newTotalPriceTextView"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="end"
-                                    android:padding="8dp"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/newTotalPriceTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:padding="8dp"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -536,13 +543,13 @@
                 <!-- Next Button -->
                 <Button
                     android:id="@+id/bookingSummaryNextButton"
+                    style="@style/BlueButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="NEXT"
-                    style="@style/BlueButton"
-                    app:backgroundTint="@null"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    app:backgroundTint="@null" />
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
@@ -553,7 +560,8 @@
         android:layout_height="match_parent"
         android:background="#F0FFFF"
         android:orientation="vertical"
-        android:padding="16dp"> <!-- Light cyan background -->
+        android:padding="16dp"
+        android:visibility="gone"> <!-- Light cyan background -->
 
         <!-- Title -->
         <TextView

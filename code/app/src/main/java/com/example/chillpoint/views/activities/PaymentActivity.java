@@ -224,6 +224,7 @@ public class PaymentActivity extends AppCompatActivity {
                     billSplitLinearLayout.setVisibility(View.VISIBLE);
                 } else {
                     paymentLinearLayout.setVisibility(View.GONE);
+                    loadUserInfo();
                     bookingSummaryLinearLayout.setVisibility(View.VISIBLE);
                     propertyRepository.getPropertyById(propertyId)
                             .addOnSuccessListener(property -> {
@@ -313,9 +314,9 @@ public class PaymentActivity extends AppCompatActivity {
         // Populate property information
         propertyNameTextView.setText(property.getName());
         propertyLocationTextView.setText(property.getAddress());
-        bookingDateTextView.setText(String.format("%s - %s", startDate, toDate));
-        guestsTextView.setText(numberOfGuests);
-        totalPriceTextView.setText(totalPrice);
+        bookingDateTextView.setText(String.format("From Date: %s\nTo Date: %s", startDate, toDate));
+        guestsTextView.setText("Number Of Guests: " + numberOfGuests);
+        totalPriceTextView.setText("$" + totalPrice);
 
         // Calculate the total amount (divide by the number of friends)
         totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
@@ -368,6 +369,7 @@ public class PaymentActivity extends AppCompatActivity {
                 .load(property.getImages().get(0))
                 .placeholder(R.drawable.ic_launcher_background)
                 .into(propertyImageView);
+        Log.e("ImageLoading", "Image Loading: " + property.getImages().get(0));
     }
 
 
@@ -666,6 +668,9 @@ public class PaymentActivity extends AppCompatActivity {
             updateStatusReceipt(sessionManager.getUserId(), billId);
             // Check if all receipts are completed before creating the reservation
             checkReceiptsAndCreateReservation(billId);
+            Intent intent = new Intent(this, ReceiptActivity.class);
+            startActivity(intent);
+            finish();
         } else if (paymentSheetResult instanceof PaymentSheetResult.Canceled) {
             Toast.makeText(this, "Payment canceled", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, ReceiptActivity.class);
@@ -793,9 +798,6 @@ public class PaymentActivity extends AppCompatActivity {
                 .add(reservation)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(this, "Booking successful!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(this, ReceiptActivity.class);
-                    startActivity(intent);
-                    finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Booking failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -882,30 +884,38 @@ public class PaymentActivity extends AppCompatActivity {
         Log.d("PaymentActivity", "Voucher Spinner updated with no vouchers.");
     }
 
+    private void loadUserInfo() {
+        firestore.collection("Users")
+                .document(sessionManager.getUserId())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Extract user details
+                        String userName = documentSnapshot.getString("username");
+                        String userEmail = documentSnapshot.getString("email");
 
+                        // Set user details in the TextViews
+                        TextView userNameTextView = findViewById(R.id.userNameTextView);
+                        TextView userEmailTextView = findViewById(R.id.userEmailTextView);
+                        if (userName != null) {
+                            userNameTextView.setText(userName);
+                        }
+                        if (userEmail != null) {
+                            userEmailTextView.setText(userEmail);
+                        }
 
-//    private void applyVoucherDiscount(Voucher selectedVoucher) {
-//        if (selectedVoucher != null) {
-//            String currentDate = getCurrentDate(); // Get the current date
-//            if (isValidVoucher(selectedVoucher, currentDate)) {
-//                double discount = selectedVoucher.getAmountOfDiscount(); // Get the discount percentage
-//                double discountedTotalAmount = totalAmount - (totalAmount * discount); // Apply the discount
-//
-//                Log.d("applyVoucherDiscount", "Discount applied: " + discount + ", Final Price: " + discountedTotalAmount);
-//
-//                // Update the UI with the discounted price
-//                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
-//                newTotalPriceTextView.setText("Total after discount: $" + String.format("%.2f", discountedTotalAmount));
-//            } else {
-//                // If the voucher is expired or invalid
-//                Log.e("applyVoucherDiscount", "Invalid or expired voucher selected.");
-//                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
-//                newTotalPriceTextView.setText("Voucher expired or invalid.");
-//            }
-//        } else {
-//            Log.e("applyVoucherDiscount", "Voucher is null.");
-//        }
-//    }
+                        // Load user image if available
+                        String userImage = documentSnapshot.getString("imageUrl");
+                        ImageView userImageView = findViewById(R.id.userImageView);
+                        if (userImage != null && !userImage.isEmpty()) {
+                            Glide.with(this).load(userImage).placeholder(R.drawable.ic_user).into(userImageView);
+                        }
+                    } else {
+                        Log.e("PaymentActivity", "User document not found.");
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("PaymentActivity", "Failed to fetch user info: " + e.getMessage()));
+    }
 
 
 }
