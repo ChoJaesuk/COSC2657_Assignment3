@@ -62,4 +62,5 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.core:core-ktx:1.12.0")
+    implementation("com.google.firebase:firebase-messaging:23.2.1")
 }
