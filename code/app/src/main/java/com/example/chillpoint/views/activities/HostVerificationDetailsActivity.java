@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -173,15 +174,33 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         notification.put("timestamp", new Date());
         notification.put("isRead", false);
 
+        // Save notification to Firestore
         firestore.collection("Notifications").add(notification)
                 .addOnSuccessListener(documentReference -> {
-                    FirebaseMessaging.getInstance().subscribeToTopic(userId)
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    Toast.makeText(this, "Notification sent to user.", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                    // Send real-time notification
+                    sendRealTimeNotification(title, message);
+                    Toast.makeText(this, "Notification sent to user.", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to save notification: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
+
+    private void sendRealTimeNotification(String title, String message) {
+        // Use Firebase Cloud Messaging to send a message to the user
+        Map<String, String> payload = new HashMap<>();
+        payload.put("title", title);
+        payload.put("message", message);
+
+        firestore.collection("FCMUsers").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String userToken = documentSnapshot.getString("fcmToken");
+                        if (userToken != null) {
+                            FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(userToken)
+                                    .setData(payload)
+                                    .build());
+                        }
+                    }
+                });
+    }
 }
+
