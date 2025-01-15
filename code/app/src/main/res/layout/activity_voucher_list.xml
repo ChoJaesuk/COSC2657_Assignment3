@@ -1,34 +1,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/custom_background">
 
-    <ScrollView
-        android:layout_above="@+id/bottom_navigation"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/voucherRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:padding="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/voucherRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                 />
-        </LinearLayout>
-    </ScrollView>
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@color/dark_blue"
-        app:menu="@menu/bottom_navigation_menu"
-        app:itemIconTint="@color/black"
-        app:itemTextColor="@color/black"
-        android:layout_alignParentBottom="true" />
+        android:layout_height="match_parent"
+        android:padding="16dp" />
 </RelativeLayout>
