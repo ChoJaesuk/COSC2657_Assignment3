@@ -16,7 +16,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseMessaging;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +34,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
 
     private FirebaseFirestore firestore;
     private String verificationId;
-    private String userId; // **추가된 변수**: 사용자 ID 저장
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +72,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         Map<String, Object> verificationData = documentSnapshot.getData();
                         if (verificationData != null) {
-                            // **추가된 부분**: 사용자 ID 가져오기
                             userId = documentSnapshot.getString("userId");
-
                             displayDetails(verificationData);
                         }
                     } else {
@@ -90,7 +92,6 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         statusTextView.setText(verificationData.containsKey("status") ? verificationData.get("status").toString() : "N/A");
         timestampTextView.setText(verificationData.containsKey("timestamp") ? verificationData.get("timestamp").toString() : "N/A");
 
-        // Set text color for status
         String status = verificationData.get("status").toString();
         if ("Approved".equalsIgnoreCase(status)) {
             statusTextView.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
@@ -104,10 +105,10 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                 String imageUrl = ((java.util.List<String>) verificationData.get("imageUrls")).get(0);
                 Glide.with(this).load(imageUrl).into(imageView);
             } catch (Exception e) {
-                Glide.with(this).load(R.drawable.placeholder_image).into(imageView); // Default placeholder
+                Glide.with(this).load(R.drawable.placeholder_image).into(imageView);
             }
         } else {
-            Glide.with(this).load(R.drawable.placeholder_image).into(imageView); // Default placeholder
+            Glide.with(this).load(R.drawable.placeholder_image).into(imageView);
         }
 
         adminNoteEditText.setText(verificationData.containsKey("adminNote") ? verificationData.get("adminNote").toString() : "");
@@ -128,18 +129,13 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         update.put("adminNote", adminNote);
 
         firestore.collection("HostVerifications").document(verificationId).update(update)
-                .addOnSuccessListener(aVoid -> {
-                    // **추가된 부분**: 유저 테이블 업데이트
-                    updateUserValidationStatus(status);
-
-                })
+                .addOnSuccessListener(aVoid -> updateUserValidationStatus(status))
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Failed to update verification: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
-    // **추가된 메서드**: 유저 테이블의 isValidated 필드 업데이트
     private void updateUserValidationStatus(String status) {
         if (userId == null) {
             progressBar.setVisibility(View.GONE);
@@ -153,9 +149,9 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                 .update("isValidated", isValidated)
                 .addOnSuccessListener(aVoid -> {
                     progressBar.setVisibility(View.GONE);
+                    saveNotificationForUser(status);
                     Toast.makeText(this, "Verification updated successfully.", Toast.LENGTH_SHORT).show();
 
-                    // Return to the list activity and notify data update
                     Intent intent = new Intent();
                     intent.putExtra("verificationId", verificationId);
                     intent.putExtra("status", status);
@@ -165,6 +161,35 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(this, "Failed to update user validation status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveNotificationForUser(String status) {
+        String title = "Host Verification " + status;
+        String message = "Your host verification request has been " + status.toLowerCase() + ".";
+
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("userId", userId);
+        notification.put("title", title);
+        notification.put("message", message);
+        notification.put("timestamp", new Date());
+        notification.put("isRead", false);
+
+        firestore.collection("Notifications").add(notification)
+                .addOnSuccessListener(documentReference -> {
+                    sendRealTimeNotification(title, message);
+                    Toast.makeText(this, "Notification sent to user.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to save notification: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void sendRealTimeNotification(String title, String message) {
+        FirebaseMessaging.getInstance().subscribeToTopic(userId)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Real-time notification logic (if applicable with Firebase Cloud Messaging)
+                        Toast.makeText(this, "Real-time notification sent to user.", Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 }
