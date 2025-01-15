@@ -16,19 +16,36 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.repositories.PropertyRepository;
 import com.example.chillpoint.repositories.UserRepository;
 import com.example.chillpoint.views.models.Property;
+import com.example.chillpoint.views.models.Receipt;
 import com.example.chillpoint.views.models.Voucher;
+import com.example.chillpoint.views.models.Bill;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.stripe.android.PaymentConfiguration;
+import com.stripe.android.paymentsheet.PaymentSheet;
+import com.stripe.android.paymentsheet.PaymentSheetResult;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PaymentActivity extends AppCompatActivity {
@@ -44,7 +62,7 @@ public class PaymentActivity extends AppCompatActivity {
     private RadioButton yesRadioButton, noRadioButton;
     private EditText userNameEditText, emailEditText, phoneEditText, addressEditText, zipCodeEditText, cityEditText, voucherCodeEditText, friendEmailEditText;
     private Spinner countrySpinner;
-    private Button nextButton, splitBillNextButton, bookingSummaryNextButton,addNewFriendButton;
+    private Button nextButton, splitBillNextButton, bookingSummaryNextButton,addNewFriendButton, processPaymentButton;
     private boolean isBillSplit = false; // Tracks if the user chooses to split the bill
     private ArrayList<String> friendEmailIds = new ArrayList<>();
     private FirebaseFirestore firestore = FirebaseFirestore.getInstance(); // Firestore instance
@@ -54,17 +72,34 @@ public class PaymentActivity extends AppCompatActivity {
     private String toDate;
     private String propertyId;
     private String numberOfGuests;
+    private String hostId;
     private String totalPrice;
     private double totalAmount;
+    private String billId;
+    private String PublishableKey = "pk_test_51QeHVRCEu9hglsZOJi2iypmyk0Pq3BEgh7HaSMf8GUdeXohp9diQnSLVZL511yw7ypAT1yx1xwN8pVnVxwkGI2cA00X1hScVXa";
+    private String SecretKey = "sk_test_51QeHVRCEu9hglsZO3hULaZDemp0UQZZ3goIX1oxI4PjMyV7qEZ7WDVuHv5Nepbhs6RYG6uvvAPT7FJlxAYCeKqSR00JNalnVc6";
+    private SessionManager sessionManager;
+    private String EphemeralKey ;
+    private String ClientSecret;
+    private String CustomerId;
+    private PaymentSheet paymentSheet;
     private Spinner voucherSpinner;
     private ArrayList<Voucher> userVouchers = new ArrayList<>(); // 유저의 바우처 목록
     private ArrayList<String> voucherDescriptions = new ArrayList<>(); // Spinner에 표시될 바우처 설명
+    private double discountedTotalAmount;
+    private double finalCalculatedTotalAmount;
+    private String voucherCode;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment);
-        SessionManager sessionManager = new SessionManager(this);
+        sessionManager = new SessionManager(this);
         friendEmailIds.add(sessionManager.getUserId());
+        // Initialize Stripe Payment configuration
+        PaymentConfiguration.init(this, PublishableKey);
+
+        // Initialize paymentSheet only when needed
+        paymentSheet = new PaymentSheet(this, this::onPaymentResult);
 
         Intent intent = getIntent();
          startDate = (String) intent.getExtras().get("fromDate");
@@ -72,6 +107,7 @@ public class PaymentActivity extends AppCompatActivity {
          propertyId = (String) intent.getExtras().get("propertyId");
          numberOfGuests =(String) intent.getExtras().get("numberOfGuests");
         totalPrice = (String) intent.getExtras().get("totalPrice");
+        hostId = (String) intent.getExtras().get("hostId");
 
 // Log for debugging
         Log.d("PaymentActivity", "StartDate: " + startDate + ", ToDate: " + toDate + ", NumberOfGuests: " + numberOfGuests + ", TotalPrice: " + totalPrice);
@@ -89,6 +125,7 @@ public class PaymentActivity extends AppCompatActivity {
         nextButton = findViewById(R.id.nextButton);
         splitBillNextButton = findViewById(R.id.billSplittingNextButton);
         bookingSummaryNextButton = findViewById(R.id.bookingSummaryNextButton);
+        processPaymentButton = findViewById(R.id.processPaymentButton);
 
         // Set the initial visibility
         paymentLinearLayout.setVisibility(View.VISIBLE);
@@ -146,7 +183,7 @@ public class PaymentActivity extends AppCompatActivity {
                     Voucher selectedVoucher = userVouchers.get(actualPosition);
                     if (selectedVoucher != null) {
                         Log.d("PaymentActivity", "Selected voucher: " + selectedVoucher);
-                        applyVoucherDiscount(selectedVoucher); // 바우처 할인 적용
+//                        applyVoucherDiscount(selectedVoucher); // 바우처 할인 적용
                     } else {
                         Log.e("PaymentActivity", "Selected voucher is null.");
                     }
@@ -224,12 +261,20 @@ public class PaymentActivity extends AppCompatActivity {
             }
         });
 
+
         // Handle "Next" button in bookingSummaryLinearLayout
         bookingSummaryNextButton.setOnClickListener(v -> {
             if (areFieldsValid(bookingSummaryLinearLayout)) {
                 saveBillAndReceiptToFirestore();
                 bookingSummaryLinearLayout.setVisibility(View.GONE);
                 paymentMethodLinearLayout.setVisibility(View.VISIBLE);
+                onPaymentAction();
+            }
+        });
+        processPaymentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                paymentFlow();
             }
         });
         // Initialize views
@@ -273,8 +318,7 @@ public class PaymentActivity extends AppCompatActivity {
         totalPriceTextView.setText(totalPrice);
 
         // Calculate the total amount (divide by the number of friends)
-        double totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
-        Log.d("PaymentActivity", "Calculated totalAmount: " + totalAmount);
+        totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
         String totalAmountTemp = String.format("%.2f", totalAmount);
         totalPriceTextViewNeedToPay.setText(totalAmountTemp);
 
@@ -301,7 +345,7 @@ public class PaymentActivity extends AppCompatActivity {
             if (selectedVoucher != null && isValidVoucher(selectedVoucher, currentDate)) {
                 double discount = selectedVoucher.getAmountOfDiscount(); // 바우처의 할인율
                 Log.d("PaymentActivity", "Voucher discount amount: " + discount);
-                double discountedTotalAmount = totalAmount - (totalAmount * discount); // 할인 적용
+                discountedTotalAmount = totalAmount - (totalAmount * discount); // 할인 적용
                 Log.d("PaymentActivity", "Discounted totalAmount: " + discountedTotalAmount);
                 String discountedPrice = String.format("%.2f", discountedTotalAmount);
 
@@ -347,15 +391,29 @@ public class PaymentActivity extends AppCompatActivity {
         // Get selected voucher from Spinner
         int selectedPosition = voucherSpinner.getSelectedItemPosition();
         String voucherId = (selectedPosition > 0 && selectedPosition - 1 < userVouchers.size())
-                ? userVouchers.get(selectedPosition - 1).getId() // 디폴트 옵션 제외
+                ? userVouchers.get(selectedPosition - 1).getId() // Default option excluded
                 : null;
 
-        // Add the bill to Firestore with auto-generated ID
+        double calculatedTotalAmount = totalAmount; // Base total amount
+        if (voucherId != null) {
+            // Apply discount synchronously based on selected voucher
+            Voucher selectedVoucher = userVouchers.get(selectedPosition - 1);
+            if (selectedVoucher != null && isValidVoucher(selectedVoucher, getCurrentDate())) {
+                double discount = selectedVoucher.getAmountOfDiscount();
+                calculatedTotalAmount -= (calculatedTotalAmount * discount);
+            }
+        }
+
+        // Update bill map with the totalAmount (discounted if applicable)
+        billMap.put("totalAmount", calculatedTotalAmount);
+        billMap.put("voucherId", voucherId);
+
+        // Add the bill to Firestore
+        finalCalculatedTotalAmount = calculatedTotalAmount;
         firestore.collection("Bills")
                 .add(billMap) // Automatically generates a document ID
                 .addOnSuccessListener(documentReference -> {
-                    // Get the generated billId
-                    String billId = documentReference.getId();
+                    billId = documentReference.getId(); // Save bill ID for reference
                     Toast.makeText(this, "Bill saved successfully with ID: " + billId, Toast.LENGTH_SHORT).show();
 
                     // Iterate over each friend's email and create a receipt for each
@@ -371,71 +429,42 @@ public class PaymentActivity extends AppCompatActivity {
                         receiptMap.put("zipCode", zipCodeEditText.getText().toString());
                         receiptMap.put("cityName", cityEditText.getText().toString());
                         receiptMap.put("country", countrySpinner.getSelectedItem().toString());
-                        receiptMap.put("voucherId", voucherId); // Selected voucher ID
+                        receiptMap.put("voucherId", voucherId);
                         receiptMap.put("numberOfPayers", friendEmailIds.size());
-                        receiptMap.put("payerId", payerId);  // Payer's ID for this receipt
-                        receiptMap.put("billId", billId);    // Associate the receipt with the billId
-
-                        // Parse and add totalAmount
-                        try {
-                            double totalAmount = Double.parseDouble(totalPrice) / friendEmailIds.size();
-
-                            // Apply discount if voucher is selected
-                            if (voucherId != null && selectedPosition > 0) {
-                                Voucher selectedVoucher = userVouchers.get(selectedPosition - 1); // 디폴트 옵션 제외
-                                if (selectedVoucher != null) {
-                                    // Check if the voucher is within the valid date range
-                                    String currentDate = getCurrentDate(); // Get current date
-                                    if (isValidVoucher(selectedVoucher, currentDate)) {
-                                        // Apply the discount to the total amount
-                                        double discount = selectedVoucher.getAmountOfDiscount();
-                                        totalAmount -= totalAmount * discount; // 할인 적용
-                                        receiptMap.put("totalAmount", totalAmount); // 할인 후 금액 저장
-                                    } else {
-                                        Log.e("Voucher", "Voucher is expired or invalid");
-                                        receiptMap.put("totalAmount", totalAmount); // Save without discount
-                                    }
-                                }
-                            } else {
-                                receiptMap.put("totalAmount", totalAmount); // Save without discount
-                            }
-
-                        } catch (NumberFormatException e) {
-                            Log.e("saveReceipt", "Invalid totalPrice: " + totalPrice, e);
-                            Toast.makeText(this, "Invalid total price format", Toast.LENGTH_SHORT).show();
-                            return; // Prevent further execution
-                        }
-
+                        receiptMap.put("payerId", payerId);
+                        receiptMap.put("billId", billId);
+                        receiptMap.put("fromDate", startDate);
+                        receiptMap.put("toDate", toDate);
+                        receiptMap.put("numberOfGuests", numberOfGuests);
+                        receiptMap.put("hostId", hostId);
+                        receiptMap.put("totalAmount", finalCalculatedTotalAmount);
                         receiptMap.put("status", "Pending");
 
-                        // Add receipt to Firestore with auto-generated ID
+                        // Add receipt to Firestore
                         firestore.collection("Receipts")
-                                .add(receiptMap) // Automatically generates a document ID
+                                .add(receiptMap)
                                 .addOnSuccessListener(receiptDocRef -> {
-                                    // Collect the receiptId and add it to the list
-                                    receiptIds.add(receiptDocRef.getId()); // Store the receipt ID
+                                    receiptIds.add(receiptDocRef.getId()); // Collect receipt ID
+                                    Toast.makeText(this, "Receipt saved successfully: " + receiptDocRef.getId(), Toast.LENGTH_SHORT).show();
 
-                                    Toast.makeText(this, "Receipt saved successfully with ID: " + receiptDocRef.getId(), Toast.LENGTH_SHORT).show();
-
-                                    // After saving all receipts, update the Bill with receiptIds
+                                    // After saving all receipts, update the bill
                                     if (receiptIds.size() == friendEmailIds.size()) {
-                                        // Update the bill document with the list of receipt IDs
                                         Map<String, Object> billUpdateMap = new HashMap<>();
                                         billUpdateMap.put("receiptIds", receiptIds);
 
                                         firestore.collection("Bills")
                                                 .document(billId)
-                                                .update(billUpdateMap) // Update the existing bill with the receipt IDs
+                                                .update(billUpdateMap)
                                                 .addOnSuccessListener(aVoid -> {
                                                     Toast.makeText(this, "Bill updated with receipt IDs.", Toast.LENGTH_SHORT).show();
                                                 })
-                                                .addOnFailureListener(e1 -> {
-                                                    Toast.makeText(this, "Failed to update bill: " + e1.getMessage(), Toast.LENGTH_SHORT).show();
+                                                .addOnFailureListener(e -> {
+                                                    Log.e("saveBillAndReceipt", "Failed to update bill: " + e.getMessage());
                                                 });
                                     }
                                 })
                                 .addOnFailureListener(e -> {
-                                    Toast.makeText(this, "Failed to save receipt: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Log.e("saveBillAndReceipt", "Failed to save receipt: " + e.getMessage());
                                 });
                     }
                 })
@@ -476,7 +505,6 @@ public class PaymentActivity extends AppCompatActivity {
                             newEmailEditText.setPadding(paddingInPixels, paddingInPixels, paddingInPixels, paddingInPixels);
                             newEmailEditText.setTextSize(14);
                             emailContainer.addView(newEmailEditText);
-// Log after adding the email
                             Log.e("verifyFriendEmail Size", "Size after adding email: " + friendEmailIds.size());
                             Toast.makeText(this, "Friend email added: " + email, Toast.LENGTH_SHORT).show();
                             friendEmailEditText.setText(""); // Clear input
@@ -504,6 +532,277 @@ public class PaymentActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    private void onPaymentAction(){
+        StringRequest request = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/customers", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject object = new JSONObject(response);
+                    CustomerId = object.getString("id");
+                    Toast.makeText(PaymentActivity.this,"Customer ID: " + CustomerId, Toast.LENGTH_SHORT).show();
+                    getEphemeralKey();
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                String errorMessage = error.getLocalizedMessage();
+                if (errorMessage == null) {
+                    errorMessage = "An unexpected error occurred.";  // Fallback error message
+                }
+
+                // Check for 401 Unauthorized error
+                if (error.networkResponse != null && error.networkResponse.statusCode == 401) {
+                    errorMessage = "Authorization error: Invalid API key or permissions.";
+                }
+
+                Toast.makeText(PaymentActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + SecretKey);
+                return headers;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
+    }
+
+    private void getEphemeralKey(){
+        StringRequest request = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/ephemeral_keys", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject object = new JSONObject(response);
+                    EphemeralKey = object.getString("id");
+                    Toast.makeText(PaymentActivity.this,"EphemeralKey id: " + EphemeralKey, Toast.LENGTH_SHORT).show();
+                    getClientSecret(CustomerId,EphemeralKey);
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(PaymentActivity.this, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + SecretKey);
+                headers.put("Stripe-Version", "2022-08-01");
+                return headers;
+            }
+
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("customer", CustomerId);
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
+    }
+
+    private void getClientSecret(String CustomerId, String EphemeralKey){
+        StringRequest request = new StringRequest(Request.Method.POST, "https://api.stripe.com/v1/payment_intents", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject object = new JSONObject(response);
+                    ClientSecret = object.getString("client_secret");
+                    Log.d("Stripe", "Client Secret: " + ClientSecret);
+                    Toast.makeText(PaymentActivity.this,"ClientSecret: " + ClientSecret, Toast.LENGTH_SHORT).show();
+
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(PaymentActivity.this, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + SecretKey);
+                return headers;
+            }
+
+            @Nullable
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("customer", CustomerId);
+                int finalCalculatedTotalAmountInt = (int) Math.ceil(finalCalculatedTotalAmount);
+                String finalCalculatedTotalAmountStr = String.valueOf(finalCalculatedTotalAmountInt);
+                params.put("amount",finalCalculatedTotalAmountStr + "00");
+                params.put("currency", "USD");
+                params.put("automatic_payment_methods[enabled]", "true");
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
+    }
+
+    private void onPaymentResult(PaymentSheetResult paymentSheetResult) {
+        if (paymentSheetResult instanceof PaymentSheetResult.Completed) {
+            Toast.makeText(this, "Payment completed", Toast.LENGTH_SHORT).show();
+            updateStatusReceipt(sessionManager.getUserId(), billId);
+            // Check if all receipts are completed before creating the reservation
+            checkReceiptsAndCreateReservation(billId);
+        } else if (paymentSheetResult instanceof PaymentSheetResult.Canceled) {
+            Toast.makeText(this, "Payment canceled", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, ReceiptActivity.class);
+            startActivity(intent);
+        }
+    }
+
+
+    private void paymentFlow(){
+        if (CustomerId == null || EphemeralKey == null || ClientSecret == null) {
+            // Show an error message if any of the required values are missing
+            Toast.makeText(this, "Customer ID, Ephemeral Key, or Client Secret is missing.", Toast.LENGTH_SHORT).show();
+            return; // Prevent the flow if the required values are null
+        }
+        paymentSheet.presentWithPaymentIntent(ClientSecret, new PaymentSheet.Configuration("RMIT Froyo Group", new PaymentSheet.CustomerConfiguration(CustomerId,EphemeralKey)));
+    }
+
+    private void updateStatusReceipt(String userId, String billId) {
+        // Query the Receipts collection with payerId and billId conditions
+        firestore.collection("Receipts")
+                .whereEqualTo("payerId", userId) // Check if payerId matches
+                .whereEqualTo("billId", billId)  // Check if billId matches
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // Iterate over the documents that match the query
+                        for (DocumentSnapshot documentSnapshot : querySnapshot.getDocuments()) {
+                            // Get the receipt document ID
+                            String receiptId = documentSnapshot.getId();
+
+                            // Update the status of the matching receipt document
+                            firestore.collection("Receipts")
+                                    .document(receiptId)
+                                    .update("status", "Completed") // Update the status field to "Completed"
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Successfully updated the status
+                                        Log.d("PaymentActivity", "Receipt status updated to 'Completed' for receipt ID: " + receiptId);
+                                        Toast.makeText(PaymentActivity.this, "Receipt payment status updated.", Toast.LENGTH_SHORT).show();
+
+                                        // Optionally, you can also log or perform other actions like notifying the user, etc.
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Handle the failure (e.g., network issue, document not found)
+                                        Log.e("PaymentActivity", "Failed to update receipt status: " + e.getMessage());
+                                        Toast.makeText(PaymentActivity.this, "Failed to update receipt status.", Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+                    } else {
+                        // No matching receipts found
+                        Log.e("PaymentActivity", "No matching receipt found for userId: " + userId + " and billId: " + billId);
+                        Toast.makeText(PaymentActivity.this, "No matching receipt found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Handle any errors in the query
+                    Log.e("PaymentActivity", "Error fetching receipts: " + e.getMessage());
+                    Toast.makeText(PaymentActivity.this, "Error fetching receipts.", Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void checkReceiptsAndCreateReservation(String billId) {
+        firestore.collection("Bills")
+                .document(billId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Bill bill = documentSnapshot.toObject(Bill.class);
+                        if (bill != null && bill.getReceiptIds() != null && !bill.getReceiptIds().isEmpty()) {
+                            checkReceiptStatuses(bill.getReceiptIds(), billId);
+                        } else {
+                            Toast.makeText(this, "No receipts found for this bill.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Bill not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to fetch bill: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("checkReceipts", "Error fetching bill", e);
+                });
+    }
+
+    private void checkReceiptStatuses(ArrayList<String> receiptIds, String billId) {
+        firestore.collection("Receipts")
+                .whereIn(FieldPath.documentId(), receiptIds)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        boolean allCompleted = true;
+
+                        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                            Receipt receipt = document.toObject(Receipt.class);
+                            if (receipt != null && !"Completed".equalsIgnoreCase(receipt.getStatus())) {
+                                allCompleted = false;
+                                break;
+                            }
+                        }
+
+                        if (allCompleted) {
+                            createReservation(billId);
+                        } else {
+                            Toast.makeText(this, "All receipts are not completed yet.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "No matching receipts found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to fetch receipts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("checkReceiptStatuses", "Error fetching receipts", e);
+                });
+    }
+
+    private void createReservation(String billId) {
+        HashMap<String, Object> reservation = new HashMap<>();
+        reservation.put("propertyId", propertyId);
+        reservation.put("billId", billId);
+        reservation.put("fromDate", startDate);
+        reservation.put("toDate", toDate);
+        reservation.put("guestCount", numberOfGuests);
+        reservation.put("timestamp", System.currentTimeMillis());
+        reservation.put("hostId", hostId);
+        reservation.put("status", "Confirmed");
+
+        firestore.collection("reservations")
+                .add(reservation)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Booking successful!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, ReceiptActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Booking failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("createReservation", "Error booking property", e);
+                });
+    }
+
 
     private void loadUserVouchers() {
         Log.d("PaymentActivity", "Starting to load vouchers...");
@@ -585,28 +884,28 @@ public class PaymentActivity extends AppCompatActivity {
 
 
 
-    private void applyVoucherDiscount(Voucher selectedVoucher) {
-        if (selectedVoucher != null) {
-            String currentDate = getCurrentDate(); // Get the current date
-            if (isValidVoucher(selectedVoucher, currentDate)) {
-                double discount = selectedVoucher.getAmountOfDiscount(); // Get the discount percentage
-                double discountedTotalAmount = totalAmount - (totalAmount * discount); // Apply the discount
-
-                Log.d("applyVoucherDiscount", "Discount applied: " + discount + ", Final Price: " + discountedTotalAmount);
-
-                // Update the UI with the discounted price
-                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
-                newTotalPriceTextView.setText("Total after discount: $" + String.format("%.2f", discountedTotalAmount));
-            } else {
-                // If the voucher is expired or invalid
-                Log.e("applyVoucherDiscount", "Invalid or expired voucher selected.");
-                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
-                newTotalPriceTextView.setText("Voucher expired or invalid.");
-            }
-        } else {
-            Log.e("applyVoucherDiscount", "Voucher is null.");
-        }
-    }
+//    private void applyVoucherDiscount(Voucher selectedVoucher) {
+//        if (selectedVoucher != null) {
+//            String currentDate = getCurrentDate(); // Get the current date
+//            if (isValidVoucher(selectedVoucher, currentDate)) {
+//                double discount = selectedVoucher.getAmountOfDiscount(); // Get the discount percentage
+//                double discountedTotalAmount = totalAmount - (totalAmount * discount); // Apply the discount
+//
+//                Log.d("applyVoucherDiscount", "Discount applied: " + discount + ", Final Price: " + discountedTotalAmount);
+//
+//                // Update the UI with the discounted price
+//                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
+//                newTotalPriceTextView.setText("Total after discount: $" + String.format("%.2f", discountedTotalAmount));
+//            } else {
+//                // If the voucher is expired or invalid
+//                Log.e("applyVoucherDiscount", "Invalid or expired voucher selected.");
+//                TextView newTotalPriceTextView = findViewById(R.id.newTotalPriceTextView);
+//                newTotalPriceTextView.setText("Voucher expired or invalid.");
+//            }
+//        } else {
+//            Log.e("applyVoucherDiscount", "Voucher is null.");
+//        }
+//    }
 
 
 }

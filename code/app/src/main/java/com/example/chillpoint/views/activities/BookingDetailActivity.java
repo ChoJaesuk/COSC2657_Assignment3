@@ -2,8 +2,11 @@ package com.example.chillpoint.views.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.Button;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -20,9 +23,17 @@ import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.example.chillpoint.managers.SessionManager;
 import com.example.chillpoint.views.adapters.ImageSliderAdapter;
+import com.example.chillpoint.managers.SessionManager;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +49,7 @@ public class BookingDetailActivity extends AppCompatActivity {
     private ImageView hostImageView;
     private ViewPager2 propertyImageViewPager;
     private Map<String, Integer> bedTypeIcons;
+    private Button downloadConfirmationForm;
     private Spinner statusDropdown;
     private Button confirmStatusButton;
     private SessionManager sessionManager;
@@ -46,7 +58,6 @@ public class BookingDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking_detail);
-
         // Firestore 초기화
         firestore = FirebaseFirestore.getInstance();
         sessionManager = new SessionManager(this);
@@ -93,6 +104,13 @@ public class BookingDetailActivity extends AppCompatActivity {
         fetchHostInformation(propertyId);
 
         checkHostVerification();
+        downloadConfirmationForm = findViewById(R.id.downloadConfirmationForm);
+        downloadConfirmationForm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                downloadConfirmationForm();
+            }
+        });
     }
 
     private void setupBedTypeIcons() {
@@ -327,6 +345,149 @@ public class BookingDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Log.e("BookingDetailActivity", "Error updating status", e);
                     Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void downloadConfirmationForm() {
+        try {
+            // Define file path
+            File pdfDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "ChillPoint");
+            if (!pdfDir.exists()) {
+                pdfDir.mkdirs(); // Create directory if not exists
+            }
+            File pdfFile = new File(pdfDir, "BookingConfirmation_" + bookingId + ".pdf");
+
+            // Initialize PDF writer
+            PdfWriter writer = new PdfWriter(new FileOutputStream(pdfFile));
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+
+            // Add Title
+            String title = "Booking Confirmation";
+            Log.e("PDF", "Title: " + title);
+            document.add(new Paragraph(title).setBold().setFontSize(20));
+            document.add(new Paragraph(" ")); // Add a blank line
+
+            // Add Booking Details
+            Log.e("PDF", "Fetching details for Booking ID: " + bookingId);
+            document.add(new Paragraph("Booking Details").setBold());
+            document.add(new Paragraph("Booking ID: " + bookingId));
+            document.add(new Paragraph("Booking Dates: " + bookingDates));
+            document.add(new Paragraph(" "));
+
+            // Fetch Reservation Details for the selected booking
+            fetchReservationDetailsForPDF(bookingId, document, pdfDoc);
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to download PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("downloadConfirmationForm", "Error generating PDF", e);
+        }
+    }
+
+    private void fetchReservationDetailsForPDF(String reservationId, Document document, PdfDocument pdfDoc) {
+        firestore.collection("reservations")
+                .document(reservationId) // Directly query by document ID
+                .get()
+                .addOnSuccessListener(doc -> {
+                    try {
+                        if (doc.exists()) {
+                            // Extract reservation details
+                            String propertyId = doc.getString("propertyId");
+                            String billId = doc.getString("billId");
+                            String reservationDetails = "Reservation ID: " + doc.getId() +
+                                    "\nFrom Date: " + doc.getString("fromDate") +
+                                    "\nTo Date: " + doc.getString("toDate") +
+                                    "\nGuest Count: " + doc.getString("guestCount") +
+                                    "\nProperty ID: " + propertyId +
+                                    "\nBill ID: " + billId;
+                            Log.e("PDF", "Reservation Details: " + reservationDetails);
+                            document.add(new Paragraph("Reservation Details").setBold());
+                            document.add(new Paragraph(reservationDetails));
+                            document.add(new Paragraph(" ")); // Add space
+
+                            // Fetch receipts associated with this billId and user
+                            fetchReceiptDetailsForPDF(billId, propertyId, document, pdfDoc);
+                        } else {
+                            String noReservationMsg = "No reservation found for ID: " + reservationId;
+                            Log.e("PDF", noReservationMsg);
+                            document.add(new Paragraph(noReservationMsg));
+                        }
+                    } catch (Exception e) {
+                        Log.e("fetchReservationDetailsForPDF", "Error writing reservation details", e);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error fetching reservation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("fetchReservationDetailsForPDF", "Error fetching reservation", e);
+                });
+    }
+
+    private void fetchReceiptDetailsForPDF(String billId, String propertyId, Document document, PdfDocument pdfDoc) {
+        firestore.collection("Receipts")
+                .whereEqualTo("billId", billId)
+                .whereEqualTo("payerId", sessionManager.getUserId()) // Filter by user
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    try {
+                        if (!querySnapshot.isEmpty()) {
+                            for (var doc : querySnapshot.getDocuments()) {
+                                String receiptDetails = "Receipt ID: " + doc.getId() +
+                                        "\nAmount: $" + doc.getDouble("totalAmount") +
+                                        "\nStatus: " + doc.getString("status") +
+                                        "\nBill ID: " + doc.getString("billId");
+                                Log.e("PDF", "Receipt Details: " + receiptDetails);
+                                document.add(new Paragraph("Receipt Details").setBold());
+                                document.add(new Paragraph(receiptDetails));
+                                document.add(new Paragraph(" ")); // Add space
+                            }
+
+                            // Fetch property details after all receipts are processed
+                            fetchPropertyDetailsForPDF(propertyId, document, pdfDoc);
+                        } else {
+                            String noReceiptMsg = "No receipt found for Bill ID: " + billId;
+                            Log.e("PDF", noReceiptMsg);
+                            document.add(new Paragraph(noReceiptMsg));
+                        }
+                    } catch (Exception e) {
+                        Log.e("fetchReceiptDetailsForPDF", "Error writing receipt details", e);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error fetching receipts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("fetchReceiptDetailsForPDF", "Error fetching receipts", e);
+                });
+    }
+
+    private void fetchPropertyDetailsForPDF(String propertyId, Document document, PdfDocument pdfDoc) {
+        firestore.collection("Properties")
+                .document(propertyId)
+                .get()
+                .addOnSuccessListener(propertySnapshot -> {
+                    try {
+                        if (propertySnapshot.exists()) {
+                            String propertyDetails = "Property Name: " + propertySnapshot.getString("name") +
+                                    "\nDescription: " + propertySnapshot.getString("description") +
+                                    "\nAddress: " + propertySnapshot.getString("address") +
+                                    "\nCheck-in Time: " + propertySnapshot.getString("checkInTime") +
+                                    "\nCheck-out Time: " + propertySnapshot.getString("checkOutTime");
+                            Log.e("PDF", "Property Details: " + propertyDetails);
+                            document.add(new Paragraph("Property Details").setBold());
+                            document.add(new Paragraph(propertyDetails));
+                            document.add(new Paragraph(" ")); // Add space
+                        } else {
+                            String noPropertyMsg = "No property details found for Property ID: " + propertyId;
+                            Log.e("PDF", noPropertyMsg);
+                            document.add(new Paragraph(noPropertyMsg));
+                        }
+
+                        // Close the document
+                        pdfDoc.close();
+                        Toast.makeText(this, "PDF downloaded successfully!", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Log.e("fetchPropertyDetailsForPDF", "Error writing property details", e);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error fetching property details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("fetchPropertyDetailsForPDF", "Error fetching property details", e);
                 });
     }
 

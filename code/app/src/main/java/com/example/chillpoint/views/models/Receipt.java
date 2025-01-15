@@ -17,6 +17,42 @@ public class Receipt {
     private String status;
     private String voucherId;
     private String billId;
+    private String fromDate;
+    private String toDate;
+    private String hostId;
+    private String numberOfGuests;
+
+    public String getFromDate() {
+        return fromDate;
+    }
+
+    public void setFromDate(String fromDate) {
+        this.fromDate = fromDate;
+    }
+
+    public String getToDate() {
+        return toDate;
+    }
+
+    public void setToDate(String toDate) {
+        this.toDate = toDate;
+    }
+
+    public String getHostId() {
+        return hostId;
+    }
+
+    public void setHostId(String hostId) {
+        this.hostId = hostId;
+    }
+
+    public String getNumberOfGuests() {
+        return numberOfGuests;
+    }
+
+    public void setNumberOfGuests(String numberOfGuests) {
+        this.numberOfGuests = numberOfGuests;
+    }
 
     public String getBillId() {
         return billId;
