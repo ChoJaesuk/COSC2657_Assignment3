@@ -42,6 +42,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
+
 import android.util.Pair;
 
 import java.io.IOException;
@@ -240,6 +241,7 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
             intent.putExtra("numberOfGuests", selectedGuestsStr);
             intent.putExtra("totalPrice", totalPriceStr);
             intent.putExtra("propertyId", propertyId);
+            intent.putExtra("hostId",hostUserId);
 
             Log.e("IntentData", "fromDate: " + selectedStartDate);
             Log.e("IntentData", "toDate: " + selectedEndDate);
@@ -422,7 +424,6 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         return sdf.format(new Date(timestamp));
     }
-
 
 
     private void bookProperty() {
