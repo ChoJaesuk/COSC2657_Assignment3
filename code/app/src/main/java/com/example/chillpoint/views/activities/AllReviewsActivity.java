@@ -8,8 +8,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chillpoint.R;
+import com.example.chillpoint.utils.NavigationSetup;
+import com.example.chillpoint.utils.NavigationUtils;
 import com.example.chillpoint.views.adapters.ReviewAdapter;
 import com.example.chillpoint.views.models.Review;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -17,7 +20,7 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AllReviewsActivity extends AppCompatActivity {
+public class AllReviewsActivity extends BaseActivity implements NavigationSetup {
     private RecyclerView reviewsRecyclerView;
     private ReviewAdapter reviewAdapter;
     private FirebaseFirestore firestore;
@@ -62,5 +65,17 @@ public class AllReviewsActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Log.e("AllReviewsActivity", "Failed to fetch reviews", e);
                 });
+    }
+
+    @Override
+    public void setupNavigationBar() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_trips);
+        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
     }
 }
