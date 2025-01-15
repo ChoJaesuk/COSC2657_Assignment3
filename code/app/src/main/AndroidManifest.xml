@@ -114,10 +114,10 @@
             android:name=".views.activities.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".views.activities.LoginActivity"
+            android:name=".views.activities.MainActivity"
             android:exported="false" />
         <activity
-            android:name=".views.activities.MainActivity"
+            android:name=".views.activities.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
