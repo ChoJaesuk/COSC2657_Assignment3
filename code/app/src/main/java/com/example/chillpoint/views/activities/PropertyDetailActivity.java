@@ -365,27 +365,45 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                             }
                         };
 
-                        // 아래 동일
                         CalendarConstraints.Builder constraintsBuilder =
                                 new CalendarConstraints.Builder().setValidator(dateValidator);
 
                         MaterialDatePicker.Builder<androidx.core.util.Pair<Long, Long>> datePickerBuilder =
                                 MaterialDatePicker.Builder.dateRangePicker()
                                         .setTitleText("Select Booking Dates")
-                                        .setCalendarConstraints(constraintsBuilder.build());
+                                        .setTheme(R.style.CustomDatePickerTheme); // 별도 테마 적용
 
                         MaterialDatePicker<androidx.core.util.Pair<Long, Long>> datePicker = datePickerBuilder.build();
+                        datePicker.show(getSupportFragmentManager(), "DATE_PICKER");
+
 
                         datePicker.addOnPositiveButtonClickListener(selection -> {
-                            // selection.first, selection.second -> 이미 UTC 기준 0시 timestamp
-                            selectedStartDate = formatDate(selection.first);
-                            selectedEndDate   = formatDate(selection.second);
+                            long startDate = selection.first;
+                            long endDate = selection.second;
 
-                            Toast.makeText(this,
-                                    "Selected Dates: " + selectedStartDate + " ~ " + selectedEndDate,
-                                    Toast.LENGTH_SHORT
-                            ).show();
-                            updateBookingInfo();
+                            // 선택한 날짜 범위와 예약된 날짜가 겹치는지 검증
+                            boolean isConflict = false;
+                            for (long reservedDate : reservedDates) {
+                                if (startDate <= reservedDate && reservedDate <= endDate) {
+                                    isConflict = true;
+                                    break;
+                                }
+                            }
+
+                            if (isConflict) {
+                                // 겹치는 날짜가 있는 경우 사용자에게 알림
+                                Toast.makeText(this,
+                                        "Selected dates conflict with existing reservations. Please choose a different range.",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            } else {
+                                // 겹치는 날짜가 없으면 예약 처리
+                                Toast.makeText(this,
+                                        "Selected Dates: " + startDate + " ~ " + endDate,
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                                updateBookingInfo();
+                            }
                         });
 
                         datePicker.show(getSupportFragmentManager(), "DATE_PICKER");
@@ -395,10 +413,12 @@ public class PropertyDetailActivity extends AppCompatActivity implements OnMapRe
                 });
     }
 
-    private String formatDate(Long timestamp) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        return sdf.format(new Date(timestamp));
-    }
+
+//    private String formatDate(Long timestamp) {
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+//        return sdf.format(new Date(timestamp));
+//    }
+
 
 
     private void bookProperty() {
