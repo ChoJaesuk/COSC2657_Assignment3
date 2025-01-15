@@ -12,7 +12,28 @@
           "package_name": "com.example.chillpoint"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "588185957895-1ap02hrib9uknhsv0og7kdhu1u28g319.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chillpoint",
+            "certificate_hash": "f94f6e6de6f9210e108a7177b6e57be40b4c7742"
+          }
+        },
+        {
+          "client_id": "588185957895-qll2n29tul1h3k8vbkh14iimoqnebnk1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chillpoint",
+            "certificate_hash": "0478d833fe7731aa422053f0e5c238dfe03d3dfb"
+          }
+        },
+        {
+          "client_id": "588185957895-4l2qjttbf1te9fp1tj436ojkou06umkj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB6HVsSViqKxvTpB1w8SbLxpvT0l51X75g"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "588185957895-4l2qjttbf1te9fp1tj436ojkou06umkj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
