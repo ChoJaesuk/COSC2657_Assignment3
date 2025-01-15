@@ -437,7 +437,7 @@ public class PaymentActivity extends AppCompatActivity {
                         receiptMap.put("toDate", toDate);
                         receiptMap.put("numberOfGuests", numberOfGuests);
                         receiptMap.put("hostId", hostId);
-                        receiptMap.put("totalAmount", finalCalculatedTotalAmount / friendEmailIds.size());
+                        receiptMap.put("totalAmount", finalCalculatedTotalAmount);
                         receiptMap.put("status", "Pending");
 
                         // Add receipt to Firestore
