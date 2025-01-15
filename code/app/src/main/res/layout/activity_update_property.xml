@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:hint="Enter property name"
             android:padding="12dp"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp" />
@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:hint="Enter a description"
             android:padding="12dp"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp" />
@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:hint="Pick address from the map"
             android:padding="12dp"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:focusable="false"
             android:layout_marginTop="4dp"
@@ -89,7 +89,7 @@
             android:hint="Enter price per night"
             android:inputType="numberDecimal"
             android:padding="12dp"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp" />
@@ -108,7 +108,7 @@
             android:hint="Enter number of rooms"
             android:inputType="number"
             android:padding="12dp"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp" />
@@ -127,7 +127,7 @@
             android:hint="Enter maximum number of guests"
             android:inputType="number"
             android:padding="12dp"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp" />
@@ -148,7 +148,6 @@
             android:id="@+id/bedTypesListView"
             android:layout_width="match_parent"
             android:layout_height="150dp"
-            android:background="#FFFFFF"
             android:elevation="2dp"
             android:layout_marginBottom="16dp" />
 
@@ -163,7 +162,7 @@
             android:id="@+id/checkInTimeSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:padding="8dp"
             android:layout_marginBottom="16dp" />
@@ -179,7 +178,7 @@
             android:id="@+id/checkOutTimeSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FFFFFF"
+            android:background="@drawable/bg_text_round"
             android:elevation="2dp"
             android:padding="8dp"
             android:layout_marginBottom="16dp" />
@@ -204,7 +203,6 @@
             android:verticalSpacing="8dp"
             android:horizontalSpacing="8dp"
             android:layout_marginBottom="16dp"
-            android:background="#FFFFFF"
             android:elevation="2dp" />
 
         <!-- Save Property -->
