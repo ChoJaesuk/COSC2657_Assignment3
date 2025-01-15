@@ -3,6 +3,7 @@ package com.example.chillpoint.views.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,8 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.chillpoint.R;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     private FirebaseFirestore firestore;
+    private FirebaseFunctions mFunctions;
     private String verificationId;
     private String userId;
 
@@ -51,8 +53,10 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         rejectButton = findViewById(R.id.rejectButton);
         progressBar = findViewById(R.id.progressBar);
 
-        // Initialize Firebase Firestore
+        // Initialize Firebase instances
         firestore = FirebaseFirestore.getInstance();
+        mFunctions = FirebaseFunctions.getInstance();
+
         verificationId = getIntent().getStringExtra("verificationId");
 
         // Load verification details
@@ -61,6 +65,9 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         // Set listeners for approve and reject buttons
         approveButton.setOnClickListener(v -> updateVerificationStatus("Approved"));
         rejectButton.setOnClickListener(v -> updateVerificationStatus("Rejected"));
+
+        // Retrieve and save FCM token
+        fetchAndSaveFCMToken();
     }
 
     private void loadVerificationDetails() {
@@ -167,40 +174,54 @@ public class HostVerificationDetailsActivity extends AppCompatActivity {
         String title = "Host Verification " + status;
         String message = "Your host verification request has been " + status.toLowerCase() + ".";
 
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("userId", userId);
-        notification.put("title", title);
-        notification.put("message", message);
-        notification.put("timestamp", new Date());
-        notification.put("isRead", false);
-
-        // Save notification to Firestore
-        firestore.collection("Notifications").add(notification)
-                .addOnSuccessListener(documentReference -> {
-                    // Send real-time notification
-                    sendRealTimeNotification(title, message);
-                    Toast.makeText(this, "Notification sent to user.", Toast.LENGTH_SHORT).show();
+        firestore.collection("Users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    String userToken = documentSnapshot.getString("fcmToken");
+                    if (userToken != null) {
+                        sendNotificationToUser(userToken, title, message);
+                    } else {
+                        Log.e("Notification", "User token not found");
+                    }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to save notification: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Log.e("Notification", "Error fetching user token", e));
     }
 
-    private void sendRealTimeNotification(String title, String message) {
-        // Use Firebase Cloud Messaging to send a message to the user
-        Map<String, String> payload = new HashMap<>();
-        payload.put("title", title);
-        payload.put("message", message);
+    private void sendNotificationToUser(String userToken, String title, String body) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("to", userToken);
+        data.put("notification", new HashMap<String, String>() {{
+            put("title", title);
+            put("body", body);
+        }});
 
-        firestore.collection("FCMUsers").document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String userToken = documentSnapshot.getString("fcmToken");
-                        if (userToken != null) {
-                            FirebaseMessaging.getInstance().send(new RemoteMessage.Builder(userToken)
-                                    .setData(payload)
-                                    .build());
-                        }
+        mFunctions.getHttpsCallable("sendNotification")
+                .call(data)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("Notification", "Notification sent successfully.");
+                    } else {
+                        Log.e("Notification", "Error sending notification", task.getException());
                     }
                 });
     }
-}
 
+    private void fetchAndSaveFCMToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+
+                    String token = task.getResult();
+                    Log.d("FCM", "FCM Token: " + token);
+
+                    firestore.collection("Users")
+                            .document(userId)
+                            .update("fcmToken", token)
+                            .addOnSuccessListener(aVoid -> Log.d("FCM", "Token saved successfully"))
+                            .addOnFailureListener(e -> Log.e("FCM", "Error saving token", e));
+                });
+    }
+}

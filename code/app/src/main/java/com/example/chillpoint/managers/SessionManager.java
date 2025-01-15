@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 public class SessionManager {
     private static final String PREF_NAME = "ChillPointSession";
     private static final String KEY_USER_ID = "userId";
@@ -15,6 +18,9 @@ public class SessionManager {
     private static final String KEY_EMAIL = "email";
     private static final String KEY_PHONE = "phone";
     private static final String KEY_BIO = "bio";
+
+    // **FCM 관련 필드**
+    private static final String KEY_FCM_TOKEN = "fcmToken";
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -31,6 +37,36 @@ public class SessionManager {
         editor.putString(KEY_USERNAME, username);
         editor.putString(KEY_USER_IMAGE, imageUrl);
         editor.apply();
+    }
+
+    public void saveUserToken(String userId) {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String fcmToken = task.getResult();
+                        FirebaseFirestore.getInstance().collection("FCMUsers")
+                                .document(userId)
+                                .update("fcmToken", fcmToken)
+                                .addOnSuccessListener(aVoid -> Log.d("FCM", "Token saved successfully."))
+                                .addOnFailureListener(e -> Log.e("FCM", "Failed to save token: " + e.getMessage()));
+
+                        // FCM 토큰을 SharedPreferences에 저장
+                        saveFcmToken(fcmToken);
+                    } else {
+                        Log.e("FCM", "Failed to fetch FCM token", task.getException());
+                    }
+                });
+    }
+
+    // **새로운 메서드**: FCM 토큰 저장
+    public void saveFcmToken(String token) {
+        editor.putString(KEY_FCM_TOKEN, token);
+        editor.apply();
+    }
+
+    // **새로운 메서드**: 저장된 FCM 토큰 가져오기
+    public String getFcmToken() {
+        return sharedPreferences.getString(KEY_FCM_TOKEN, null);
     }
 
     // 새로운 메서드: 이메일, 전화번호, 바이오 추가 저장
