@@ -4,15 +4,20 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <view class="androidx.appcompat.app.AlertController$RecycleListView"
+
+        <!-- Replace problematic AlertController$RecycleListView with RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/reviewsRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </view>
+            android:layout_height="wrap_content" />
+
     </ScrollView>
+
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
@@ -23,6 +28,5 @@
         app:menu="@menu/bottom_navigation_menu"
         app:itemIconTint="@color/black"
         app:itemTextColor="@color/black"
-        android:layout_alignParentBottom="true"/>
+        android:layout_alignParentBottom="true" />
 </RelativeLayout>
-
