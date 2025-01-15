@@ -560,8 +560,7 @@
         android:layout_height="match_parent"
         android:background="#F0FFFF"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone"> <!-- Light cyan background -->
+        android:padding="16dp"> <!-- Light cyan background -->
 
         <!-- Title -->
         <TextView
