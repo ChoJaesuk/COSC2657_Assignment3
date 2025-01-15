@@ -1,50 +1,74 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:padding="16dp"
     android:background="@color/custom_background">
 
-    <!-- Buttons for Create and Delete -->
-    <LinearLayout
+    <ScrollView
+        android:layout_above="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="16dp">
+        android:layout_height="match_parent">
 
-        <!-- Create Property Button -->
-        <Button
-            android:id="@+id/createPropertyButton"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Create Property"
-            android:textSize="16sp"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:padding="10dp" />
+            android:padding="16dp">
+            <!-- Buttons for Create and Delete -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
 
-        <!-- Delete Property Button -->
+                <!-- Create Property Button -->
+                <Button
+                    android:id="@+id/createPropertyButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Create Property"
+                    android:textSize="16sp"
+                    style="@style/BlueButton"
+                    app:backgroundTint="@null"
+                    android:padding="10dp" />
 
-    </LinearLayout>
+                <!-- Delete Property Button -->
 
-    <!-- RecyclerView for Properties -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/propertyRecyclerView"
+            </LinearLayout>
+
+            <!-- RecyclerView for Properties -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/propertyRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="16dp"
+                android:background="#FFFFFF"
+                android:padding="8dp" />
+
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp"
-        android:background="#FFFFFF"
-        android:padding="8dp" />
-
-    <!-- Progress Bar -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
-</LinearLayout>
+        android:layout_gravity="bottom"
+        android:background="@color/dark_blue"
+        app:menu="@menu/bottom_navigation_menu"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black"
+        android:layout_alignParentBottom="true" />
+</RelativeLayout>

@@ -1,64 +1,70 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp"
     android:background="@color/custom_background">
 
-    <LinearLayout
+    <ScrollView
+        android:layout_above="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <!-- Info Section -->
-        <TextView
-            android:id="@+id/infoTextView"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:padding="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Host Verification"
-            android:textSize="24sp"
-            android:textColor="#000000"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/instructionsTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="To become a host, please upload a photo of your ID. After submitting, an admin will review your application."
-            android:textSize="16sp"
-            android:textColor="#000000"
-            android:layout_marginBottom="16dp" />
+            <!-- Info Section -->
+            <TextView
+                android:id="@+id/infoTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Host Verification"
+                android:textSize="24sp"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
-        <!-- Upload Images Button -->
-        <Button
-            android:id="@+id/uploadImageButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Upload Images"
-            android:textSize="16sp"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:layout_marginBottom="16dp" />
+            <TextView
+                android:id="@+id/instructionsTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="To become a host, please upload a photo of your ID. After submitting, an admin will review your application."
+                android:textSize="16sp"
+                android:textColor="#000000"
+                android:layout_marginBottom="16dp" />
 
-        <!-- Image Grid -->
-        <GridView
-            android:id="@+id/imageGridView"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:numColumns="3"
-            android:horizontalSpacing="8dp"
-            android:verticalSpacing="8dp" />
+            <!-- Upload Images Button -->
+            <Button
+                android:id="@+id/uploadImageButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Images"
+                android:textSize="16sp"
+                style="@style/BlueButton"
+                app:backgroundTint="@null"
+                android:layout_marginBottom="16dp" />
 
-        <!-- Submit Button -->
-        <Button
-            android:id="@+id/submitButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Submit Verification"
-            android:textSize="16sp"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:layout_marginTop="16dp" />
-    </LinearLayout>
-</ScrollView>
+            <!-- Image Grid -->
+            <GridView
+                android:id="@+id/imageGridView"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:numColumns="3"
+                android:horizontalSpacing="8dp"
+                android:verticalSpacing="8dp" />
+
+            <!-- Submit Button -->
+            <Button
+                android:id="@+id/submitButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Submit Verification"
+                android:textSize="16sp"
+                style="@style/BlueButton"
+                app:backgroundTint="@null"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+
+    </ScrollView>
+</RelativeLayout>

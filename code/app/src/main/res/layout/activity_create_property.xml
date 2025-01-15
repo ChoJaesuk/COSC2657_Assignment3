@@ -1,238 +1,254 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp"
     android:background="@color/custom_background">
+    <ScrollView
+        android:layout_above="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center">
 
-    <LinearLayout
+            <!-- Property Name Input Field -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Property Name"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/nameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_text_round"
+                android:hint="Enter property name"
+                android:layout_marginTop="8dp" />
+
+            <!-- Description Input Field -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/descriptionEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_text_round"
+                android:hint="Enter a short description"
+                android:layout_marginTop="8dp" />
+
+            <!-- Address Input Field -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Address"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/addressEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_text_round"
+                android:hint="Enter property address"
+                android:layout_marginTop="8dp"
+                android:focusable="false" />
+            <Button
+                android:id="@+id/pickLocationButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pick Location from Map"
+                android:textSize="16sp"
+                style="@style/BlueButton"
+                app:backgroundTint="@null"
+                android:layout_marginTop="15dp" />
+
+            <!-- Price Per Night Input Field -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Price Per Night"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/priceEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_text_round"
+                android:hint="Enter price per night"
+                android:inputType="numberDecimal"
+                android:layout_marginTop="8dp" />
+
+            <!-- Number of Rooms Input Field -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Number of Rooms"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/roomsEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_text_round"
+                android:hint="Enter number of rooms"
+                android:inputType="number"
+                android:layout_marginTop="8dp" />
+
+            <!-- [주석 처리됨] Number of Beds Input Field -->
+            <!--
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Number of Beds"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+
+            <EditText
+                android:id="@+id/numOfBedsEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter number of beds"
+                android:inputType="number"
+                android:layout_marginTop="8dp" />
+            -->
+
+            <!-- [주석 처리됨] Bed Type Spinner -->
+            <!--
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bed Type"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+
+            <Spinner
+                android:id="@+id/bedTypeSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+            -->
+
+            <!-- Add Bed Type Button -->
+            <Button
+                android:id="@+id/addBedTypeButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Bed Type"
+                android:textSize="16sp"
+                style="@style/BlueButton"
+                app:backgroundTint="@null"
+                android:layout_marginTop="16dp" />
+
+            <!-- [새로 추가됨] 추가된 BedType들을 표시할 ListView -->
+            <ListView
+                android:id="@+id/bedTypesListView"
+                android:layout_width="match_parent"
+                android:layout_height="182dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- Max Number of Guests Input Field -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Maximum Number of Guests"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/maxGuestsEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_text_round"
+                android:hint="Enter maximum guests"
+                android:inputType="number"
+                android:layout_marginTop="8dp" />
+
+            <!-- Check-in Time Spinner -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Check-in Time"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <Spinner
+                android:id="@+id/checkInTimeSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <!-- Check-out Time Spinner -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Check-out Time"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+            <Spinner
+                android:id="@+id/checkOutTimeSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <!-- Upload Images Button -->
+            <Button
+                android:id="@+id/uploadImagesButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/BlueButton"
+                app:backgroundTint="@null"
+                android:text="Upload Images"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+
+            <!-- Images Grid View -->
+            <GridView
+                android:id="@+id/imagesGridView"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="16dp"
+                android:numColumns="3"
+                android:verticalSpacing="8dp"
+                android:horizontalSpacing="8dp" />
+
+            <!-- Save Property Button -->
+            <Button
+                android:id="@+id/savePropertyButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Save Property"
+                android:textSize="16sp"
+                style="@style/BlueButton"
+                app:backgroundTint="@null"
+                android:layout_marginTop="16dp" />
+
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center">
-
-        <!-- Property Name Input Field -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Property Name"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <EditText
-            android:id="@+id/nameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_text_round"
-            android:hint="Enter property name"
-            android:layout_marginTop="8dp" />
-
-        <!-- Description Input Field -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Description"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <EditText
-            android:id="@+id/descriptionEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_text_round"
-            android:hint="Enter a short description"
-            android:layout_marginTop="8dp" />
-
-        <!-- Address Input Field -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Address"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <EditText
-            android:id="@+id/addressEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_text_round"
-            android:hint="Enter property address"
-            android:layout_marginTop="8dp"
-            android:focusable="false" />
-        <Button
-            android:id="@+id/pickLocationButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pick Location from Map"
-            android:textSize="16sp"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:layout_marginTop="15dp" />
-
-        <!-- Price Per Night Input Field -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Price Per Night"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <EditText
-            android:id="@+id/priceEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_text_round"
-            android:hint="Enter price per night"
-            android:inputType="numberDecimal"
-            android:layout_marginTop="8dp" />
-
-        <!-- Number of Rooms Input Field -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Number of Rooms"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <EditText
-            android:id="@+id/roomsEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_text_round"
-            android:hint="Enter number of rooms"
-            android:inputType="number"
-            android:layout_marginTop="8dp" />
-
-        <!-- [주석 처리됨] Number of Beds Input Field -->
-        <!--
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Number of Beds"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-
-        <EditText
-            android:id="@+id/numOfBedsEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter number of beds"
-            android:inputType="number"
-            android:layout_marginTop="8dp" />
-        -->
-
-        <!-- [주석 처리됨] Bed Type Spinner -->
-        <!--
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Bed Type"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-
-        <Spinner
-            android:id="@+id/bedTypeSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" />
-        -->
-
-        <!-- Add Bed Type Button -->
-        <Button
-            android:id="@+id/addBedTypeButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Add Bed Type"
-            android:textSize="16sp"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:layout_marginTop="16dp" />
-
-        <!-- [새로 추가됨] 추가된 BedType들을 표시할 ListView -->
-        <ListView
-            android:id="@+id/bedTypesListView"
-            android:layout_width="match_parent"
-            android:layout_height="182dp"
-            android:layout_marginTop="8dp" />
-
-        <!-- Max Number of Guests Input Field -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Maximum Number of Guests"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <EditText
-            android:id="@+id/maxGuestsEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_text_round"
-            android:hint="Enter maximum guests"
-            android:inputType="number"
-            android:layout_marginTop="8dp" />
-
-        <!-- Check-in Time Spinner -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Check-in Time"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <Spinner
-            android:id="@+id/checkInTimeSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" />
-
-        <!-- Check-out Time Spinner -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Check-out Time"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-        <Spinner
-            android:id="@+id/checkOutTimeSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" />
-
-        <!-- Upload Images Button -->
-        <Button
-            android:id="@+id/uploadImagesButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:text="Upload Images"
-            android:textSize="16sp"
-            android:layout_marginTop="16dp" />
-
-        <!-- Images Grid View -->
-        <GridView
-            android:id="@+id/imagesGridView"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="16dp"
-            android:numColumns="3"
-            android:verticalSpacing="8dp"
-            android:horizontalSpacing="8dp" />
-
-        <!-- Save Property Button -->
-        <Button
-            android:id="@+id/savePropertyButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Property"
-            android:textSize="16sp"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:layout_marginTop="16dp" />
-
-        <!-- Progress Bar -->
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            android:layout_marginTop="16dp" />
-
-    </LinearLayout>
-</ScrollView>
+        android:layout_gravity="bottom"
+        android:background="@color/dark_blue"
+        app:menu="@menu/bottom_navigation_menu"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black"
+        android:layout_alignParentBottom="true" />
+</RelativeLayout>

@@ -1,100 +1,116 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ScrollView
+        android:layout_above="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <LinearLayout
+            <ImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/defaultavatar" />
+
+            <Button
+                android:id="@+id/changeImageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                style="@style/BlueButton"
+                app:backgroundTint="@null"
+                android:text="Change Image" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Full Name"
+                android:layout_marginTop="16dp" />
+
+            <EditText
+                android:id="@+id/fullNameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter your full name" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/usernameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter your username" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Email"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter your email"
+                android:inputType="textEmailAddress" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Phone"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/phoneEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter your phone number"
+                android:inputType="phone" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bio"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/bioEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter a short bio" />
+
+            <Button
+                android:id="@+id/saveButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:backgroundTint="@null"
+                style="@style/GreenButton"
+                android:text="Save" />
+        </LinearLayout>
+
+    </ScrollView>
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <ImageView
-            android:id="@+id/profileImageView"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="16dp"
-            android:src="@drawable/defaultavatar" />
-
-        <Button
-            android:id="@+id/changeImageButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            style="@style/BlueButton"
-            app:backgroundTint="@null"
-            android:text="Change Image" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Full Name"
-            android:layout_marginTop="16dp" />
-
-        <EditText
-            android:id="@+id/fullNameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter your full name" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Username"
-            android:layout_marginTop="8dp" />
-
-        <EditText
-            android:id="@+id/usernameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter your username" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Email"
-            android:layout_marginTop="8dp" />
-
-        <EditText
-            android:id="@+id/emailEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter your email"
-            android:inputType="textEmailAddress" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Phone"
-            android:layout_marginTop="8dp" />
-
-        <EditText
-            android:id="@+id/phoneEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter your phone number"
-            android:inputType="phone" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Bio"
-            android:layout_marginTop="8dp" />
-
-        <EditText
-            android:id="@+id/bioEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter a short bio" />
-
-        <Button
-            android:id="@+id/saveButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:backgroundTint="@null"
-            style="@style/GreenButton"
-            android:text="Save" />
-    </LinearLayout>
-</ScrollView>
+        android:layout_gravity="bottom"
+        android:background="@color/dark_blue"
+        app:menu="@menu/bottom_navigation_menu"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black"
+        android:layout_alignParentBottom="true" />
+</RelativeLayout>
