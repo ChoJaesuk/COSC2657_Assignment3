@@ -53,6 +53,7 @@ public class HostVerificationActivity extends BaseActivity implements Navigation
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_host_verification);
+        setupNavigationBar();
 
         // Initialize Firebase instances
         auth = FirebaseAuth.getInstance();

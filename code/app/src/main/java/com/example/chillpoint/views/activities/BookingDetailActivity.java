@@ -61,6 +61,7 @@ public class BookingDetailActivity extends BaseActivity implements NavigationSet
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_booking_detail);
+        setupNavigationBar();
         // Firestore 초기화
         firestore = FirebaseFirestore.getInstance();
         sessionManager = new SessionManager(this);

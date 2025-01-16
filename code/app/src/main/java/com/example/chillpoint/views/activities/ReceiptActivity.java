@@ -72,7 +72,7 @@ public class ReceiptActivity extends BaseActivity implements ReceiptAdapter.OnRe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receipt);
-
+        setupNavigationBar();
         sessionManager = new SessionManager(this);
         // Initialize Stripe Payment configuration
         PaymentConfiguration.init(this, PublishableKey);

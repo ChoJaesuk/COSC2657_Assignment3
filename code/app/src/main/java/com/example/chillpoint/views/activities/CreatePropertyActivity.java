@@ -81,6 +81,7 @@ public class CreatePropertyActivity extends BaseActivity implements NavigationSe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_property);
+        setupNavigationBar();
 
         // Initialize UI components
         nameEditText = findViewById(R.id.nameEditText);

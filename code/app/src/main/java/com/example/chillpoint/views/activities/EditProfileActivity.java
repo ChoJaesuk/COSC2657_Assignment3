@@ -55,6 +55,7 @@ public class EditProfileActivity extends BaseActivity implements NavigationSetup
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
+        setupNavigationBar();
 
         sessionManager = new SessionManager(this);
         firestore = FirebaseFirestore.getInstance();

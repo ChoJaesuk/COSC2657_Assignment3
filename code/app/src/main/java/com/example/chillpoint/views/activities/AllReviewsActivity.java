@@ -30,6 +30,7 @@ public class AllReviewsActivity extends BaseActivity implements NavigationSetup 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_reviews);
+        setupNavigationBar();
 
         // Initialize Firestore
         firestore = FirebaseFirestore.getInstance();

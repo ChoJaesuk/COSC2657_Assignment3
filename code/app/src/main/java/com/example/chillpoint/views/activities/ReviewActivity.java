@@ -29,6 +29,7 @@ public class ReviewActivity extends BaseActivity implements NavigationSetup {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_review);
+        setupNavigationBar();
 
         // Initialize views
         ratingBar = findViewById(R.id.reviewRatingBar);
