@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    android:background="@color/custom_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".views.activities.ReceiptActivity">
@@ -38,182 +39,183 @@
     </ScrollView>
 
     <LinearLayout
-        android:layout_above="@+id/bottom_navigation"
         android:id="@+id/receiptDetailsLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_navigation"
+        android:background="@color/custom_background"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@color/alice_blue">
+        android:padding="16dp">
+
         <ImageButton
             android:id="@+id/closeButton"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:background="@drawable/ic_link_close"
-            android:contentDescription="Close"
+            android:layout_gravity="end"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="4dp"
+            android:background="@drawable/ic_link_close"
             android:backgroundTint="@color/red"
-            android:layout_gravity="end"/>
+            android:contentDescription="Close" />
 
         <!-- Receipt Header -->
         <TextView
             android:id="@+id/receiptTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Receipt Details"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
             android:gravity="center"
-            android:paddingBottom="16dp" />
+            android:paddingBottom="16dp"
+            android:text="Receipt Details"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@android:color/darker_gray"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:background="@android:color/darker_gray" />
 
         <!-- Receipt ID -->
         <TextView
             android:id="@+id/receiptId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
             android:text="Receipt ID: 123456"
-            android:textSize="16sp"
-            android:textStyle="bold"
             android:textColor="@android:color/black"
-            android:paddingBottom="8dp" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <!-- Property ID -->
         <TextView
             android:id="@+id/propertyId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
             android:text="Property ID: PROP789"
-            android:textSize="14sp"
             android:textColor="@android:color/black"
-            android:paddingBottom="8dp" />
+            android:textSize="14sp" />
 
         <!-- Payer Info -->
         <TextView
             android:id="@+id/payerInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
             android:text="Payer Information"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Name: John Doe"
-            android:textSize="14sp"
             android:paddingBottom="4dp"
-            android:textColor="@android:color/black" />
+            android:text="Name: John Doe"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Email: john.doe@example.com"
-            android:textSize="14sp"
             android:paddingBottom="4dp"
-            android:textColor="@android:color/black" />
+            android:text="Email: john.doe@example.com"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/phoneNumber"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Phone: +123456789"
-            android:textSize="14sp"
             android:paddingBottom="4dp"
-            android:textColor="@android:color/black" />
+            android:text="Phone: +123456789"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
         <!-- Address -->
         <TextView
             android:id="@+id/addressHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
             android:text="Address"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="123 Main Street, CityName, Country"
-            android:textSize="14sp"
             android:paddingBottom="8dp"
-            android:textColor="@android:color/black" />
+            android:text="123 Main Street, CityName, Country"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
         <!-- Payment Info -->
         <TextView
             android:id="@+id/paymentHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
             android:text="Payment Information"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/numberOfPayers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Number of Payers: 1"
-            android:textSize="14sp"
             android:paddingBottom="4dp"
-            android:textColor="@android:color/black" />
+            android:text="Number of Payers: 1"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/totalAmount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Total Amount: $150.00"
-            android:textSize="14sp"
             android:paddingBottom="4dp"
-            android:textColor="@android:color/holo_green_dark" />
+            android:text="Total Amount: $150.00"
+            android:textColor="@android:color/holo_green_dark"
+            android:textSize="14sp" />
 
         <!-- Status -->
         <TextView
             android:id="@+id/status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Status: Pending"
-            android:textSize="14sp"
             android:paddingBottom="4dp"
-            android:textColor="@android:color/holo_orange_dark" />
+            android:text="Status: Pending"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="14sp" />
 
         <!-- Bill ID -->
         <TextView
             android:id="@+id/billId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Bill ID: BILL123"
-            android:textSize="14sp"
             android:paddingBottom="8dp"
-            android:textColor="@android:color/black" />
+            android:text="Bill ID: BILL123"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/bookNowButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pay Now"/>
+            android:text="Pay Now" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_above="@id/bottom_navigation"
         android:id="@+id/paymentMethodLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/bottom_navigation"
         android:background="#F0FFFF"
         android:orientation="vertical"
         android:padding="16dp"> <!-- Light cyan background -->

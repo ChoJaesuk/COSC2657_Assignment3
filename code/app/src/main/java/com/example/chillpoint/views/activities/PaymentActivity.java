@@ -59,7 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class PaymentActivity extends BaseActivity implements NavigationSetup {
+public class PaymentActivity extends BaseActivity {
     private LinearLayout paymentLinearLayout, billSplitLinearLayout, bookingSummaryLinearLayout, paymentMethodLinearLayout, emailContainer;
     private RadioGroup splitBillRadioGroup,titleRadioGroup;
     private RadioButton yesRadioButton, noRadioButton;
@@ -918,17 +918,5 @@ public class PaymentActivity extends BaseActivity implements NavigationSetup {
                     }
                 })
                 .addOnFailureListener(e -> Log.e("PaymentActivity", "Failed to fetch user info: " + e.getMessage()));
-    }
-
-    @Override
-    public void setupNavigationBar() {
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setSelectedItemId(R.id.nav_trips);
-        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
-    }
-
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-        super.onPointerCaptureChanged(hasCapture);
     }
 }
