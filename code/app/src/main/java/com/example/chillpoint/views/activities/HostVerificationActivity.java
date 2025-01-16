@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-public class HostVerificationActivity extends BaseActivity implements NavigationSetup {
+public class HostVerificationActivity extends AppCompatActivity {
 
     private static final String TAG = "HostVerification";
 
@@ -208,15 +208,5 @@ public class HostVerificationActivity extends BaseActivity implements Navigation
             this.adminNote = adminNote;
         }
     }
-    @Override
-    public void setupNavigationBar() {
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setSelectedItemId(R.id.nav_profile);
-        NavigationUtils.handleBottomNavigation(this, bottomNavigationView);
-    }
 
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-        super.onPointerCaptureChanged(hasCapture);
-    }
 }
